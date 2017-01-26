@@ -24,11 +24,11 @@ import org.elasticsearch.index.IndexNotFoundException;
 import io.personium.common.es.impl.EsIndexImpl;
 import io.personium.common.es.impl.EsTypeImpl;
 import io.personium.common.es.impl.InternalEsClient;
-import io.personium.common.es.response.DcIndicesStatusResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.response.PersoniumIndicesStatusResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.impl.DcIndicesStatusResponseImpl;
-import io.personium.common.es.response.impl.DcSearchResponseImpl;
+import io.personium.common.es.response.impl.PersoniumIndicesStatusResponseImpl;
+import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 import io.personium.common.es.util.IndexNameEncoder;
 
 
@@ -190,8 +190,8 @@ public class EsClient {
      * インデックスステータスを取得する.
      * @return インデックスステータス
      */
-    public DcIndicesStatusResponse indicesStatus() {
-        return DcIndicesStatusResponseImpl.getInstance(internalClient.indicesStatus().actionGet());
+    public PersoniumIndicesStatusResponse indicesStatus() {
+        return PersoniumIndicesStatusResponseImpl.getInstance(internalClient.indicesStatus().actionGet());
     }
 
     /**
@@ -201,9 +201,9 @@ public class EsClient {
      * @param query 検索クエリ
      * @return 検索結果
      */
-    public DcSearchResponse scrollSearch(String index, String type, Map<String, Object> query) {
+    public PersoniumSearchResponse scrollSearch(String index, String type, Map<String, Object> query) {
         try {
-            return DcSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(index, type, query).actionGet());
+            return PersoniumSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(index, type, query).actionGet());
         } catch (IndexNotFoundException e) {
             throw new EsClientException.EsIndexMissingException(e);
         }
@@ -214,7 +214,7 @@ public class EsClient {
      * @param scrollId スクロールID
      * @return 検索結果
      */
-    public DcSearchResponse scrollSearch(String scrollId) {
-        return DcSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(scrollId).actionGet());
+    public PersoniumSearchResponse scrollSearch(String scrollId) {
+        return PersoniumSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(scrollId).actionGet());
     }
 }

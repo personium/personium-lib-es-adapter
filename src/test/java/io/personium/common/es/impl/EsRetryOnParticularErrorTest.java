@@ -35,8 +35,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import io.personium.common.es.response.DcGetResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.response.PersoniumGetResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.EsClientException.DcSearchPhaseExecutionException;
 
@@ -62,7 +62,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esTypeObject)
                 .asyncGet(Mockito.anyString(), Mockito.anyBoolean());
         // メソッド呼び出し
-        DcGetResponse result = esTypeObject.get("dummyId", true);
+        PersoniumGetResponse result = esTypeObject.get("dummyId", true);
         assertNull(result);
     }
 
@@ -81,7 +81,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esTypeObject)
                 .asyncGet(Mockito.anyString(), Mockito.anyBoolean());
         // メソッド呼び出し
-        DcGetResponse result = esTypeObject.get("dummyId", true);
+        PersoniumGetResponse result = esTypeObject.get("dummyId", true);
         assertNull(result);
     }
 
@@ -197,7 +197,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esTypeObject)
                 .asyncSearch(Mockito.anyMapOf(String.class, Object.class));
         // メソッド呼び出し
-        DcSearchResponse result = esTypeObject.search(null);
+        PersoniumSearchResponse result = esTypeObject.search(null);
         assertTrue(result.isNullResponse());
     }
 
@@ -216,7 +216,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esTypeObject)
                 .asyncSearch(Mockito.anyMapOf(String.class, Object.class));
         // メソッド呼び出し
-        DcSearchResponse result = esTypeObject.search(null);
+        PersoniumSearchResponse result = esTypeObject.search(null);
         assertTrue(result.isNullResponse());
     }
 
@@ -398,7 +398,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esIndexObject)
                 .asyncIndexSearch(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class));
         // メソッド呼び出し
-        DcSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
+        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
         assertNull(result);
     }
 
@@ -417,7 +417,7 @@ public class EsRetryOnParticularErrorTest {
                 .when(esIndexObject)
                 .asyncIndexSearch(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class));
         // メソッド呼び出し
-        DcSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
+        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
         assertNull(result);
     }
 

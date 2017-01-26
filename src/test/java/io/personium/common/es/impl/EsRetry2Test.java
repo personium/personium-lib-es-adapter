@@ -44,7 +44,7 @@ import org.powermock.api.mockito.PowerMockito;
 import io.personium.common.es.EsClient;
 import io.personium.common.es.EsIndex;
 import io.personium.common.es.EsType;
-import io.personium.common.es.response.DcIndexResponse;
+import io.personium.common.es.response.PersoniumIndexResponse;
 import io.personium.common.es.response.EsClientException;
 
 /**
@@ -281,7 +281,7 @@ public class EsRetry2Test {
                     .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
                             Mockito.any(OpType.class), Mockito.anyLong());
             // メソッド呼び出し
-            DcIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
+            PersoniumIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
             assertNotNull(response);
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());
@@ -328,7 +328,7 @@ public class EsRetry2Test {
                     .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
                             Mockito.any(OpType.class), Mockito.anyLong());
             // メソッド呼び出し
-            DcIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
+            PersoniumIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
             assertNotNull(response);
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());

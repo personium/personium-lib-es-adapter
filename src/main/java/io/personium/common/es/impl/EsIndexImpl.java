@@ -45,14 +45,14 @@ import org.slf4j.LoggerFactory;
 
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsIndex;
-import io.personium.common.es.query.DcQueryBuilder;
-import io.personium.common.es.response.DcBulkResponse;
-import io.personium.common.es.response.DcMultiSearchResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.query.PersoniumQueryBuilder;
+import io.personium.common.es.response.PersoniumBulkResponse;
+import io.personium.common.es.response.PersoniumMultiSearchResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.impl.DcBulkResponseImpl;
-import io.personium.common.es.response.impl.DcMultiSearchResponseImpl;
-import io.personium.common.es.response.impl.DcSearchResponseImpl;
+import io.personium.common.es.response.impl.PersoniumBulkResponseImpl;
+import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
+import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 
 /**
  * Index 操作用 Class.
@@ -129,45 +129,45 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     }
 
     @Override
-    public DcSearchResponse search(String routingId, final Map<String, Object> query) {
+    public PersoniumSearchResponse search(String routingId, final Map<String, Object> query) {
         SearchWithMapRetryableRequest request = new SearchWithMapRetryableRequest(retryCount, retryInterval, routingId,
                 query);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcSearchResponseImpl.getInstance(request.doRequest());
+        return PersoniumSearchResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcSearchResponse search(String routingId, final DcQueryBuilder query) {
+    public PersoniumSearchResponse search(String routingId, final PersoniumQueryBuilder query) {
         SearchRetryableRequest request = new SearchRetryableRequest(retryCount, retryInterval, routingId,
                 getQueryBuilder(query));
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcSearchResponseImpl.getInstance(request.doRequest());
+        return PersoniumSearchResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcMultiSearchResponse multiSearch(String routingId, final List<Map<String, Object>> queryList) {
+    public PersoniumMultiSearchResponse multiSearch(String routingId, final List<Map<String, Object>> queryList) {
         MultiSearchRetryableRequest request =
                 new MultiSearchRetryableRequest(retryCount, retryInterval, routingId, queryList);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcMultiSearchResponseImpl.getInstance(request.doRequest());
+        return PersoniumMultiSearchResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public void deleteByQuery(String routingId, DcQueryBuilder queryBuilder) {
+    public void deleteByQuery(String routingId, PersoniumQueryBuilder queryBuilder) {
         QueryBuilder deleteQuery = getQueryBuilder(queryBuilder);
         DeleteByQueryRetryableRequest request = new DeleteByQueryRetryableRequest(retryCount, retryInterval,
                 this.name, deleteQuery);
         request.doRequest();
 
         // 削除クエリと同一の検索を実行して、全件削除されていることを確認する
-        DcSearchResponse response = this.search(routingId, queryBuilder);
+        PersoniumSearchResponse response = this.search(routingId, queryBuilder);
         long failedCount = response.getHits().getAllPages();
         if (failedCount != 0) {
             throw new EsClientException.EsDeleteByQueryException(failedCount);
         }
     }
 
-    private QueryBuilder getQueryBuilder(DcQueryBuilder dcQueryBuilder) {
+    private QueryBuilder getQueryBuilder(PersoniumQueryBuilder dcQueryBuilder) {
         QueryBuilder queryBuilder = null;
         if (dcQueryBuilder != null) {
             queryBuilder = dcQueryBuilder.getQueryBuilder();
@@ -179,11 +179,11 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     }
 
     @Override
-    public DcBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog) {
+    public PersoniumBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog) {
         BulkRetryableRequest request = new BulkRetryableRequest(retryCount, retryInterval,
                 this.name, routingId, datas, isWriteLog);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcBulkResponseImpl.getInstance(request.doRequest());
+        return PersoniumBulkResponseImpl.getInstance(request.doRequest());
     }
 
     /**

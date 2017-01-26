@@ -57,13 +57,13 @@ import io.personium.common.es.EsType;
 import io.personium.common.es.impl.EsIndexImpl;
 import io.personium.common.es.impl.EsTypeImpl;
 import io.personium.common.es.impl.InternalEsClient;
-import io.personium.common.es.query.DcQueryBuilder;
-import io.personium.common.es.query.DcQueryBuilders;
-import io.personium.common.es.response.DcDeleteResponse;
-import io.personium.common.es.response.DcGetResponse;
-import io.personium.common.es.response.DcIndexResponse;
-import io.personium.common.es.response.DcPutMappingResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.query.PersoniumQueryBuilder;
+import io.personium.common.es.query.PersoniumQueryBuilders;
+import io.personium.common.es.response.PersoniumDeleteResponse;
+import io.personium.common.es.response.PersoniumGetResponse;
+import io.personium.common.es.response.PersoniumIndexResponse;
+import io.personium.common.es.response.PersoniumPutMappingResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
 
 /**
@@ -212,7 +212,7 @@ public class EsRetryTest {
         Map<String, Object> matchAll = new HashMap<String, Object>();
         matchAll.put("match_all", new HashMap<String, Object>());
         query.put("query", matchAll);
-        DcSearchResponse sResponse = type.search(query);
+        PersoniumSearchResponse sResponse = type.search(query);
         assertEquals(1, sResponse.getHits().getCount());
     }
 
@@ -232,7 +232,7 @@ public class EsRetryTest {
         Map<String, Object> matchAll = new HashMap<String, Object>();
         matchAll.put("match_all", new HashMap<String, Object>());
         query.put("query", matchAll);
-        DcSearchResponse sResponse = type.search(query);
+        PersoniumSearchResponse sResponse = type.search(query);
         assertEquals(1, sResponse.getHits().getCount());
     }
 
@@ -274,7 +274,7 @@ public class EsRetryTest {
 
         EsType type = createEsTypeInstanceForSuccess(4);
         assertNotNull(type);
-        DcIndexResponse iResponse = type.create("id00001", new HashMap<Object, Object>());
+        PersoniumIndexResponse iResponse = type.create("id00001", new HashMap<Object, Object>());
 
         assertEquals("id00001", iResponse.getId());
     }
@@ -289,7 +289,7 @@ public class EsRetryTest {
 
         EsType type = createEsTypeInstanceForSuccess(3);
         assertNotNull(type);
-        DcIndexResponse iResponse = type.create("id00001", new HashMap<Object, Object>());
+        PersoniumIndexResponse iResponse = type.create("id00001", new HashMap<Object, Object>());
 
         assertEquals("id00001", iResponse.getId());
     }
@@ -334,7 +334,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(4);
-        DcIndexResponse iResponse = type.update("id00001", new HashMap<String, Object>());
+        PersoniumIndexResponse iResponse = type.update("id00001", new HashMap<String, Object>());
         assertEquals("id00001", iResponse.getId());
     }
 
@@ -350,7 +350,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(3);
-        DcIndexResponse iResponse = type.update("id00001", new HashMap<String, Object>());
+        PersoniumIndexResponse iResponse = type.update("id00001", new HashMap<String, Object>());
         assertEquals("id00001", iResponse.getId());
     }
 
@@ -394,7 +394,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(4);
-        DcDeleteResponse dResponse = type.delete("id00001", 1);
+        PersoniumDeleteResponse dResponse = type.delete("id00001", 1);
         assertEquals("id00001", dResponse.getId());
     }
 
@@ -410,7 +410,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(3);
-        DcDeleteResponse dResponse = type.delete("id00001", 1);
+        PersoniumDeleteResponse dResponse = type.delete("id00001", 1);
         assertEquals("id00001", dResponse.getId());
     }
 
@@ -454,7 +454,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(4);
-        DcGetResponse response = type.get("id00001");
+        PersoniumGetResponse response = type.get("id00001");
         assertEquals("TypeForTest", response.getType());
     }
 
@@ -470,7 +470,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         type = createEsTypeInstanceForSuccess(3);
-        DcGetResponse response = type.get("id00001");
+        PersoniumGetResponse response = type.get("id00001");
         assertEquals("TypeForTest", response.getType());
         // assertEquals("index_for_test", response.getIndex());
     }
@@ -524,7 +524,7 @@ public class EsRetryTest {
         expected.put("properties", properties);
         putMap.put("TypeForTest", expected);
 
-        DcPutMappingResponse res = type.putMapping(putMap);
+        PersoniumPutMappingResponse res = type.putMapping(putMap);
         assertNotNull(res);
     }
 
@@ -550,7 +550,7 @@ public class EsRetryTest {
         expected.put("properties", properties);
         putMap.put("TypeForTest", expected);
 
-        DcPutMappingResponse res = type.putMapping(putMap);
+        PersoniumPutMappingResponse res = type.putMapping(putMap);
         assertNotNull(res);
     }
 
@@ -644,7 +644,7 @@ public class EsRetryTest {
         Map<String, Object> matchAll = new HashMap<String, Object>();
         matchAll.put("match_all", new HashMap<String, Object>());
         query.put("query", matchAll);
-        DcSearchResponse sResponse = index.search("index_for_test", query);
+        PersoniumSearchResponse sResponse = index.search("index_for_test", query);
         assertEquals(1, sResponse.getHits().getCount());
     }
 
@@ -664,7 +664,7 @@ public class EsRetryTest {
         Map<String, Object> matchAll = new HashMap<String, Object>();
         matchAll.put("match_all", new HashMap<String, Object>());
         query.put("query", matchAll);
-        DcSearchResponse sResponse = index.search("index_for_test", query);
+        PersoniumSearchResponse sResponse = index.search("index_for_test", query);
         assertEquals(1, sResponse.getHits().getCount());
     }
 
@@ -760,7 +760,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<String, Object>());
 
         index = createEsIndexInstanceForSuccess(4);
-        DcQueryBuilder queryBuilder = DcQueryBuilders.matchQuery("_id", "id00001");
+        PersoniumQueryBuilder queryBuilder = PersoniumQueryBuilders.matchQuery("_id", "id00001");
 
         index.deleteByQuery("index_for_test", queryBuilder);
     }
@@ -777,7 +777,7 @@ public class EsRetryTest {
         type.create("id00001", new HashMap<Object, Object>());
 
         index = createEsIndexInstanceForSuccess(3);
-        DcQueryBuilder queryBuilder = DcQueryBuilders.matchQuery("_id", "id00001");
+        PersoniumQueryBuilder queryBuilder = PersoniumQueryBuilders.matchQuery("_id", "id00001");
         index.deleteByQuery("index_for_test", queryBuilder);
     }
 

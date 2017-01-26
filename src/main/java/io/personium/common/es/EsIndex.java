@@ -19,10 +19,10 @@ package io.personium.common.es;
 import java.util.List;
 import java.util.Map;
 
-import io.personium.common.es.query.DcQueryBuilder;
-import io.personium.common.es.response.DcBulkResponse;
-import io.personium.common.es.response.DcMultiSearchResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.query.PersoniumQueryBuilder;
+import io.personium.common.es.response.PersoniumBulkResponse;
+import io.personium.common.es.response.PersoniumMultiSearchResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 
 /**
  * Elasticsearch Index操作用のI/F.
@@ -69,7 +69,7 @@ public interface EsIndex {
      * @param query クエリ情報
      * @return ES応答
      */
-    DcSearchResponse search(String routingId, Map<String, Object> query);
+    PersoniumSearchResponse search(String routingId, Map<String, Object> query);
 
     /**
      * ドキュメントを検索.
@@ -77,7 +77,7 @@ public interface EsIndex {
      * @param query クエリ情報
      * @return ES応答
      */
-    DcSearchResponse search(String routingId, DcQueryBuilder query);
+    PersoniumSearchResponse search(String routingId, PersoniumQueryBuilder query);
 
     /**
      * ドキュメントをマルチ検索.
@@ -85,14 +85,14 @@ public interface EsIndex {
      * @param queryList クエリ情報一覧
      * @return ES応答
      */
-    DcMultiSearchResponse multiSearch(String routingId, List<Map<String, Object>> queryList);
+    PersoniumMultiSearchResponse multiSearch(String routingId, List<Map<String, Object>> queryList);
 
     /**
      * クエリ指定の一括削除機能.
      * @param routingId routingId
      * @param deleteQuery 削除対象を指定するクエリ
      */
-    void deleteByQuery(String routingId, DcQueryBuilder deleteQuery);
+    void deleteByQuery(String routingId, PersoniumQueryBuilder deleteQuery);
 
     /**
      * バルクでドキュメントを登録/更新/削除する.
@@ -101,7 +101,7 @@ public interface EsIndex {
      * @param isWriteLog リクエスト情報のログ出力有無
      * @return ES応答
      */
-    DcBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog);
+    PersoniumBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog);
 
     /**
      * インデックスの設定を更新する.

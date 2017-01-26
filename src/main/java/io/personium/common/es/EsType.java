@@ -19,13 +19,13 @@ package io.personium.common.es;
 import java.util.List;
 import java.util.Map;
 
-import io.personium.common.es.response.DcDeleteResponse;
-import io.personium.common.es.response.DcGetResponse;
-import io.personium.common.es.response.DcIndexResponse;
-import io.personium.common.es.response.DcMappingMetaData;
-import io.personium.common.es.response.DcMultiSearchResponse;
-import io.personium.common.es.response.DcPutMappingResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.response.PersoniumDeleteResponse;
+import io.personium.common.es.response.PersoniumGetResponse;
+import io.personium.common.es.response.PersoniumIndexResponse;
+import io.personium.common.es.response.PersoniumMappingMetaData;
+import io.personium.common.es.response.PersoniumMultiSearchResponse;
+import io.personium.common.es.response.PersoniumPutMappingResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 
 /**
  * Elasticsearch Type操作用のI/F.
@@ -49,7 +49,7 @@ public interface EsType {
      * @param id ドキュメントのID
      * @return 応答
      */
-    DcGetResponse get(String id);
+    PersoniumGetResponse get(String id);
 
     /**
      * ドキュメントの１件取得.
@@ -57,14 +57,14 @@ public interface EsType {
      * @param realtime リアルタイムモードなら真
      * @return 応答
      */
-    DcGetResponse get(String id, boolean realtime);
+    PersoniumGetResponse get(String id, boolean realtime);
 
     /**
      * ドキュメント新規作成.
      * @param data ドキュメント
      * @return ES応答
      */
-    DcIndexResponse create(@SuppressWarnings("rawtypes") Map data);
+    PersoniumIndexResponse create(@SuppressWarnings("rawtypes") Map data);
 
     /**
      * ドキュメント新規作成.
@@ -72,7 +72,7 @@ public interface EsType {
      * @param data ドキュメント
      * @return ES応答
      */
-    DcIndexResponse create(String id, @SuppressWarnings("rawtypes") Map data);
+    PersoniumIndexResponse create(String id, @SuppressWarnings("rawtypes") Map data);
 
     /**
      * ドキュメント更新.
@@ -81,7 +81,7 @@ public interface EsType {
      * @param version version番号
      * @return ES応答
      */
-    DcIndexResponse update(String id, @SuppressWarnings("rawtypes") Map data, long version);
+    PersoniumIndexResponse update(String id, @SuppressWarnings("rawtypes") Map data, long version);
 
     /**
      * ドキュメント更新.
@@ -89,28 +89,28 @@ public interface EsType {
      * @param data ドキュメント
      * @return ES応答
      */
-    DcIndexResponse update(String id, @SuppressWarnings("rawtypes") Map data);
+    PersoniumIndexResponse update(String id, @SuppressWarnings("rawtypes") Map data);
 
     /**
      * ドキュメントを検索.
      * @param query クエリ情報
      * @return ES応答
      */
-    DcSearchResponse search(Map<String, Object> query);
+    PersoniumSearchResponse search(Map<String, Object> query);
 
     /**
      * ドキュメントをマルチ検索.
      * @param queryList マルチ検索用のクエリ情報リスト
      * @return ES応答
      */
-    DcMultiSearchResponse multiSearch(List<Map<String, Object>> queryList);
+    PersoniumMultiSearchResponse multiSearch(List<Map<String, Object>> queryList);
 
     /**
      * Delete a document.
      * @param docId Document id to delete
      * @return 応答
      */
-    DcDeleteResponse delete(String docId);
+    PersoniumDeleteResponse delete(String docId);
 
     /**
      * Delete a document.
@@ -118,18 +118,18 @@ public interface EsType {
      * @param version The version of the document to delete
      * @return 応答
      */
-    DcDeleteResponse delete(String docId, long version);
+    PersoniumDeleteResponse delete(String docId, long version);
 
     /**
      * Mapping定義を取得する.
      * @return Mapping定義
      */
-    DcMappingMetaData getMapping();
+    PersoniumMappingMetaData getMapping();
 
     /**
      * Mapping定義を更新する.
      * @param mappings Mapping定義
      * @return ES応答
      */
-    DcPutMappingResponse putMapping(Map<String, Object> mappings);
+    PersoniumPutMappingResponse putMapping(Map<String, Object> mappings);
 }

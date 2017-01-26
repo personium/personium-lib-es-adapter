@@ -41,23 +41,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.personium.common.es.EsType;
-import io.personium.common.es.response.DcDeleteResponse;
-import io.personium.common.es.response.DcGetResponse;
-import io.personium.common.es.response.DcIndexResponse;
-import io.personium.common.es.response.DcMappingMetaData;
-import io.personium.common.es.response.DcMultiSearchResponse;
-import io.personium.common.es.response.DcPutMappingResponse;
-import io.personium.common.es.response.DcSearchResponse;
+import io.personium.common.es.response.PersoniumDeleteResponse;
+import io.personium.common.es.response.PersoniumGetResponse;
+import io.personium.common.es.response.PersoniumIndexResponse;
+import io.personium.common.es.response.PersoniumMappingMetaData;
+import io.personium.common.es.response.PersoniumMultiSearchResponse;
+import io.personium.common.es.response.PersoniumPutMappingResponse;
+import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.EsClientException.DcSearchPhaseExecutionException;
-import io.personium.common.es.response.impl.DcDeleteResponseImpl;
-import io.personium.common.es.response.impl.DcGetResponseImpl;
-import io.personium.common.es.response.impl.DcIndexResponseImpl;
-import io.personium.common.es.response.impl.DcMappingMetaDataImpl;
-import io.personium.common.es.response.impl.DcMultiSearchResponseImpl;
-import io.personium.common.es.response.impl.DcNullSearchResponse;
-import io.personium.common.es.response.impl.DcPutMappingResponseImpl;
-import io.personium.common.es.response.impl.DcSearchResponseImpl;
+import io.personium.common.es.response.impl.PersoniumDeleteResponseImpl;
+import io.personium.common.es.response.impl.PersoniumGetResponseImpl;
+import io.personium.common.es.response.impl.PersoniumIndexResponseImpl;
+import io.personium.common.es.response.impl.PersoniumMappingMetaDataImpl;
+import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
+import io.personium.common.es.response.impl.PersoniumNullSearchResponse;
+import io.personium.common.es.response.impl.PersoniumPutMappingResponseImpl;
+import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 
 /**
  * Type 操作用 Class.
@@ -118,13 +118,13 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     }
 
     @Override
-    public DcGetResponse get(final String id) {
+    public PersoniumGetResponse get(final String id) {
         // Realtime指定はtrue, // 高速さよりも一貫性を取得
         return this.get(id, true);
     }
 
     @Override
-    public DcGetResponse get(final String id, final boolean realtime) {
+    public PersoniumGetResponse get(final String id, final boolean realtime) {
         // indexにカスタムのMapping定義が必ず存在することを保証するため、
         // ESのIndex自動生成をOFFにして運用する一方で、
         // 本アプリで、存在しないIndex指定があったときは自動生成する枠組みを提供するようにしたかった。
@@ -135,72 +135,72 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         // そのため、get()メソッドを使う場合は、これがnullを返すことがあることを前提としたコードを書かなくてはならない。
         GetRetryableRequest request = new GetRetryableRequest(retryCount, retryInterval, id, realtime);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcGetResponseImpl.getInstance(request.doRequest());
+        return PersoniumGetResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    public DcIndexResponse create(final Map data) {
+    public PersoniumIndexResponse create(final Map data) {
         String id = Strings.randomBase64UUID();
         return this.create(id, data);
     }
 
     @Override
-    public DcIndexResponse create(final String id, @SuppressWarnings("rawtypes") final Map data) {
+    public PersoniumIndexResponse create(final String id, @SuppressWarnings("rawtypes") final Map data) {
         CreateRetryableRequest request = new CreateRetryableRequest(retryCount, retryInterval, id, data);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcIndexResponseImpl.getInstance(request.doRequest());
+        return PersoniumIndexResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcIndexResponse update(final String id, @SuppressWarnings("rawtypes") final Map data, final long version) {
+    public PersoniumIndexResponse update(final String id, @SuppressWarnings("rawtypes") final Map data, final long version) {
         UpdateRetryableRequest request = new UpdateRetryableRequest(retryCount, retryInterval, id, data, version);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcIndexResponseImpl.getInstance(request.doRequest());
+        return PersoniumIndexResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
     @SuppressWarnings("rawtypes")
-    public DcIndexResponse update(final String id, final Map data) {
+    public PersoniumIndexResponse update(final String id, final Map data) {
         return this.update(id, data, -1);
     }
 
     @Override
-    public DcSearchResponse search(final Map<String, Object> query) {
+    public PersoniumSearchResponse search(final Map<String, Object> query) {
         SearchRetryableRequest request = new SearchRetryableRequest(retryCount, retryInterval, query);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcSearchResponseImpl.getInstance(request.doRequest());
+        return PersoniumSearchResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcMultiSearchResponse multiSearch(final List<Map<String, Object>> queryList) {
+    public PersoniumMultiSearchResponse multiSearch(final List<Map<String, Object>> queryList) {
         MultiSearchRetryableRequest request = new MultiSearchRetryableRequest(retryCount, retryInterval, queryList);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcMultiSearchResponseImpl.getInstance(request.doRequest());
+        return PersoniumMultiSearchResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcDeleteResponse delete(final String docId) {
+    public PersoniumDeleteResponse delete(final String docId) {
         return this.delete(docId, -1);
     }
 
     @Override
-    public DcDeleteResponse delete(final String docId, final long version) {
+    public PersoniumDeleteResponse delete(final String docId, final long version) {
         DeleteRetryableRequest request = new DeleteRetryableRequest(retryCount, retryInterval, docId, version);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcDeleteResponseImpl.getInstance(request.doRequest());
+        return PersoniumDeleteResponseImpl.getInstance(request.doRequest());
     }
 
     @Override
-    public DcMappingMetaData getMapping() {
-        return DcMappingMetaDataImpl.getInstance(esClient.getMapping(this.indexName, this.name));
+    public PersoniumMappingMetaData getMapping() {
+        return PersoniumMappingMetaDataImpl.getInstance(esClient.getMapping(this.indexName, this.name));
     }
 
     @Override
-    public DcPutMappingResponse putMapping(Map<String, Object> mappings) {
+    public PersoniumPutMappingResponse putMapping(Map<String, Object> mappings) {
         PutMappingRetryableRequest request = new PutMappingRetryableRequest(retryCount, retryInterval, mappings);
         // 必要な場合、メソッド内でリトライが行われる.
-        return DcPutMappingResponseImpl.getInstance(request.doRequest());
+        return PersoniumPutMappingResponseImpl.getInstance(request.doRequest());
     }
 
     /**
@@ -318,7 +318,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
      */
     @SuppressWarnings("rawtypes")
     protected IndexResponse checkDocumentCreated(String id, Map data, ElasticsearchException ese) {
-        DcGetResponse getResponse = get(id);
+        PersoniumGetResponse getResponse = get(id);
         if (getResponse != null) {
             Object reqUpdated = data.get("u");
             Object getUpdated = getResponse.getSource().get("u");
@@ -411,7 +411,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         @Override
         SearchResponse onParticularError(ElasticsearchException e) {
             if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
-                return new DcNullSearchResponse();
+                return new PersoniumNullSearchResponse();
             }
             if (e instanceof SearchPhaseExecutionException) {
                 throw new EsClientException("unknown property was appointed.", new DcSearchPhaseExecutionException(e));

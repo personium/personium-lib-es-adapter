@@ -81,12 +81,12 @@ import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsClient.Event;
 import io.personium.common.es.EsClient.EventHandler;
 import io.personium.common.es.EsRequestLogInfo;
-import io.personium.common.es.response.DcBulkResponse;
-import io.personium.common.es.response.DcRefreshResponse;
+import io.personium.common.es.response.PersoniumBulkResponse;
+import io.personium.common.es.response.PersoniumRefreshResponse;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.EsClientException.EsMultiSearchQueryParseException;
-import io.personium.common.es.response.impl.DcBulkResponseImpl;
-import io.personium.common.es.response.impl.DcRefreshResponseImpl;
+import io.personium.common.es.response.impl.PersoniumBulkResponseImpl;
+import io.personium.common.es.response.impl.PersoniumRefreshResponseImpl;
 
 /**
  * ElasticSearchのアクセサクラス.
@@ -701,7 +701,7 @@ public class InternalEsClient {
      * @param bulkMap バルクドキュメント
      * @return ES応答
      */
-    public DcBulkResponse asyncBulkCreate(
+    public PersoniumBulkResponse asyncBulkCreate(
             String index, Map<String, List<EsBulkRequest>> bulkMap) {
         BulkRequestBuilder bulkRequest = esTransportClient.prepareBulk();
         // ルーティングIDごとにバルク登録を行うと効率が悪いため、引数で渡されたEsBulkRequestは全て一括登録する。
@@ -717,7 +717,7 @@ public class InternalEsClient {
                 bulkRequest.add(req);
             }
         }
-        DcBulkResponse response = DcBulkResponseImpl.getInstance(bulkRequest.execute().actionGet());
+        PersoniumBulkResponse response = PersoniumBulkResponseImpl.getInstance(bulkRequest.execute().actionGet());
         return response;
     }
 
@@ -726,10 +726,10 @@ public class InternalEsClient {
      * @param index インデックス名
      * @return レスポンス
      */
-    public DcRefreshResponse refresh(String index) {
+    public PersoniumRefreshResponse refresh(String index) {
         RefreshResponse response = esTransportClient.admin().indices()
                 .refresh(new RefreshRequest(index)).actionGet();
-        return DcRefreshResponseImpl.getInstance(response);
+        return PersoniumRefreshResponseImpl.getInstance(response);
     }
 
     /**
