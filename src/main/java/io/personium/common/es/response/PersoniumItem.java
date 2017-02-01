@@ -24,7 +24,7 @@ public interface PersoniumItem {
 
     /**
      * getSearchHits.
-     * @return DcSearchHit[]
+     * @return PersoniumSearchHit[]
      */
     PersoniumSearchHit[] getSearchHits();
 

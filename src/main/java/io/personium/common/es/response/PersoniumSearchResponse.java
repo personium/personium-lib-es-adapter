@@ -24,13 +24,13 @@ public interface PersoniumSearchResponse extends PersoniumActionResponse {
 
     /**
      * getHits.
-     * @return DcSearchHits.
+     * @return PersoniumSearchHits.
      */
     PersoniumSearchHits getHits();
 
     /**
      * hits.
-     * @return DcSearchHits.
+     * @return PersoniumSearchHits.
      */
     PersoniumSearchHits hits();
 

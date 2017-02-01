@@ -62,7 +62,7 @@ public class EsClientException extends RuntimeException {
     /**
      * ESのIndexが存在しない場合の例外を扱うクラス.
      */
-    public static class DcDocumentAlreadyExistsException extends RuntimeException {
+    public static class PersoniumDocumentAlreadyExistsException extends RuntimeException {
         /**
          * デフォルトシリアルバージョンID.
          */
@@ -72,7 +72,7 @@ public class EsClientException extends RuntimeException {
          * コンストラクタ.
          * @param cause 親例外
          */
-        public DcDocumentAlreadyExistsException(Throwable cause) {
+        public PersoniumDocumentAlreadyExistsException(Throwable cause) {
             super(cause);
         }
     }
@@ -80,7 +80,7 @@ public class EsClientException extends RuntimeException {
     /**
      * ESのIndexが存在しない場合の例外を扱うクラス.
      */
-    public static class DcSearchPhaseExecutionException extends RuntimeException {
+    public static class PersoniumSearchPhaseExecutionException extends RuntimeException {
         /**
          * デフォルトシリアルバージョンID.
          */
@@ -90,7 +90,7 @@ public class EsClientException extends RuntimeException {
          * コンストラクタ.
          * @param cause 親例外
          */
-        public DcSearchPhaseExecutionException(Throwable cause) {
+        public PersoniumSearchPhaseExecutionException(Throwable cause) {
             super(cause);
         }
     }

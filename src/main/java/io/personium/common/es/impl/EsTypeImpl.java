@@ -49,7 +49,7 @@ import io.personium.common.es.response.PersoniumMultiSearchResponse;
 import io.personium.common.es.response.PersoniumPutMappingResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.EsClientException.DcSearchPhaseExecutionException;
+import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 import io.personium.common.es.response.impl.PersoniumDeleteResponseImpl;
 import io.personium.common.es.response.impl.PersoniumGetResponseImpl;
 import io.personium.common.es.response.impl.PersoniumIndexResponseImpl;
@@ -414,7 +414,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
                 return new PersoniumNullSearchResponse();
             }
             if (e instanceof SearchPhaseExecutionException) {
-                throw new EsClientException("unknown property was appointed.", new DcSearchPhaseExecutionException(e));
+                throw new EsClientException("unknown property was appointed.", new PersoniumSearchPhaseExecutionException(e));
             }
             throw e;
         }

@@ -38,7 +38,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import io.personium.common.es.response.PersoniumGetResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.EsClientException.DcSearchPhaseExecutionException;
+import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 
 /**
  * EsType, EsIndexにおける初回リクエスト時の例外ハンドリングのテスト.
@@ -239,7 +239,7 @@ public class EsRetryOnParticularErrorTest {
             esTypeObject.search(null);
             fail("EsClientException should be thrown.");
         } catch (EsClientException e) {
-            assertTrue(e.getCause() instanceof DcSearchPhaseExecutionException);
+            assertTrue(e.getCause() instanceof PersoniumSearchPhaseExecutionException);
         }
     }
 
