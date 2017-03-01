@@ -101,7 +101,7 @@ public interface EsIndex {
      * @param isWriteLog リクエスト情報のログ出力有無
      * @return ES応答
      */
-    PersoniumBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog);
+    PersoniumBulkResponse bulkRequest(String routingId, List<EsBulkRequest> datas, boolean isWriteLog);
 
     /**
      * インデックスの設定を更新する.

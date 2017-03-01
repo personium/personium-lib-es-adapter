@@ -149,7 +149,7 @@ public class EsUpdateSettingsTest {
 
     private TransportClient createTransportClient() {
         Settings sts = Settings.settingsBuilder()
-        		.put("path.home", ".")
+                .put("path.home", ".")
                 .put("cluster.name", "testingCluster").build();
         TransportClient client = TransportClient.builder().settings(sts).build();
         client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress("localhost", 9399)));

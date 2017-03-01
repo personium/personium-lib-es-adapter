@@ -50,7 +50,7 @@ abstract class AbstractRetryableEsRequest<T> {
      * @param argRetryInterval リトライ間隔
      * @param requestDesc ログ出力時に利用されるメソッド記述.
      */
-    public AbstractRetryableEsRequest(int argRetryCount, long argRetryInterval, String requestDesc) {
+    AbstractRetryableEsRequest(int argRetryCount, long argRetryInterval, String requestDesc) {
         retryCount = argRetryCount;
         retryInterval = argRetryInterval;
         description = requestDesc;
@@ -64,7 +64,7 @@ abstract class AbstractRetryableEsRequest<T> {
         /**
          * コンストラクタ.
          */
-        public ContinueRetry() {
+        ContinueRetry() {
             super();
         }
     }

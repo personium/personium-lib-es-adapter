@@ -26,7 +26,7 @@ public interface EsBulkRequest {
     /**
      * バルクリクエスト内の各リクエスト種別.
      */
-    enum BULK_REQUEST_TYPE {
+    enum BulkRequestType {
         /** バルクリクエストの登録・更新リクエストを示す識別子 .*/
         INDEX,
         /** バルクリクエストの削除リクエストを示す識別子 .*/
@@ -37,7 +37,7 @@ public interface EsBulkRequest {
      * バルクリクエスト内の各リクエスト種別を取得する.
      * @return バルクリクエスト内の各リクエスト種別
      */
-    BULK_REQUEST_TYPE getRequestType();
+    BulkRequestType getRequestType();
 
     /**
      * 登録先のタイプを取得する.

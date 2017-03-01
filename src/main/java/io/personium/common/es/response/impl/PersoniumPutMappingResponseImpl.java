@@ -24,7 +24,8 @@ import io.personium.common.es.response.PersoniumPutMappingResponse;
 /**
  * IndexResponseのラッパークラス.
  */
-public class PersoniumPutMappingResponseImpl extends PersoniumActionResponseImpl implements PersoniumPutMappingResponse {
+public class PersoniumPutMappingResponseImpl extends PersoniumActionResponseImpl
+        implements PersoniumPutMappingResponse {
 
     /**
      * .

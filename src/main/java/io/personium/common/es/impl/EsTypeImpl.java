@@ -41,6 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.personium.common.es.EsType;
+import io.personium.common.es.response.EsClientException;
+import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 import io.personium.common.es.response.PersoniumDeleteResponse;
 import io.personium.common.es.response.PersoniumGetResponse;
 import io.personium.common.es.response.PersoniumIndexResponse;
@@ -48,8 +50,6 @@ import io.personium.common.es.response.PersoniumMappingMetaData;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
 import io.personium.common.es.response.PersoniumPutMappingResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
-import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 import io.personium.common.es.response.impl.PersoniumDeleteResponseImpl;
 import io.personium.common.es.response.impl.PersoniumGetResponseImpl;
 import io.personium.common.es.response.impl.PersoniumIndexResponseImpl;
@@ -153,7 +153,8 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     }
 
     @Override
-    public PersoniumIndexResponse update(final String id, @SuppressWarnings("rawtypes") final Map data, final long version) {
+    public PersoniumIndexResponse update(final String id, @SuppressWarnings("rawtypes") final Map data,
+            final long version) {
         UpdateRetryableRequest request = new UpdateRetryableRequest(retryCount, retryInterval, id, data, version);
         // 必要な場合、メソッド内でリトライが行われる.
         return PersoniumIndexResponseImpl.getInstance(request.doRequest());
@@ -210,7 +211,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         String id;
         boolean realTime;
 
-        public GetRetryableRequest(int retryCount, long retryInterval,
+        GetRetryableRequest(int retryCount, long retryInterval,
                 String argId, boolean argRealTime) {
             super(retryCount, retryInterval, "ES get");
             id = argId;
@@ -254,7 +255,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         @SuppressWarnings("rawtypes")
         Map data;
 
-        public CreateRetryableRequest(int retryCount, long retryInterval,
+        CreateRetryableRequest(int retryCount, long retryInterval,
                 String argId, @SuppressWarnings("rawtypes") Map argData) {
             super(retryCount, retryInterval, "EsType create");
             id = argId;
@@ -264,7 +265,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         @SuppressWarnings("unchecked")
         @Override
         IndexResponse doProcess() {
-            return (IndexResponse)asyncIndex(id, data, OpType.CREATE, -1).actionGet();
+            return (IndexResponse) asyncIndex(id, data, OpType.CREATE, -1).actionGet();
         }
 
         @Override
@@ -343,7 +344,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         Map data;
         long version;
 
-        public UpdateRetryableRequest(int retryCount, long retryInterval,
+        UpdateRetryableRequest(int retryCount, long retryInterval,
                 String argId, Map argData, long argVersion) {
             super(retryCount, retryInterval, "EsType update");
             id = argId;
@@ -354,7 +355,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         @SuppressWarnings("unchecked")
         @Override
         IndexResponse doProcess() {
-            return (IndexResponse)asyncIndex(id, data, OpType.INDEX, version).actionGet();
+            return (IndexResponse) asyncIndex(id, data, OpType.INDEX, version).actionGet();
         }
 
         @Override
@@ -391,7 +392,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     class SearchRetryableRequest extends AbstractRetryableEsRequest<SearchResponse> {
         Map<String, Object> query;
 
-        public SearchRetryableRequest(int retryCount, long retryInterval, Map<String, Object> argQuery) {
+        SearchRetryableRequest(int retryCount, long retryInterval, Map<String, Object> argQuery) {
             super(retryCount, retryInterval, "EsType search");
             query = argQuery;
         }
@@ -414,7 +415,8 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
                 return new PersoniumNullSearchResponse();
             }
             if (e instanceof SearchPhaseExecutionException) {
-                throw new EsClientException("unknown property was appointed.", new PersoniumSearchPhaseExecutionException(e));
+                throw new EsClientException("unknown property was appointed.",
+                        new PersoniumSearchPhaseExecutionException(e));
             }
             throw e;
         }
@@ -431,7 +433,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     class MultiSearchRetryableRequest extends AbstractRetryableEsRequest<MultiSearchResponse> {
         List<Map<String, Object>> queryList;
 
-        public MultiSearchRetryableRequest(int retryCount, long retryInterval, List<Map<String, Object>> argQueryList) {
+        MultiSearchRetryableRequest(int retryCount, long retryInterval, List<Map<String, Object>> argQueryList) {
             super(retryCount, retryInterval, "EsType multisearch");
             queryList = argQueryList;
         }
@@ -467,7 +469,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         String docId;
         long version;
 
-        public DeleteRetryableRequest(int retryCount, long retryInterval, String argDocId, long argVersion) {
+        DeleteRetryableRequest(int retryCount, long retryInterval, String argDocId, long argVersion) {
             super(retryCount, retryInterval, "EsType delete");
             docId = argDocId;
             version = argVersion;
@@ -508,7 +510,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     class PutMappingRetryableRequest extends AbstractRetryableEsRequest<PutMappingResponse> {
         Map<String, Object> mappings;
 
-        public PutMappingRetryableRequest(int retryCount, long retryInterval, Map<String, Object> argMappings) {
+        PutMappingRetryableRequest(int retryCount, long retryInterval, Map<String, Object> argMappings) {
             super(retryCount, retryInterval, "EsType putMapping");
             mappings = argMappings;
         }

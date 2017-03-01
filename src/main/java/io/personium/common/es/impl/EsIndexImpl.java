@@ -46,10 +46,10 @@ import org.slf4j.LoggerFactory;
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsIndex;
 import io.personium.common.es.query.PersoniumQueryBuilder;
+import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.PersoniumBulkResponse;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
-import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.impl.PersoniumBulkResponseImpl;
 import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
 import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
@@ -179,7 +179,8 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     }
 
     @Override
-    public PersoniumBulkResponse bulkRequest(final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog) {
+    public PersoniumBulkResponse bulkRequest(
+            final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog) {
         BulkRetryableRequest request = new BulkRetryableRequest(retryCount, retryInterval,
                 this.name, routingId, datas, isWriteLog);
         // 必要な場合、メソッド内でリトライが行われる.
@@ -193,14 +194,14 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
      * @return Void
      */
     public Void updateSettings(String index, Map<String, String> settings) {
-    	try { 
-	        UpdateSettingsRetryableRequest request = new UpdateSettingsRetryableRequest(retryCount, retryInterval, index,
-	                settings);
-	        // 必要な場合、メソッド内でリトライが行われる.
-	        return request.doRequest();
-    	} catch (IllegalArgumentException iar) {
-    		throw new EsClientException(iar.getMessage(), iar);
-    	}
+        try {
+            UpdateSettingsRetryableRequest request = new UpdateSettingsRetryableRequest(retryCount, retryInterval,
+                    index, settings);
+            // 必要な場合、メソッド内でリトライが行われる.
+            return request.doRequest();
+        } catch (IllegalArgumentException iar) {
+            throw new EsClientException(iar.getMessage(), iar);
+        }
     }
 
     /**
@@ -210,7 +211,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String name;
         Map<String, JSONObject> mappings;
 
-        public CreateRetryableRequest(int retryCount, long retryInterval,
+        CreateRetryableRequest(int retryCount, long retryInterval,
                 String argName, Map<String, JSONObject> argMappings) {
             super(retryCount, retryInterval, "EsIndex create");
             name = argName;
@@ -255,7 +256,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     class DeleteRetryableRequest extends AbstractRetryableEsRequest<DeleteIndexResponse> {
         String name;
 
-        public DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
+        DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
             super(retryCount, retryInterval, "EsIndex delete");
             name = argName;
         }
@@ -379,7 +380,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String routingId;
         Map<String, Object> query;
 
-        public SearchWithMapRetryableRequest(int retryCount, long retryInterval,
+        SearchWithMapRetryableRequest(int retryCount, long retryInterval,
                 String argRoutingId, Map<String, Object> argQuery) {
             super(retryCount, retryInterval, "EsIndex search");
             query = argQuery;
@@ -422,7 +423,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String routingId;
         QueryBuilder query;
 
-        public SearchRetryableRequest(int retryCount, long retryInterval,
+        SearchRetryableRequest(int retryCount, long retryInterval,
                 String argRoutingId, QueryBuilder argQuery) {
             super(retryCount, retryInterval, "EsIndex search");
             routingId = argRoutingId;
@@ -465,7 +466,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String routingId;
         List<Map<String, Object>> queryList;
 
-        public MultiSearchRetryableRequest(int retryCount, long retryInterval,
+        MultiSearchRetryableRequest(int retryCount, long retryInterval,
                 String argRoutingId, List<Map<String, Object>> argQueryList) {
             super(retryCount, retryInterval, "EsIndex search");
             routingId = argRoutingId;
@@ -503,7 +504,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String name;
         QueryBuilder deleteQuery;
 
-        public DeleteByQueryRetryableRequest(int retryCount, long retryInterval,
+        DeleteByQueryRetryableRequest(int retryCount, long retryInterval,
                 String argName, QueryBuilder argDeleteQuery) {
             super(retryCount, retryInterval, "EsIndex deleteByQuery");
             name = argName;
@@ -528,7 +529,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         String index;
         Map<String, String> settings;
 
-        public UpdateSettingsRetryableRequest(int retryCount, long retryInterval,
+        UpdateSettingsRetryableRequest(int retryCount, long retryInterval,
                 String index, Map<String, String> settings) {
             super(retryCount, retryInterval, "EsIndex updateSettings");
             this.index = index;
@@ -587,7 +588,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         List<EsBulkRequest> datas;
         boolean isWriteLog;
 
-        public BulkRetryableRequest(int retryCount, long retryInterval,
+        BulkRetryableRequest(int retryCount, long retryInterval,
                 String argName, String argRoutingId, List<EsBulkRequest> argDatas, boolean isWriteLog) {
             super(retryCount, retryInterval, "EsIndex bulkCreate");
             this.name = argName;

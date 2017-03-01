@@ -16,7 +16,6 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.ActionWriteResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 
