@@ -114,7 +114,7 @@ public class AbstractRetryableEsRequestTest {
     class EsExceptionForTest extends ElasticsearchException {
         private static final long serialVersionUID = 1L;
 
-        public EsExceptionForTest(String msg) {
+        EsExceptionForTest(String msg) {
             super(msg);
         }
 
@@ -140,7 +140,7 @@ public class AbstractRetryableEsRequestTest {
             throw e;
         }
 
-        public TestRequest() {
+        TestRequest() {
             super(RETRY_COUNT, RETRY_INTERVAL, "TestRequest");
         }
 
