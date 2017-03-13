@@ -61,7 +61,7 @@ public class EsTranslogHandler {
      * Elasticsearchへの flush処理実装.
      */
     class FlushTranslogRetryableRequest extends AbstractRetryableEsRequest<FlushResponse> {
-        public FlushTranslogRetryableRequest(int retryCount, long retryInterval) {
+        FlushTranslogRetryableRequest(int retryCount, long retryInterval) {
             super(retryCount, retryInterval, "Es translog flush");
         }
 

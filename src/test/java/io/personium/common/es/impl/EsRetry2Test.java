@@ -44,8 +44,8 @@ import org.powermock.api.mockito.PowerMockito;
 import io.personium.common.es.EsClient;
 import io.personium.common.es.EsIndex;
 import io.personium.common.es.EsType;
-import io.personium.common.es.response.PersoniumIndexResponse;
 import io.personium.common.es.response.EsClientException;
+import io.personium.common.es.response.PersoniumIndexResponse;
 
 /**
  * EsTypeクラスのリトライテスト. 初版では、createメソッドのみ対応
@@ -287,8 +287,8 @@ public class EsRetry2Test {
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
             assertEquals(1, response.getVersion());
-        } catch (Exception e){
-        	e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             index.delete();
         }
@@ -334,8 +334,8 @@ public class EsRetry2Test {
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
             assertEquals(1, response.getVersion());
-        } catch(Exception e) {
-        	e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             index.delete();
         }

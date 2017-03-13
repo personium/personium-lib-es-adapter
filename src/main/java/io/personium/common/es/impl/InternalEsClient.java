@@ -49,10 +49,8 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryAction;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryRequest;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryRequestBuilder;
 import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
-import org.elasticsearch.action.deletebyquery.TransportDeleteByQueryAction;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
@@ -64,7 +62,6 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.client.transport.support.TransportProxyClient;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.cluster.node.DiscoveryNode;
@@ -81,10 +78,10 @@ import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsClient.Event;
 import io.personium.common.es.EsClient.EventHandler;
 import io.personium.common.es.EsRequestLogInfo;
-import io.personium.common.es.response.PersoniumBulkResponse;
-import io.personium.common.es.response.PersoniumRefreshResponse;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.EsClientException.EsMultiSearchQueryParseException;
+import io.personium.common.es.response.PersoniumBulkResponse;
+import io.personium.common.es.response.PersoniumRefreshResponse;
 import io.personium.common.es.response.impl.PersoniumBulkResponseImpl;
 import io.personium.common.es.response.impl.PersoniumRefreshResponseImpl;
 
@@ -152,8 +149,9 @@ public class InternalEsClient {
         esTransportClient = TransportClient.builder().settings(st).addPlugin(DeleteByQueryPlugin.class).build();
         List<EsHost> hostList = parseConfigAndInitializeHostsList(hostNames);
         for (EsHost host : hostList) {
-        	
-            esTransportClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host.getName(), host.getPort()) ));
+
+            esTransportClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host.getName(),
+                    host.getPort())));
             connectedNodes = esTransportClient.connectedNodes();
         }
         if (connectedNodes.isEmpty()) {
@@ -199,7 +197,7 @@ public class InternalEsClient {
         private String name;
         private int port;
 
-        public EsHost(String name, int port) {
+        EsHost(String name, int port) {
             this.name = name;
             this.port = port;
         }
@@ -265,8 +263,8 @@ public class InternalEsClient {
     public ActionFuture<CreateIndexResponse> createIndex(String index, Map<String, JSONObject> mappings) {
         this.fireEvent(Event.creatingIndex, index);
         CreateIndexRequestBuilder cirb =
-                new CreateIndexRequestBuilder(esTransportClient.admin().indices(), 
-                		CreateIndexAction.INSTANCE, index);
+                new CreateIndexRequestBuilder(esTransportClient.admin().indices(),
+                        CreateIndexAction.INSTANCE, index);
 
         // cjkアナライザ設定
         Settings.Builder indexSettings = Settings.settingsBuilder();
@@ -326,7 +324,8 @@ public class InternalEsClient {
     public ListenableActionFuture<PutMappingResponse> putMapping(String index,
             String type,
             Map<String, Object> mappings) {
-        PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(), PutMappingAction.INSTANCE)
+        PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
+                PutMappingAction.INSTANCE)
                 .setIndices(index)
                 .setType(type)
                 .setSource(mappings);
@@ -338,7 +337,7 @@ public class InternalEsClient {
      * @return 非同期応答
      */
     public ActionFuture<RecoveryResponse> indicesStatus() {
-    	RecoveryRequestBuilder cirb =
+        RecoveryRequestBuilder cirb =
                 new RecoveryRequestBuilder(esTransportClient.admin().indices(), RecoveryAction.INSTANCE);
         return cirb.execute();
     }
@@ -642,7 +641,7 @@ public class InternalEsClient {
         List<Map<String, Object>> bulkList = new ArrayList<Map<String, Object>>();
         for (EsBulkRequest data : datas) {
 
-            if (EsBulkRequest.BULK_REQUEST_TYPE.DELETE == data.getRequestType()) {
+            if (EsBulkRequest.BulkRequestType.DELETE == data.getRequestType()) {
                 bulkRequest.add(createDeleteRequest(index, routingId, data));
             } else {
                 bulkRequest.add(createIndexRequest(index, routingId, data));
@@ -739,9 +738,11 @@ public class InternalEsClient {
      * @return ES応答
      */
     public DeleteByQueryResponse deleteByQuery(String index, QueryBuilder deleteQuery) {
-        DeleteByQueryResponse response = new DeleteByQueryRequestBuilder(esTransportClient, DeleteByQueryAction.INSTANCE)
-        		.setIndices(index)
+        DeleteByQueryResponse response = new DeleteByQueryRequestBuilder(esTransportClient,
+                DeleteByQueryAction.INSTANCE)
+                .setIndices(index)
                 .setQuery(deleteQuery).execute().actionGet();
+        refresh(index);
         return response;
     }
 

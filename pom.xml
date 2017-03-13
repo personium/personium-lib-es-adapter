@@ -3,7 +3,7 @@
 	<groupId>io.personium</groupId>
 	<artifactId>personium-lib-es-adapter</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.2</version>
+	<version>1.4.3</version>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -18,7 +18,6 @@
 		<jvm.option>-Xms512m -Xmx512m -XX:MaxPermSize=256m
 			-XX:-UseSplitVerifier</jvm.option>
 		<es.version>2.4.1</es.version>
-		<java.exclude.name>**/v2_4/*.java</java.exclude.name>
 	</properties>
 	<build>
 		<resources>
@@ -56,20 +55,6 @@
 					<debug>true</debug>
 					<optimize>false</optimize>
 				</configuration>
-				<executions>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<configuration>
-							<testExcludes>
-								<exclude>${java.exclude.name}</exclude>
-							</testExcludes>
-						</configuration>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -285,7 +270,7 @@
 			<artifactId>powermock-module-junit4</artifactId>
 			<version>1.6.4</version>
 			<scope>test</scope>
-			<!-- 
+			<!--
 			<exclusions>
 				<exclusion>
 					<groupId>org.hamcrest</groupId>
