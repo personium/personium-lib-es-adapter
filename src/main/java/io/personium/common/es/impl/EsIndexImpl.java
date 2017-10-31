@@ -372,10 +372,9 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     }
 
     /**
-     * Elasticsearchへの search処理実装. <br />
-     * Queryの指定方法をMapで直接記述せずにQueryBuilderにするため、非推奨とする.
+     * Elasticsearchへの search処理実装.
+     * Queryの指定方法をMapで記述する
      */
-    @Deprecated
     class SearchWithMapRetryableRequest extends AbstractRetryableEsRequest<SearchResponse> {
         String routingId;
         Map<String, Object> query;
@@ -418,7 +417,12 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
 
     /**
      * Elasticsearchへの search処理実装.
+     * Queryの指定方法をQueryBuilderで記述する
+     * <p>
+     * TODO PersoniumQueryBuilder is not maintained yet.
+     * If want to use this, maintain PersoniumQueryBuilder.
      */
+    @Deprecated
     class SearchRetryableRequest extends AbstractRetryableEsRequest<SearchResponse> {
         String routingId;
         QueryBuilder query;

@@ -23,8 +23,7 @@ import java.util.Map;
 
 /**
  * EsQueryHandlerのHelperクラス.
- * Es0.19とEs1.X系とで異なるEsクエリの差異を吸収するためのHelperクラス
- * 現状は0.19版で実装している
+ * Esのバージョンで異なるEsクエリの差異を吸収するためのHelperクラス
  */
 public class EsQueryHandlerHelper {
 

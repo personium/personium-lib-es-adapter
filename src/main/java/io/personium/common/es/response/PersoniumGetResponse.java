@@ -36,6 +36,12 @@ public interface PersoniumGetResponse extends PersoniumActionResponse {
     String id();
 
     /**
+     * Get index.
+     * @return index
+     */
+    String getIndex();
+
+    /**
      * .
      * @return .
      */
