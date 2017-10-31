@@ -73,6 +73,14 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
         return this.getResponse.getId();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getIndex() {
+        return getResponse.getIndex();
+    }
+
     /* (non-Javadoc)
      * @see io.personium.common.es.response.impl.DcGetResponse#getType()
      */

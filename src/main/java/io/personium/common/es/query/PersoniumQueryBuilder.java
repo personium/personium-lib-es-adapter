@@ -20,6 +20,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 /**
  * クエリビルダーのinterface.
+ * elasticsearchのバージョン差異を吸収する為のインターフェース
  */
 public interface PersoniumQueryBuilder {
 
