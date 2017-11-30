@@ -737,11 +737,11 @@ public class InternalEsClient {
      * @param deleteQuery 削除対象を指定するクエリ
      * @return ES応答
      */
-    public DeleteByQueryResponse deleteByQuery(String index, QueryBuilder deleteQuery) {
+    public DeleteByQueryResponse deleteByQuery(String index, Map<String, Object> deleteQuery) {
         DeleteByQueryResponse response = new DeleteByQueryRequestBuilder(esTransportClient,
                 DeleteByQueryAction.INSTANCE)
                 .setIndices(index)
-                .setQuery(deleteQuery).execute().actionGet();
+                .setSource(deleteQuery).execute().actionGet();
         refresh(index);
         return response;
     }
