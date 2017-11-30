@@ -88,11 +88,11 @@ public interface EsIndex {
     PersoniumMultiSearchResponse multiSearch(String routingId, List<Map<String, Object>> queryList);
 
     /**
-     * クエリ指定の一括削除機能.
+     * Delete with query specification.
      * @param routingId routingId
-     * @param deleteQuery 削除対象を指定するクエリ
+     * @param query query
      */
-    void deleteByQuery(String routingId, PersoniumQueryBuilder deleteQuery);
+    void deleteByQuery(String routingId, Map<String, Object> query);
 
     /**
      * バルクでドキュメントを登録/更新/削除する.

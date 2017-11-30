@@ -152,15 +152,17 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         return PersoniumMultiSearchResponseImpl.getInstance(request.doRequest());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void deleteByQuery(String routingId, PersoniumQueryBuilder queryBuilder) {
-        QueryBuilder deleteQuery = getQueryBuilder(queryBuilder);
+    public void deleteByQuery(String routingId, Map<String, Object> query) {
         DeleteByQueryRetryableRequest request = new DeleteByQueryRetryableRequest(retryCount, retryInterval,
-                this.name, deleteQuery);
+                this.name, query);
         request.doRequest();
 
-        // 削除クエリと同一の検索を実行して、全件削除されていることを確認する
-        PersoniumSearchResponse response = this.search(routingId, queryBuilder);
+        // Confirm that all items have been deleted
+        PersoniumSearchResponse response = this.search(routingId, query);
         long failedCount = response.getHits().getAllPages();
         if (failedCount != 0) {
             throw new EsClientException.EsDeleteByQueryException(failedCount);
@@ -506,10 +508,10 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
      */
     class DeleteByQueryRetryableRequest extends AbstractRetryableEsRequest<DeleteByQueryResponse> {
         String name;
-        QueryBuilder deleteQuery;
+        Map<String, Object> deleteQuery;
 
         DeleteByQueryRetryableRequest(int retryCount, long retryInterval,
-                String argName, QueryBuilder argDeleteQuery) {
+                String argName, Map<String, Object> argDeleteQuery) {
             super(retryCount, retryInterval, "EsIndex deleteByQuery");
             name = argName;
             deleteQuery = argDeleteQuery;
