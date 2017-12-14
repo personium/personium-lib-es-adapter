@@ -312,6 +312,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         loadMappingConfig(EsIndex.CATEGORY_USR, "ExtRole", "es/mapping/extRole.json");
         loadMappingConfig(EsIndex.CATEGORY_USR, "dav", "es/mapping/dav.json");
         loadMappingConfig(EsIndex.CATEGORY_USR, "UserData", "es/mapping/userdata.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Rule", "es/mapping/rule.json");
         loadMappingConfig(EsIndex.CATEGORY_USR, "_default_", "es/mapping/default.json");
     }
 
