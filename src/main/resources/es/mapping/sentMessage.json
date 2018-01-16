@@ -109,7 +109,7 @@
                   }
                 }
               },
-              "Type": {
+              "EventType": {
                 "type": "string",
                 "fields": {
                   "untouched": {
@@ -118,7 +118,7 @@
                   }
                 }
               },
-              "Subject": {
+              "EventSubject": {
                 "type": "string",
                 "fields": {
                   "untouched": {
@@ -127,7 +127,7 @@
                   }
                 }
               },
-              "Object": {
+              "EventObject": {
                 "type": "string",
                 "fields": {
                   "untouched": {
@@ -136,7 +136,7 @@
                   }
                 }
               },
-              "Info": {
+              "EventInfo": {
                 "type": "string",
                 "fields": {
                   "untouched": {
@@ -154,7 +154,7 @@
                   }
                 }
               },
-              "Service": {
+              "TargetUrl": {
                 "type": "string",
                 "fields": {
                   "untouched": {
