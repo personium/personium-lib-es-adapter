@@ -89,32 +89,41 @@
               }
             }
           },
-          "RequestRelation": {
-            "type": "string",
-            "fields": {
-              "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
-              }
-            }
-          },
-          "RequestRelationTarget": {
-            "type": "string",
-            "fields": {
-              "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
-              }
-            }
-          },
-          "RequestRule": {
+          "RequestObjects": {
             "properties": {
+              "RequestType": {
+                "type": "string",
+                "fields": {
+                  "untouched": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                  }
+                }
+              },
               "Name": {
+                "type": "string",
+                "fields": {
+                  "untouched": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                  }
+                }
+              },
+              "TargetUrl": {
                 "type": "string",
                 "fields": {
                   "untouched": {
                     "type": "string",
                     "index": "not_analyzed"
+                  }
+                }
+              },
+              "ClassUrl": {
+                "type": "string",
+                "fields": {
+                  "untouched": {
+                  "type": "string",
+                  "index": "not_analyzed"
                   }
                 }
               },
@@ -155,15 +164,6 @@
                 }
               },
               "Action": {
-                "type": "string",
-                "fields": {
-                  "untouched": {
-                    "type": "string",
-                    "index": "not_analyzed"
-                  }
-                }
-              },
-              "TargetUrl": {
                 "type": "string",
                 "fields": {
                   "untouched": {
