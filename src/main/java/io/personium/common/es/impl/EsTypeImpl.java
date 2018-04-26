@@ -327,7 +327,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
                 // uがnullになることはありえないが、静的チェックの指摘回避
                 log.info("Request data is already registered. Then, return success response. But value is null");
                 return new IndexResponse(indexName, getType(), id, 1, false);
-            } else if ((reqUpdated != null && getUpdated != null) && reqUpdated.equals(getUpdated)) {
+            } else if (reqUpdated != null && getUpdated != null && reqUpdated.equals(getUpdated)) {
                 log.info("Request data is already registered. Then, return success response.");
                 return new IndexResponse(indexName, getType(), id, 1, false);
             }
