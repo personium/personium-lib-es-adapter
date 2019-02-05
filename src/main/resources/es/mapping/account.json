@@ -2,17 +2,17 @@
   "Account": {
     "properties": {
       "c": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "s": {
         "properties": {
           "Name": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
@@ -25,11 +25,11 @@
             }
           },
           "Type": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           }
@@ -38,8 +38,8 @@
       "h": {
         "properties": {
           "HashedCredential": {
-            "type": "string",
-            "index": "no"
+            "type": "keyword",
+            "index": false
           }
         }
       },

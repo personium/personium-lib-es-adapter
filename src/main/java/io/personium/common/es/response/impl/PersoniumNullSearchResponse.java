@@ -50,7 +50,7 @@ public class PersoniumNullSearchResponse extends SearchResponse {
 
     @Override
     public SearchHits getHits() {
-        return new SearchHits() {
+        return new SearchHits(new SearchHit[0], 0, 0) {
             @Override
             @Deprecated
             public Iterator<SearchHit> iterator() {

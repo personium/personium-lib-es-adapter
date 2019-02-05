@@ -21,7 +21,6 @@ import java.io.File;
 
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
 
 /**
  * テスト用のElasticsearchのNodeを扱うクラス.
@@ -33,11 +32,11 @@ public class EsTestNode {
      * テスト用のElasticsearchのNodeを初期化する.
      */
     public void create() {
-        Settings settings = Settings.settingsBuilder()
+        Settings settings = Settings.builder()
                 .put("node.http.enabled", false)
                 .put("cluster.name", "testingCluster")
                 .put("node.name", "node1")
-               // .put("gateway.type", "local")
+                //.put("gateway.type", "local")
                 .put("action.auto_create_index", "false")
                 .put("index.store.type", "mmapfs")
                 .put("index.number_of_shards", 1)
@@ -45,7 +44,7 @@ public class EsTestNode {
                 .put("path.home", ".")
                 .put("transport.tcp.port", "9399")
                 .build();
-        this.node = NodeBuilder.nodeBuilder().settings(settings).node();
+        //this.node = new Node(settings);
     }
 
     /**
@@ -53,7 +52,7 @@ public class EsTestNode {
      * @throws Exception 異常が発生した場合の例外
      */
     public void close() throws Exception {
-        node.close();
+        //node.close();
         // EsClient.clearEsClient();
         deleteDirectory(new File("data"));
     }

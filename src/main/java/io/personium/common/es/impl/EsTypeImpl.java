@@ -21,20 +21,19 @@ import java.util.Map;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
 import org.elasticsearch.index.mapper.MapperParsingException;
+import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -58,6 +57,7 @@ import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
 import io.personium.common.es.response.impl.PersoniumNullSearchResponse;
 import io.personium.common.es.response.impl.PersoniumPutMappingResponseImpl;
 import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
+import io.personium.common.es.util.PersoniumUUID;
 
 /**
  * Type 操作用 Class.
@@ -141,7 +141,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     @Override
     @SuppressWarnings("rawtypes")
     public PersoniumIndexResponse create(final Map data) {
-        String id = Strings.randomBase64UUID();
+        String id = PersoniumUUID.randomUUID();
         return this.create(id, data);
     }
 
@@ -270,7 +270,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
 
         @Override
         boolean isParticularError(ElasticsearchException e) {
-            return e instanceof DocumentAlreadyExistsException
+            return e instanceof VersionConflictEngineException
                     || e instanceof IndexNotFoundException
                     || e.getCause() instanceof IndexNotFoundException
                     || e instanceof MapperParsingException;
@@ -286,7 +286,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
             }
             // 既知のExceptionの場合はINFOログ
             // 新規のExceptionの場合はWARNログ
-            if (e instanceof DocumentAlreadyExistsException) {
+            if (e instanceof VersionConflictEngineException) {
                 if (e.getClass() != null) {
                     log.info(e.getClass().getName() + " : " + e.getMessage());
                 } else {
@@ -326,10 +326,10 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
             if (reqUpdated == null && getUpdated == null) {
                 // uがnullになることはありえないが、静的チェックの指摘回避
                 log.info("Request data is already registered. Then, return success response. But value is null");
-                return new IndexResponse(indexName, getType(), id, 1, false);
+                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, false);
             } else if (reqUpdated != null && getUpdated != null && reqUpdated.equals(getUpdated)) {
                 log.info("Request data is already registered. Then, return success response.");
-                return new IndexResponse(indexName, getType(), id, 1, false);
+                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, false);
             }
         }
         throw new EsClientException("create failed", ese);

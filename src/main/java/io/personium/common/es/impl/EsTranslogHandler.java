@@ -19,7 +19,7 @@ package io.personium.common.es.impl;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.flush.FlushResponse;
 import org.elasticsearch.action.support.broadcast.BroadcastShardOperationFailedException;
-import org.elasticsearch.index.engine.FlushNotAllowedEngineException;
+import org.elasticsearch.index.engine.FlushFailedEngineException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,7 @@ public class EsTranslogHandler {
         @Override
         boolean isParticularError(ElasticsearchException e) {
             return e instanceof BroadcastShardOperationFailedException
-                    || e instanceof FlushNotAllowedEngineException;
+                    || e instanceof FlushFailedEngineException;
         }
 
         @Override

@@ -16,8 +16,7 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Constructor;
 
@@ -29,27 +28,23 @@ import org.elasticsearch.cluster.block.ClusterBlockException;
 import org.elasticsearch.common.settings.SettingsException;
 import org.elasticsearch.common.util.concurrent.UncategorizedExecutionException;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.FlushNotAllowedEngineException;
+import org.elasticsearch.index.engine.FlushFailedEngineException;
 import org.elasticsearch.transport.NodeDisconnectedException;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
-import io.personium.common.es.EsClient;
 import io.personium.common.es.EsIndex;
 import io.personium.common.es.impl.EsTranslogHandler.FlushTranslogRetryableRequest;
 import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.test.util.EsTestNode;
 
 /**
  * AbstractRetryableEsRequestクラスのリトライテスト.
  */
 @PrepareForTest(EsClientException.class)
-public class AbstractRetryableEsRequestTest {
+public class AbstractRetryableEsRequestTest extends EsTestBase {
 
     static final int RETRY_COUNT = 5;
     static final long RETRY_INTERVAL = 500;
@@ -57,42 +52,13 @@ public class AbstractRetryableEsRequestTest {
     static final String SUCCESS_RESPONSE = "REQUEST_SUCCESS";
     static final String ON_ERROR_RESPONSE = "REQUEST_SUCCESS_ON_PARTICULOR_ERROR";
 
-    private static final String TESTING_HOSTS = "localhost:9399";
-    private static final String TESTING_CLUSTER = "testingCluster";
-    private static final String INDEX_FOR_TEST = "index_for_test";
-    private static EsTestNode node;
-    private EsIndex index;
-
-    /**
-     * テストケース共通の初期化処理. テスト用のElasticsearchのNodeを初期化する
-     * @throws Exception 異常が発生した場合の例外
-     */
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        node = new EsTestNode();
-        node.create();
-    }
-
-    /**
-     * テストケース共通のクリーンアップ処理. テスト用のElasticsearchのNodeをクローズする
-     * @throws Exception 異常が発生した場合の例外
-     */
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        node.close();
-    }
-
-    private EsClient esClientforTest;
-
     /**
      * 各テスト実行前の初期化処理.
      * @throws Exception 異常が発生した場合の例外
      */
     @Before
     public void setUp() throws Exception {
-        esClientforTest = new EsClient(TESTING_CLUSTER, TESTING_HOSTS);
-        index = esClientforTest.idxAdmin(INDEX_FOR_TEST);
-        index.create();
+        super.setUp();
     }
 
     /**
@@ -101,11 +67,7 @@ public class AbstractRetryableEsRequestTest {
      */
     @After
     public void tearDown() throws Exception {
-        try {
-            index.delete();
-        } catch (Exception ex) {
-            System.out.println("");
-        }
+        super.tearDown();
     }
 
     /**
@@ -495,7 +457,7 @@ public class AbstractRetryableEsRequestTest {
         Mockito.doThrow(toBeThrown) // 初回リクエスト
                 .doThrow(toBeThrown) // リトライ1回目
                 .doThrow(new SettingsException("foo")) // リトライ2回目. この時は、 #onParticularError()でリトライ継続のために
-                                                       // ContinueRetryが投げられる.
+                // ContinueRetryが投げられる.
                 .doThrow(toBeThrown) // リトライ3回目
                 .doReturn(SUCCESS_RESPONSE)
                 .when(requestMock)
@@ -534,7 +496,7 @@ public class AbstractRetryableEsRequestTest {
             throws Exception {
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
                 .getDeclaredConstructor(new Class[] {
-                EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                        EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(
@@ -559,7 +521,7 @@ public class AbstractRetryableEsRequestTest {
     public void translogのflush時にBroadcastShardOperationFailedExceptionが発生した場合にflushのリトライをしないこと()
             throws Exception {
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
-                .getDeclaredConstructor(new Class[] {EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                .getDeclaredConstructor(new Class[] { EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(
@@ -585,13 +547,13 @@ public class AbstractRetryableEsRequestTest {
             throws Exception {
 
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
-                .getDeclaredConstructor(new Class[] {EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                .getDeclaredConstructor(new Class[] { EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(
                 handler, 5, 0L));
 
-        FlushNotAllowedEngineException toBeThrown = Mockito.mock(FlushNotAllowedEngineException.class);
+        FlushFailedEngineException toBeThrown = Mockito.mock(FlushFailedEngineException.class);
         Mockito.doThrow(toBeThrown) // 初回リクエストの例外投入
                 .doReturn(null)
                 .when(flushMock)

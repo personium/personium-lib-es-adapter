@@ -2,25 +2,25 @@
   "EntityType": {
     "properties": {
       "c": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "b": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "n": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "s": {
         "properties": {
           "Name": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           }

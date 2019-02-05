@@ -2,72 +2,70 @@
   "ComplexTypeProperty": {
     "properties": {
       "c": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "b": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "n": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "s": {
         "properties": {
           "Name": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "Type": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "Nullable": {
-            "type": "string",
-            "index": "no",
+            "type": "boolean",
             "fields": {
               "untouched": {
                 "type": "boolean",
-                "index": "not_analyzed"
+                "index": true
               }
             }
           },
           "DefaultValue": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "CollectionKind": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "IsDeclared": {
-            "type": "string",
-            "index": "no",
+            "type": "boolean",
             "fields": {
               "untouched": {
                 "type": "boolean",
-                "index": "not_analyzed"
+                "index": true
               }
             }
           }
@@ -76,8 +74,8 @@
       "l": {
         "properties": {
           "ComplexType": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword",
+            "index": true
           }
         }
       },

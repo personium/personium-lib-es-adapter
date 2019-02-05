@@ -17,6 +17,7 @@
 package io.personium.common.es.response.impl;
 
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.rest.RestStatus;
 
 import io.personium.common.es.response.PersoniumDeleteResponse;
 
@@ -84,6 +85,6 @@ public class PersoniumDeleteResponseImpl extends PersoniumActionResponseImpl imp
      */
     @Override
     public boolean isNotFound() {
-        return !this.deleteResponse.isFound();
+        return this.deleteResponse.status().equals(RestStatus.NOT_FOUND);
     }
 }
