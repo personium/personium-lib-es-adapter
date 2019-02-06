@@ -21,15 +21,15 @@ import java.util.Map;
 
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionFuture;
+import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.engine.VersionConflictEngineException;
 import org.elasticsearch.index.mapper.MapperParsingException;
@@ -326,10 +326,10 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
             if (reqUpdated == null && getUpdated == null) {
                 // uがnullになることはありえないが、静的チェックの指摘回避
                 log.info("Request data is already registered. Then, return success response. But value is null");
-                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, false);
+                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, 0, 0, false);
             } else if (reqUpdated != null && getUpdated != null && reqUpdated.equals(getUpdated)) {
                 log.info("Request data is already registered. Then, return success response.");
-                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, false);
+                return new IndexResponse(new ShardId(indexName, "", 1), getType(), id, 1, 0, 0, false);
             }
         }
         throw new EsClientException("create failed", ese);
@@ -507,7 +507,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
     /**
      * Elasticsearchへの mapping put処理実装.
      */
-    class PutMappingRetryableRequest extends AbstractRetryableEsRequest<PutMappingResponse> {
+    class PutMappingRetryableRequest extends AbstractRetryableEsRequest<ActionResponse> {
         Map<String, Object> mappings;
 
         PutMappingRetryableRequest(int retryCount, long retryInterval, Map<String, Object> argMappings) {
@@ -516,7 +516,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         }
 
         @Override
-        PutMappingResponse doProcess() {
+        ActionResponse doProcess() {
             return asyncPutMapping(mappings).actionGet();
         }
 
@@ -528,7 +528,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
         }
 
         @Override
-        PutMappingResponse onParticularError(ElasticsearchException e) {
+        ActionResponse onParticularError(ElasticsearchException e) {
             if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
                 throw new EsClientException.EsIndexMissingException(e);
             }
@@ -622,7 +622,7 @@ public class EsTypeImpl extends EsTranslogHandler implements EsType {
      * @param mappings Mapping定義
      * @return Mapping更新レスポンス
      */
-    public ListenableActionFuture<PutMappingResponse> asyncPutMapping(Map<String, Object> mappings) {
+    public ActionFuture<AcknowledgedResponse> asyncPutMapping(Map<String, Object> mappings) {
         return esClient.putMapping(this.indexName, this.name, mappings);
     }
 

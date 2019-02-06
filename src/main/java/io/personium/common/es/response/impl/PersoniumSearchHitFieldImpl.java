@@ -19,7 +19,7 @@ package io.personium.common.es.response.impl;
 import java.util.Iterator;
 import java.util.List;
 
-import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.common.document.DocumentField;
 
 import io.personium.common.es.response.PersoniumSearchHitField;
 
@@ -27,7 +27,7 @@ import io.personium.common.es.response.PersoniumSearchHitField;
  * IndexResponseのラッパークラス.
  */
 public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
-    private SearchHitField searchHitField;
+    private DocumentField searchHitField;
 
     /**
      * .
@@ -40,7 +40,7 @@ public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
      * GetResponseを指定してインスタンスを生成する.
      * @param field ESからのレスポンスオブジェクト
      */
-    private PersoniumSearchHitFieldImpl(SearchHitField field) {
+    private PersoniumSearchHitFieldImpl(DocumentField field) {
         this.searchHitField = field;
     }
 
@@ -49,7 +49,7 @@ public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
      * @param field .
      * @return .
      */
-    public static PersoniumSearchHitField getInstance(SearchHitField field) {
+    public static PersoniumSearchHitField getInstance(DocumentField field) {
         if (field == null) {
             return null;
         }
@@ -63,7 +63,7 @@ public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
 
     @Override
     public String name() {
-        return this.searchHitField.name();
+        return this.searchHitField.getName();
     }
 
     @Override
@@ -73,7 +73,7 @@ public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
 
     @Override
     public <V> V value() {
-        return this.searchHitField.value();
+        return this.searchHitField.getValue();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class PersoniumSearchHitFieldImpl implements PersoniumSearchHitField {
 
     @Override
     public List<Object> values() {
-        return this.searchHitField.values();
+        return this.searchHitField.getValues();
     }
 
     @Override

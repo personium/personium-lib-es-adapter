@@ -16,7 +16,7 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.ActionResponse;
 
 import io.personium.common.es.response.PersoniumPutMappingResponse;
 
@@ -39,7 +39,7 @@ public class PersoniumPutMappingResponseImpl extends PersoniumActionResponseImpl
      * GetResponseを指定してインスタンスを生成する.
      * @param response ESからのレスポンスオブジェクト
      */
-    private PersoniumPutMappingResponseImpl(PutMappingResponse response) {
+    private PersoniumPutMappingResponseImpl(ActionResponse response) {
         super(response);
     }
 
@@ -48,7 +48,7 @@ public class PersoniumPutMappingResponseImpl extends PersoniumActionResponseImpl
      * @param response .
      * @return .
      */
-    public static PersoniumPutMappingResponse getInstance(PutMappingResponse response) {
+    public static PersoniumPutMappingResponse getInstance(ActionResponse response) {
         if (response == null) {
             return null;
         }

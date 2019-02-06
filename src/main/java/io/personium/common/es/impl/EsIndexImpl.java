@@ -29,11 +29,11 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
@@ -255,7 +255,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     /**
      * Elasticsearchへの index delete処理実装.
      */
-    class DeleteRetryableRequest extends AbstractRetryableEsRequest<DeleteIndexResponse> {
+    class DeleteRetryableRequest extends AbstractRetryableEsRequest<AcknowledgedResponse > {
         String name;
 
         DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
@@ -264,7 +264,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        DeleteIndexResponse doProcess() {
+        AcknowledgedResponse doProcess() {
             return esClient.deleteIndex(this.name).actionGet();
         }
 
@@ -274,7 +274,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        DeleteIndexResponse onParticularError(ElasticsearchException e) {
+        AcknowledgedResponse  onParticularError(ElasticsearchException e) {
             if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
                 throw new EsClientException.EsIndexMissingException(e);
             }

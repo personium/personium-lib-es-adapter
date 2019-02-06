@@ -27,22 +27,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
+import java.util.function.Function;
 
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexAction;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.elasticsearch.action.admin.indices.flush.FlushResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingAction;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.recovery.RecoveryAction;
 import org.elasticsearch.action.admin.indices.recovery.RecoveryRequestBuilder;
 import org.elasticsearch.action.admin.indices.recovery.RecoveryResponse;
@@ -63,13 +61,14 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.ClusterState;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.io.stream.OutputStreamStreamOutput;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -77,7 +76,6 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryParseContext;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
@@ -170,7 +168,7 @@ public class InternalEsClient {
         for (EsHost host : hostList) {
 
             try {
-                esTransportClient.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host.getName()), host.getPort()));
+                esTransportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.getName()), host.getPort()));
                 connectedNodes = esTransportClient.connectedNodes();
             } catch (UnknownHostException ex) {
                 throw new EsClientException("Datastore Connection Error.", ex);
@@ -304,7 +302,7 @@ public class InternalEsClient {
         cirb.setSettings(indexSettings);
         if (mappings != null) {
             for (Map.Entry<String, JSONObject> ent : mappings.entrySet()) {
-                cirb = cirb.addMapping(ent.getKey(), ent.getValue().toString());
+                cirb = cirb.addMapping(ent.getKey(), ent.getValue());
             }
         }
         return cirb.execute();
@@ -315,7 +313,7 @@ public class InternalEsClient {
      * @param index インデックス名
      * @return 非同期応答
      */
-    public ActionFuture<DeleteIndexResponse> deleteIndex(String index) {
+    public ActionFuture<AcknowledgedResponse> deleteIndex(String index) {
         DeleteIndexRequest dir = new DeleteIndexRequest(index);
         return esTransportClient.admin().indices().delete(dir);
     }
@@ -327,8 +325,18 @@ public class InternalEsClient {
      * @return Void
      */
     public Void updateIndexSettings(String index, Map<String, String> settings) {
-        Settings settingsForUpdate = Settings.builder().put(settings).build();
-        esTransportClient.admin().indices().prepareUpdateSettings(index).setSettings(settingsForUpdate).execute()
+
+        Function<String, String> keyFunction = new Function<String, String>() {
+			public String apply(String t) {
+				return t;
+			}
+        };
+		Settings settingsForUpdate = Settings.builder()
+				.putProperties(settings, keyFunction )
+				.build();
+        esTransportClient.admin().indices().prepareUpdateSettings(index)
+        		.setSettings(settingsForUpdate)
+        		.execute()
                 .actionGet();
         return null;
     }
@@ -352,7 +360,7 @@ public class InternalEsClient {
      * @param mappings マッピング情報
      * @return 非同期応答
      */
-    public ListenableActionFuture<PutMappingResponse> putMapping(String index,
+    public ActionFuture<AcknowledgedResponse> putMapping(String index,
             String type,
             Map<String, Object> mappings) {
         PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
@@ -414,7 +422,7 @@ public class InternalEsClient {
             req = req.routing(routingId);
         }
         ActionFuture<SearchResponse> ret = esTransportClient.search(req);
-        this.fireEvent(Event.afterRequest, index, type, null, builder.buildAsBytes().utf8ToString(), "Search");
+        this.fireEvent(Event.afterRequest, index, type, null, builder.toString(), "Search");
         return ret;
     }
 
@@ -811,9 +819,9 @@ public class InternalEsClient {
     {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchModule searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList());
-        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(new NamedXContentRegistry(searchModule.getNamedXContents()), queryMapToJSON(map)))
+        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map)))
         {
-            searchSourceBuilder.parseXContent(new QueryParseContext(parser));
+            searchSourceBuilder.parseXContent(parser);
         } catch (IOException ex) {
             throw new EsClientException("SearchBuilder Make Error.", ex);
         }

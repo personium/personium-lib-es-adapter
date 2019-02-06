@@ -26,7 +26,7 @@ import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.Before;
@@ -118,7 +118,7 @@ public class EsUpdateSettingsTest extends EsTestBase {
                 .put("cluster.name", TESTING_CLUSTER).build();
         TransportClient client = new PreBuiltTransportClient(sts);
         String[] h = TESTING_HOSTS.split(":");
-        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(h[0], Integer.valueOf(h[1]))));
+        client.addTransportAddress(new TransportAddress(new InetSocketAddress(h[0], Integer.valueOf(h[1]))));
         return client;
     }
 
