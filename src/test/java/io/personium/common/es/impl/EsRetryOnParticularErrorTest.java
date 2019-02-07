@@ -16,11 +16,13 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Map;
 
-import org.elasticsearch.action.DocWriteRequest.OpType;
+import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.common.settings.SettingsException;
 import org.elasticsearch.index.IndexNotFoundException;
@@ -33,10 +35,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import io.personium.common.es.response.EsClientException;
-import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 import io.personium.common.es.response.PersoniumGetResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
+import io.personium.common.es.response.EsClientException;
+import io.personium.common.es.response.EsClientException.PersoniumSearchPhaseExecutionException;
 
 /**
  * EsType, EsIndexにおける初回リクエスト時の例外ハンドリングのテスト.
@@ -97,7 +99,7 @@ public class EsRetryOnParticularErrorTest {
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
                 .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
-                        (org.elasticsearch.action.DocWriteRequest.OpType) Mockito.anyObject(), Mockito.anyLong());
+                        (OpType) Mockito.anyObject(), Mockito.anyLong());
         // メソッド呼び出し
         try {
             esTypeObject.update("dummyId", null, 1);
@@ -251,7 +253,7 @@ public class EsRetryOnParticularErrorTest {
 
         // EsType#asyncDelete()が呼ばれた場合に、IndexMissingExceptionを投げる。
         // 送出する例外オブジェクトのモックを作成
-        IndexNotFoundException toBeThrown = new IndexNotFoundException("abc");
+        IndexNotFoundException toBeThrown =  new IndexNotFoundException("abc");
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
                 .asyncDelete(Mockito.anyString(), Mockito.anyLong());

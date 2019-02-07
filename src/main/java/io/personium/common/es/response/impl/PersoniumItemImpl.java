@@ -30,8 +30,8 @@ public class PersoniumItemImpl extends MultiSearchResponse.Item implements Perso
      * @param response .
      * @param throwable .
      */
-    public PersoniumItemImpl(SearchResponse response, Exception exception) {
-        super(response, exception);
+    public PersoniumItemImpl(SearchResponse response, Throwable throwable) {
+        super(response, throwable);
     }
 
     /**

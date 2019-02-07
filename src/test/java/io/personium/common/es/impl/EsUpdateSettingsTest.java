@@ -16,7 +16,7 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -27,24 +27,55 @@ import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import io.personium.common.es.EsClient;
+import io.personium.common.es.EsIndex;
 import io.personium.common.es.response.EsClientException;
+import io.personium.common.es.test.util.EsTestNode;
 
 /**
  * ESの設定更新のテストクラス.
  */
-public class EsUpdateSettingsTest extends EsTestBase {
+public class EsUpdateSettingsTest {
+    private static final String INDEX_FOR_TEST = "index_for_test";
+    private static EsTestNode node;
+    private EsIndex index;
+
+    /**
+     * テストケース共通の初期化処理. テスト用のElasticsearchのNodeを初期化する
+     * @throws Exception 異常が発生した場合の例外
+     */
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        node = new EsTestNode();
+        node.create();
+    }
+
+    /**
+     * テストケース共通のクリーンアップ処理. テスト用のElasticsearchのNodeをクローズする
+     * @throws Exception 異常が発生した場合の例外
+     */
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        node.close();
+    }
+
+    private EsClient esClient;
+
     /**
      * 各テスト実行前の初期化処理.
      * @throws Exception 異常が発生した場合の例外
      */
     @Before
     public void setUp() throws Exception {
-        super.setUp();
+        esClient = new EsClient("testingCluster", "localhost:9399");
+        index = esClient.idxAdmin(INDEX_FOR_TEST);
+        index.create();
     }
 
     /**
@@ -53,7 +84,11 @@ public class EsUpdateSettingsTest extends EsTestBase {
      */
     @After
     public void tearDown() throws Exception {
-        super.tearDown();
+        try {
+            index.delete();
+        } catch (Exception ex) {
+            System.out.println("");
+        }
     }
 
     /**
@@ -62,7 +97,7 @@ public class EsUpdateSettingsTest extends EsTestBase {
     @Test
     public void Indexの設定が更新できること() {
         Map<String, String> settings = new HashMap<String, String>();
-        settings.put("index.number_of_replicas", "3");
+        settings.put("index.number_of_replicas", "1");
         TransportClient client = null;
         try {
             client = createTransportClient();
@@ -70,7 +105,7 @@ public class EsUpdateSettingsTest extends EsTestBase {
             assertEquals("0", getNumberOfReplicas(client, "index.number_of_replicas"));
 
             index.updateSettings(index.getName(), settings);
-            assertEquals("3", getNumberOfReplicas(client, "index.number_of_replicas"));
+            assertEquals("1", getNumberOfReplicas(client, "index.number_of_replicas"));
         } finally {
             client.close();
         }
@@ -113,12 +148,11 @@ public class EsUpdateSettingsTest extends EsTestBase {
     }
 
     private TransportClient createTransportClient() {
-        Settings sts = Settings.builder()
+        Settings sts = Settings.settingsBuilder()
                 .put("path.home", ".")
-                .put("cluster.name", TESTING_CLUSTER).build();
-        TransportClient client = new PreBuiltTransportClient(sts);
-        String[] h = TESTING_HOSTS.split(":");
-        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(h[0], Integer.valueOf(h[1]))));
+                .put("cluster.name", "testingCluster").build();
+        TransportClient client = TransportClient.builder().settings(sts).build();
+        client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress("localhost", 9399)));
         return client;
     }
 

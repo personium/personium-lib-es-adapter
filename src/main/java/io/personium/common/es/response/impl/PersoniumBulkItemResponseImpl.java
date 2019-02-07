@@ -16,8 +16,7 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.DocWriteRequest;
-import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.ActionWriteResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 
 import io.personium.common.es.response.PersoniumBulkItemResponse;
@@ -33,8 +32,8 @@ public class PersoniumBulkItemResponseImpl extends BulkItemResponse implements P
      * @param opType .
      * @param response .
      */
-    public PersoniumBulkItemResponseImpl(int id, String opType, DocWriteResponse response) {
-        super(id, DocWriteRequest.OpType.fromString(opType), response);
+    public PersoniumBulkItemResponseImpl(int id, String opType, ActionWriteResponse response) {
+        super(id, opType, response);
     }
 
     /**
@@ -44,7 +43,7 @@ public class PersoniumBulkItemResponseImpl extends BulkItemResponse implements P
      * @param failure .
      */
     public PersoniumBulkItemResponseImpl(int id, String opType, Failure failure) {
-        super(id, DocWriteRequest.OpType.fromString(opType), failure);
+        super(id, opType, failure);
     }
 
     /**
@@ -56,7 +55,7 @@ public class PersoniumBulkItemResponseImpl extends BulkItemResponse implements P
         if (response == null) {
             return null;
         }
-        return new PersoniumBulkItemResponseImpl(response.getItemId(), response.getOpType().getLowercase(), response.getResponse());
+        return new PersoniumBulkItemResponseImpl(response.getItemId(), response.getOpType(), response.getResponse());
     }
 
     @Override

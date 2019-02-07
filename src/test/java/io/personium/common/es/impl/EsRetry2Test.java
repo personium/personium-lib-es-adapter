@@ -16,22 +16,32 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.util.HashMap;
 
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.DocWriteRequest.OpType;
+import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.engine.VersionConflictEngineException;
+import org.elasticsearch.index.engine.DocumentAlreadyExistsException;
 import org.elasticsearch.index.mapper.MapperParsingException;
+import org.elasticsearch.node.Node;
+import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.transport.NodeDisconnectedException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
+import io.personium.common.es.EsClient;
 import io.personium.common.es.EsIndex;
 import io.personium.common.es.EsType;
 import io.personium.common.es.response.EsClientException;
@@ -40,7 +50,63 @@ import io.personium.common.es.response.PersoniumIndexResponse;
 /**
  * EsTypeクラスのリトライテスト. 初版では、createメソッドのみ対応
  */
-public class EsRetryTest extends EsTestBase {
+public class EsRetry2Test {
+
+    private static final String TESTING_HOSTS = "localhost:9399";
+    private static final String TESTING_CLUSTER = "testingCluster";
+    private static Node node;
+    private static EsClient esClient;
+
+    /**
+     * テストケース共通の初期化処理. テスト用のElasticsearchのNodeを初期化する
+     * @throws Exception 異常が発生した場合の例外
+     */
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        Settings settings = Settings.settingsBuilder()
+                .put("node.http.enabled", true)
+                .put("cluster.name", TESTING_CLUSTER)
+                .put("node.name", "node1")
+                .put("path.home", ".")
+                //.put("gateway.type", "local")
+                .put("action.auto_create_index", "false")
+                .put("index.store.type", "mmapfs")
+                .put("index.number_of_shards", 1)
+                .put("index.number_of_replicas", 0)
+                .put("transport.tcp.port", "9399")
+                .build();
+        node = NodeBuilder.nodeBuilder().settings(settings).node();
+
+        esClient = new EsClient(TESTING_CLUSTER, TESTING_HOSTS);
+    }
+
+    /**
+     * テストケース共通のクリーンアップ処理. テスト用のElasticsearchのNodeをクローズする
+     * @throws Exception 異常が発生した場合の例外
+     */
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        node.close();
+        deleteDirectory(new File("data"));
+    }
+
+    private static void deleteDirectory(File target) {
+        if (!target.exists()) {
+            return;
+        }
+
+        if (target.isFile()) {
+            target.delete();
+        }
+
+        if (target.isDirectory()) {
+            File[] files = target.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                deleteDirectory(files[i]);
+            }
+            target.delete();
+        }
+    }
 
     /**
      * 各テスト実行前の初期化処理.
@@ -48,7 +114,6 @@ public class EsRetryTest extends EsTestBase {
      */
     @Before
     public void setUp() throws Exception {
-        super.setUp();
     }
 
     /**
@@ -57,8 +122,14 @@ public class EsRetryTest extends EsTestBase {
      */
     @After
     public void tearDown() throws Exception {
-        super.tearDown();
+        EsIndex index = esClient.idxAdmin("index_for_test");
+        try {
+            index.delete();
+        } catch (Exception ex) {
+            System.out.println("");
+        }
     }
+
 
     /**
      * ドキュメント新規作成時_初回でDocumentAlreadyExistsExceptionが発生した場合にEsClient_EsClientExceptionが返されること. ※
@@ -66,9 +137,8 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.class)
     public void ドキュメント新規作成時_初回でDocumentAlreadyExistsExceptionが発生した場合にEsClient_EsClientExceptionが返されること() {
-        EsIndex index = esClient.idxUser(INDEX_FOR_TEST, EsIndex.CATEGORY_AD);
+        EsIndex index = esClient.idxUser("index_for_test", EsIndex.CATEGORY_AD);
         try {
-            index.delete();
             index.create();
             EsType type = esClient.type("index_for_test_" + EsIndex.CATEGORY_AD,
                     "TypeForTest", "TestRoutingId", 5, 500);
@@ -76,7 +146,7 @@ public class EsRetryTest extends EsTestBase {
 
             // EsType#asyncIndex()が呼ばれた場合に、DocumentAlreadyExistsExceptionを投げる。
             // 送出する例外オブジェクトのモックを作成
-            VersionConflictEngineException toBeThrown = Mockito.mock(VersionConflictEngineException.class);
+            DocumentAlreadyExistsException toBeThrown = Mockito.mock(DocumentAlreadyExistsException.class);
             Mockito.doThrow(toBeThrown)
                     .when(esTypeObject)
                     .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
@@ -84,11 +154,8 @@ public class EsRetryTest extends EsTestBase {
             // メソッド呼び出し
             esTypeObject.create("dummyId", null);
             fail("EsClientException should be thrown.");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw ex;
         } finally {
-            //index.delete();
+            index.delete();
         }
     }
 
@@ -97,7 +164,7 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.EsIndexMissingException.class)
     public void ドキュメント新規作成時_初回でIndexMissingExceptionが発生した場合にEsClient_EsIndexMissingExceptionが返されること() {
-        //PowerMockito.mockStatic(EsClientException.class);
+        PowerMockito.mockStatic(EsClientException.class);
         EsTypeImpl esTypeObject = Mockito.spy(new EsTypeImpl("dummy", "Test", "TestRoutingId", 0, 0, null));
 
         // EsType#asyncIndex()が呼ばれた場合に、IndexMissingExceptionを投げる。
@@ -117,7 +184,7 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.EsIndexMissingException.class)
     public void ドキュメント新規作成時_初回で根本例外IndexMissingExceptionが発生した場合にEsClient_EsIndexMissingExceptionが返されること() {
-        // PowerMockito.mockStatic(EsClientException.class);
+        PowerMockito.mockStatic(EsClientException.class);
         EsTypeImpl esTypeObject = Mockito.spy(new EsTypeImpl("dummy", "Test", "TestRoutingId", 0, 0, null));
         // EsType#asyncIndex()が呼ばれた場合に、根本例外にIndexMissingExceptionを含むElasticsearchExceptionを投げる。
         ElasticsearchException toBeThrown = new ElasticsearchException("dummy", new IndexNotFoundException("foo"));
@@ -134,7 +201,7 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.EsSchemaMismatchException.class)
     public void ドキュメント新規作成時_初回でMapperParsingExceptionが発生した場合にEsClient_EsSchemaMismatchExceptionが返されること() {
-        //PowerMockito.mockStatic(EsClientException.class);
+        PowerMockito.mockStatic(EsClientException.class);
         EsTypeImpl esTypeObject = Mockito.spy(new EsTypeImpl("dummy", "Test", "TestRoutingId", 0, 0, null));
 
         // EsType#asyncIndex()が呼ばれた場合に、MapperParsingExceptionを投げる。
@@ -154,7 +221,7 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.EsNoResponseException.class)
     public void ドキュメント新規作成時_初回NodeDisconnectedExceptionが発生した場合にリトライを繰り返し最終的にEsClient_EsNoResponseExceptionが返されること() {
-        //PowerMockito.mockStatic(EsClientException.class);
+        PowerMockito.mockStatic(EsClientException.class);
         EsTypeImpl esTypeObject = Mockito.spy(new EsTypeImpl("dummy", "Test", "TestRoutingId", 5, 500, null));
 
         // EsType#asyncIndex()が呼ばれた場合に、NodeDisconnectedExceptionを投げる。
@@ -174,7 +241,7 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test(expected = EsClientException.EsNoResponseException.class)
     public void ドキュメント新規作成時_初回NoNodeAvailableExceptionが発生した場合にリトライを繰り返し最終的にEsClient_EsNoResponseExceptionが返されること() {
-        //PowerMockito.mockStatic(EsClientException.class);
+        PowerMockito.mockStatic(EsClientException.class);
         EsTypeImpl esTypeObject = Mockito.spy(new EsTypeImpl("dummy", "Test", "TestRoutingId", 5, 500, null));
 
         // EsType#asyncIndex()が呼ばれた場合に、NodeDisconnectedExceptionを投げる。
@@ -194,9 +261,8 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test
     public void ドキュメント新規作成時_リトライ処理初回でDocumentAlreadyExistExceptionが返された場合に正常なIndexResponseが返されること() {
-        EsIndex index = esClient.idxUser(INDEX_FOR_TEST, EsIndex.CATEGORY_AD);
+        EsIndex index = esClient.idxUser("index_for_test", EsIndex.CATEGORY_AD);
         try {
-            index.delete();
             index.create();
             EsType type = esClient.type("index_for_test_" + EsIndex.CATEGORY_AD,
                     "TypeForTest", "TestRoutingId", 5, 500);
@@ -206,7 +272,7 @@ public class EsRetryTest extends EsTestBase {
             // EsType#asyncIndex()が呼ばれた場合に、NodeDisconnectedExceptionを投げる。
             // 送出する例外オブジェクトのモックを作成
             NodeDisconnectedException esDisconnectedException = Mockito.mock(NodeDisconnectedException.class);
-            VersionConflictEngineException documentAlreadyExists = Mockito.mock(VersionConflictEngineException.class);
+            DocumentAlreadyExistsException documentAlreadyExists = Mockito.mock(DocumentAlreadyExistsException.class);
             Mockito.doThrow(esDisconnectedException)
                     // 本来のリクエスト
                     .doThrow(documentAlreadyExists)
@@ -224,7 +290,7 @@ public class EsRetryTest extends EsTestBase {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            //index.delete();
+            index.delete();
         }
     }
 
@@ -233,9 +299,8 @@ public class EsRetryTest extends EsTestBase {
      */
     @Test
     public void ドキュメント新規作成時_リトライ処理の最大回数終了時点でDocumentAlreadyExistExceptionが返された場合に正常なIndexResponseが返されること() {
-        EsIndex index = esClient.idxUser(INDEX_FOR_TEST, EsIndex.CATEGORY_AD);
+        EsIndex index = esClient.idxUser("index_for_test", EsIndex.CATEGORY_AD);
         try {
-            index.delete();
             index.create();
             EsType type = esClient.type("index_for_test_" + EsIndex.CATEGORY_AD,
                     "TypeForTest", "TestRoutingId", 5, 500);
@@ -247,7 +312,7 @@ public class EsRetryTest extends EsTestBase {
             // 送出する例外オブジェクトのモックを作成
             NodeDisconnectedException esDisconnectedException = Mockito.mock(NodeDisconnectedException.class);
             NoNodeAvailableException esNoNodeAvailableException = Mockito.mock(NoNodeAvailableException.class);
-            VersionConflictEngineException documentAlreadyExists = Mockito.mock(VersionConflictEngineException.class);
+            DocumentAlreadyExistsException documentAlreadyExists = Mockito.mock(DocumentAlreadyExistsException.class);
             Mockito.doThrow(esDisconnectedException)
                     // 本来のリクエスト時の例外
                     .doThrow(esNoNodeAvailableException)
@@ -272,7 +337,7 @@ public class EsRetryTest extends EsTestBase {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            //index.delete();
+            index.delete();
         }
     }
 

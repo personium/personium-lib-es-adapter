@@ -16,7 +16,7 @@
  */
 package io.personium.common.es.util.impl;
 
-import org.elasticsearch.common.UUIDs;
+import org.elasticsearch.common.Strings;
 
 /**
  * UUIDを採番するためのユーティリティクラス.
@@ -30,6 +30,6 @@ public class PersoniumESUUID {
      * @return UUID
      */
     public static String randomUUID() {
-        return UUIDs.randomBase64UUID();
+        return Strings.randomBase64UUID();
     }
 }

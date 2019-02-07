@@ -16,8 +16,6 @@
  */
 package io.personium.common.es.util;
 
-import java.io.IOException;
-
 import io.personium.common.es.util.impl.InternalNodeImpl;
 
 /**
@@ -39,9 +37,8 @@ public class InternalNode {
 
     /**
      * テスト用のElasticsearchノードを停止する.
-     * @throws IOException
      */
-    public static void stopInternalNode() throws IOException {
+    public static void stopInternalNode() {
         InternalNodeImpl.stopInternalNode();
     }
 }

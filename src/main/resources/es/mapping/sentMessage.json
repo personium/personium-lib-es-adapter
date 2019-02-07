@@ -2,78 +2,78 @@
   "SentMessage": {
     "properties": {
       "c": {
-        "type": "keyword",
-        "index": true
+        "type": "string",
+        "index": "not_analyzed"
       },
       "s": {
         "properties": {
           "__id": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "InReplyTo": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "To": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "ToRelation": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "Type": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "Title": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
           "Body": {
-            "type": "keyword",
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "keyword",
-                "index": true,
+                "type": "string",
+                "index": "not_analyzed",
                 "ignore_above": 4096
               }
             }
           },
           "Priority": {
             "type": "long",
-            "index": false,
+            "index": "no",
             "fields": {
               "untouched": {
                 "type": "long"
@@ -83,83 +83,83 @@
           "RequestObjects": {
             "properties": {
               "RequestType": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                  "type": "keyword",
-                  "index": true
+                  "type": "string",
+                  "index": "not_analyzed"
                   }
                 }
               },
               "Name": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                  "type": "keyword",
-                  "index": true
+                  "type": "string",
+                  "index": "not_analyzed"
                   }
                 }
               },
               "TargetUrl": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "ClassUrl": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                  "type": "keyword",
-                  "index": true
+                  "type": "string",
+                  "index": "not_analyzed"
                   }
                 }
               },
               "EventSubject": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "EventType": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "EventObject": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "EventInfo": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "Action": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               }
@@ -168,29 +168,29 @@
           "Result": {
             "properties": {
               "To": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "Code": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               },
               "Reason": {
-                "type": "keyword",
+                "type": "string",
                 "fields": {
                   "untouched": {
-                    "type": "keyword",
-                    "index": true
+                    "type": "string",
+                    "index": "not_analyzed"
                   }
                 }
               }
@@ -201,8 +201,8 @@
       "l": {
         "properties": {
           "Box": {
-            "type": "keyword",
-            "index": true
+            "type": "string",
+            "index": "not_analyzed"
           }
         }
       },
