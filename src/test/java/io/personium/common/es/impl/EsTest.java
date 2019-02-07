@@ -18,13 +18,11 @@ package io.personium.common.es.impl;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.elasticsearch.action.index.IndexResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.personium.common.es.response.EsClientException;
@@ -34,24 +32,11 @@ import io.personium.common.es.response.EsClientException;
  */
 public class EsTest extends EsTestBase
 {
-    static List<String> nokeywords = Arrays.asList(new String[]{ "u", "p", "s.LastAuthenticated", ".*\\.long", ".*\\.double" });
-    static boolean nokeywordContains(String str) {
-        for (String word : nokeywords) {
-            if (str.matches(word)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    @Test
-    public void ztest() throws ParseException {
-        assertTrue(nokeywordContains("s.P001.double"));
-    }
-
     /**
      * ドキュメント登録チェックでドキュメントがすでに存在している場合に正常終了すること.
      * @throws ParseException ParseException
      */
+    @Ignore
     @Test
     public void ドキュメント登録チェックでドキュメントがすでに存在している場合に正常終了すること() throws ParseException {
         String id = "id00001";

@@ -837,7 +837,7 @@ public class InternalEsClient {
     }
     private String queryMapToJSON(Map<String, Object> map)
     {
-        log.debug("\n--- Before ---\n" + toJSON(map, false));
+    	if (log.isDebugEnabled()) log.debug("\n--- Before ---\n" + toJSON(map, false));
         // Convert start
         Map<String, Object> cloneMap = deepClone(map);
         Map<String, Object> newMap = new HashMap<String, Object>();
@@ -965,7 +965,7 @@ public class InternalEsClient {
         if (query_bool_filter_bool_should.isEmpty()) query_bool_filter_bool.remove("should");
         String jsonstr = toJSON(newMap, true);
         // Convert end
-        log.debug("\n--- After ---\n" + jsonstr);
+        if (log.isDebugEnabled()) log.debug("\n--- After ---\n" + jsonstr);
 
         return jsonstr;
     }
