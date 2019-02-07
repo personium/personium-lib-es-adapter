@@ -288,19 +288,21 @@ public class InternalEsClient {
                 new CreateIndexRequestBuilder(esTransportClient.admin().indices(),
                         CreateIndexAction.INSTANCE, index);
 
-        // cjkアナライザ設定
+        // index setting parameters
         Settings.Builder indexSettings = Settings.builder();
+        //  static
         indexSettings.put("analysis.analyzer.default.type", "cjk");
         indexSettings.put("index.mapping.total_fields.limit", "10000");
-        indexSettings.put("index.number_of_shards", "1");
-        indexSettings.put("index.number_of_replicas", "0");
-        indexSettings.put("index.max_result_window", "200000");
-        indexSettings.put("index.merge.scheduler.max_thread_count", "1");
-        indexSettings.put("index.refresh_interval", "-1");
         indexSettings.put("index.mapper.dynamic", "false");
+        indexSettings.put("index.refresh_interval", "-1");
+        //  dynamic
+        indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
+        indexSettings.put("index.number_of_replicas", System.getProperty("io.personium.es.index.numberOfReplicas", "0"));
+        indexSettings.put("index.max_result_window", System.getProperty("io.personium.es.index.maxResultWindow", "110000"));
+        String maxThreadCount = System.getProperty("io.personium.es.index.merge.scheduler.maxThreadCount");
+        if (maxThreadCount != null) indexSettings.put("index.merge.scheduler.max_thread_count", maxThreadCount);
 
         cirb.setSettings(indexSettings);
-
         if (mappings != null) {
             for (Map.Entry<String, JSONObject> ent : mappings.entrySet()) {
                 cirb = cirb.addMapping(ent.getKey(), ent.getValue().toString());

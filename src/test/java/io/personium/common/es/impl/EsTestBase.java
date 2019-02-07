@@ -29,8 +29,7 @@ import io.personium.common.es.test.util.EsTestNode;
  * EsModelの単体テストケース.
  */
 public class EsTestBase {
-    static final String TESTING_HOSTS = "192.168.227.133:9305";
-    //static final String TESTING_CLUSTER = "testingCluster";
+    static final String TESTING_HOSTS = "localhost:9300";
     static final String TESTING_CLUSTER = "es-personium";
     static final String INDEX_FOR_TEST = "index_for_test";
 
