@@ -6,8 +6,8 @@
         "links": {
           "path_match": "l.*",
           "mapping": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword",
+            "index": true
           },
           "match_mapping_type": "string"
         }
@@ -19,11 +19,11 @@
             "fields": {
               "untouched": {
                 "store": true,
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             },
-            "type": "string"
+            "type": "keyword"
           },
           "match_mapping_type": "string"
         }
@@ -38,7 +38,7 @@
                 "type": "long"
               }
             },
-            "index": "no",
+            "index": false,
             "type": "long"
           },
           "match_mapping_type": "long"
@@ -54,7 +54,7 @@
                 "type": "double"
               }
             },
-            "index": "no",
+            "index": false,
             "type": "double"
           },
           "match_mapping_type": "double"
@@ -70,7 +70,7 @@
                 "type": "boolean"
               }
             },
-            "index": "no",
+            "index": false,
             "type": "boolean"
           },
           "match_mapping_type": "boolean"
@@ -79,16 +79,16 @@
     ],
     "properties": {
       "b": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "n": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "c": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "p": {
         "store": true,

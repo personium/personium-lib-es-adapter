@@ -116,7 +116,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public boolean isSourceEmpty() {
-        return this.searchHit.isSourceEmpty();
+        return this.searchHit.hasSource();
     }
 
     @Override

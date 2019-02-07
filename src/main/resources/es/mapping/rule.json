@@ -2,80 +2,80 @@
   "Rule": {
     "properties": {
       "c": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword",
+        "index": true
       },
       "s": {
         "properties": {
           "Name": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "EventExternal": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
                 "type": "boolean",
-                "index": "not_analyzed"
+                "index": true
               }
             }
           },
           "EventSubject": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "EventType": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "EventObject": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "EventInfo": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "Action": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           },
           "TargetUrl": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           }
@@ -84,8 +84,8 @@
       "l": {
         "properties": {
           "Box": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword",
+            "index": true
           }
         }
       },

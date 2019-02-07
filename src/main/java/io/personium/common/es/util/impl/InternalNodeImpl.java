@@ -16,9 +16,10 @@
  */
 package io.personium.common.es.util.impl;
 
+import java.io.IOException;
+
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
 
 /**
  * ElasticSearchのアクセサクラス.
@@ -36,7 +37,7 @@ public class InternalNodeImpl {
      * テスト用のElasticsearchノードを起動する.
      */
     public static void startInternalNode() {
-        Settings settings = Settings.settingsBuilder()
+        Settings settings = Settings.builder()
                 .put("node.http.enabled", false)
                 .put("cluster.name", "testingCluster")
                 .put("node.name", "node1")
@@ -47,13 +48,14 @@ public class InternalNodeImpl {
                 .put("index.number_of_replicas", 0)
                 .put("transport.tcp.port", "9399")
                 .build();
-        internalNode = NodeBuilder.nodeBuilder().settings(settings).node();
+        internalNode = new Node(settings);
     }
 
     /**
      * テスト用のElasticsearchノードを停止する.
+     * @throws IOException
      */
-    public static void stopInternalNode() {
+    public static void stopInternalNode() throws IOException {
         if (internalNode != null) {
             internalNode.close();
         }

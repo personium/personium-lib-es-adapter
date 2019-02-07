@@ -4,11 +4,11 @@
       "s": {
         "properties": {
           "Name": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           }
@@ -17,11 +17,11 @@
       "h": {
         "properties": {
           "Owner": {
-            "type": "string",
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword",
+                "index": true
               }
             }
           }

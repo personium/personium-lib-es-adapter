@@ -26,17 +26,17 @@ import java.util.Map;
 
 import org.apache.commons.lang.CharEncoding;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.deletebyquery.DeleteByQueryResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -234,13 +234,13 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
          */
         @Override
         boolean isParticularError(ElasticsearchException e) {
-            return e instanceof IndexAlreadyExistsException || e.getCause() instanceof IndexAlreadyExistsException;
+            return e instanceof ResourceAlreadyExistsException  || e.getCause() instanceof ResourceAlreadyExistsException ;
         }
 
         @Override
         CreateIndexResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof IndexAlreadyExistsException
-                    || e.getCause() instanceof IndexAlreadyExistsException) {
+            if (e instanceof ResourceAlreadyExistsException
+                    || e.getCause() instanceof ResourceAlreadyExistsException ) {
                 throw new EsClientException.EsIndexAlreadyExistsException(e);
             }
             throw e;
@@ -507,7 +507,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     /**
      * Elasticsearchへの delete by query処理実装.
      */
-    class DeleteByQueryRetryableRequest extends AbstractRetryableEsRequest<DeleteByQueryResponse> {
+    class DeleteByQueryRetryableRequest extends AbstractRetryableEsRequest<BulkByScrollResponse> {
         String name;
         Map<String, Object> deleteQuery;
 
@@ -519,7 +519,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        DeleteByQueryResponse doProcess() {
+        BulkByScrollResponse doProcess() {
             return esClient.deleteByQuery(name, deleteQuery);
         }
 
