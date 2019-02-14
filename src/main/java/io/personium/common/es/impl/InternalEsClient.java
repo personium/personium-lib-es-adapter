@@ -107,7 +107,6 @@ public class InternalEsClient {
     static Logger log = LoggerFactory.getLogger(InternalEsClient.class);
 
     private static final int DEFAULT_ES_PORT = 9300;
-    private static final String UNIQE_TYPE = "doc";
 
     private TransportClient esTransportClient;
     private boolean routingFlag;
@@ -351,7 +350,7 @@ public class InternalEsClient {
     public MappingMetaData getMapping(String index, String type) {
         ClusterState cs = esTransportClient.admin().cluster().prepareState().
                 setIndices(index).execute().actionGet().getState();
-        return cs.getMetaData().index(index).mapping(UNIQE_TYPE);
+        return cs.getMetaData().index(index).mapping(getType(type));
     }
 
     /**
@@ -367,7 +366,7 @@ public class InternalEsClient {
         PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
                 PutMappingAction.INSTANCE)
                 .setIndices(index)
-                .setType(UNIQE_TYPE)
+                .setType(getType(type))
                 .setSource(mappings);
         return builder.execute();
     }
@@ -393,7 +392,7 @@ public class InternalEsClient {
      */
     public ActionFuture<GetResponse> asyncGet(String index, String type, String id, String routingId,
             boolean realtime) {
-        GetRequest req = new GetRequest(index, UNIQE_TYPE, id);
+        GetRequest req = new GetRequest(index, getType(type), id);
 
         if (routingFlag) {
             req = req.routing(routingId);
@@ -419,7 +418,7 @@ public class InternalEsClient {
             String routingId,
             SearchSourceBuilder builder) {
         // TODO type
-        SearchRequest req = new SearchRequest(index).types(UNIQE_TYPE).searchType(SearchType.DEFAULT).source(builder);
+        SearchRequest req = new SearchRequest(index).types(getType(type)).searchType(SearchType.DEFAULT).source(builder);
         if (routingFlag) {
             req = req.routing(routingId);
         }
@@ -441,7 +440,7 @@ public class InternalEsClient {
             String type,
             String routingId,
             Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index).types(UNIQE_TYPE).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(index).types(getType(type)).searchType(SearchType.DEFAULT);
         if (query != null) {
             req.source(makeSearchSourceBuilder(query, type));
         }
@@ -547,7 +546,7 @@ public class InternalEsClient {
         for (Map<String, Object> query : queryList) {
             SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
             if (type != null) {
-                req.types(UNIQE_TYPE);
+                req.types(getType(type));
             }
             // クエリ指定なしの場合はタイプに対する全件検索を行う
             if (query != null) {
@@ -575,10 +574,10 @@ public class InternalEsClient {
      */
     public ActionFuture<SearchResponse> asyncScrollSearch(String index, String type, Map<String, Object> query) {
         SearchRequest req = new SearchRequest(index)
-                .searchType(SearchType.QUERY_THEN_FETCH) //TODO
+                .searchType(SearchType.QUERY_THEN_FETCH)
                 .scroll(new TimeValue(SCROLL_SEARCH_KEEP_ALIVE_TIME));
         if (type != null) {
-            req.types(UNIQE_TYPE);
+            req.types(getType(type));
         }
         if (query != null) {
             req.source(makeSearchSourceBuilder(query, type));
@@ -634,9 +633,8 @@ public class InternalEsClient {
             Map<String, Object> data,
             OpType opType,
             long version) {
-        data.put("type", type);
-        IndexRequestBuilder req = esTransportClient.prepareIndex(index, UNIQE_TYPE, id)
-                .setSource(data)
+        IndexRequestBuilder req = esTransportClient.prepareIndex(index, getType(type), id)
+                .setSource(addType(data, type))
                 .setOpType(opType)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
         if (routingFlag) {
@@ -665,7 +663,7 @@ public class InternalEsClient {
      */
     public ActionFuture<DeleteResponse> asyncDelete(String index, String type,
             String id, String routingId, long version) {
-        DeleteRequestBuilder req = esTransportClient.prepareDelete(index, UNIQE_TYPE, id)
+        DeleteRequestBuilder req = esTransportClient.prepareDelete(index, getType(type), id)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
         if (routingFlag) {
             req = req.setRouting(routingId);
@@ -729,10 +727,8 @@ public class InternalEsClient {
      * @return 作成したINDEXリクエスト
      */
     private IndexRequestBuilder createIndexRequest(String index, String routingId, EsBulkRequest data) {
-        Map<String, Object> source = data.getSource();
-        source.put("type", data.getType());
         IndexRequestBuilder request = esTransportClient.
-                prepareIndex(index, UNIQE_TYPE, data.getId()).setSource(source);
+                prepareIndex(index, getType(data.getType()), data.getId()).setSource(addType(data.getSource(), data.getType()));
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -747,7 +743,7 @@ public class InternalEsClient {
      * @return 作成したDELETEリクエスト
      */
     private DeleteRequestBuilder createDeleteRequest(String index, String routingId, EsBulkRequest data) {
-        DeleteRequestBuilder request = esTransportClient.prepareDelete(index, UNIQE_TYPE, data.getId());
+        DeleteRequestBuilder request = esTransportClient.prepareDelete(index, getType(data.getType()), data.getId());
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -768,10 +764,8 @@ public class InternalEsClient {
         // このため、execute()のレスポンスを返却し、呼び出し側でactionGet()してからレスポンスチェック、リフレッシュすること。
         for (Entry<String, List<EsBulkRequest>> ents : bulkMap.entrySet()) {
             for (EsBulkRequest data : ents.getValue()) {
-                Map<String, Object> source = data.getSource();
-                source.put("type", data.getType());
                 IndexRequestBuilder req = esTransportClient.
-                        prepareIndex(index, UNIQE_TYPE, data.getId()).setSource(source);
+                        prepareIndex(index, getType(data.getType()), data.getId()).setSource(addType(data.getSource(), data.getType()));
                 if (routingFlag) {
                     req = req.setRouting(ents.getKey());
                 }
@@ -820,9 +814,20 @@ public class InternalEsClient {
     }
 
     /**
-     * ES2 -> ES5 非互換吸収のためにメソッド追加
+     * ES2 -> ES6 非互換吸収のためにメソッド追加
      */
-    private SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type)
+    private static final String UNIQE_TYPE = "doc";
+    private static String getType(String type)
+    {
+    	return UNIQE_TYPE;
+    }
+    private static Map<String, Object> addType(Map<String, Object> data, String type)
+    {
+        data.put("type", type);
+    	return data;
+    }
+
+    private static SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type)
     {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchModule searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList());
@@ -835,7 +840,7 @@ public class InternalEsClient {
 
         return searchSourceBuilder;
     }
-    private QueryBuilder makeQueryBuilder(Map<String, Object> map, String type)
+    private static QueryBuilder makeQueryBuilder(Map<String, Object> map, String type)
     {
         log.debug("#DeleteByQuerye");
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -849,11 +854,11 @@ public class InternalEsClient {
         QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(query_query));
         return queryBuilder;
     }
-    private String queryMapToJSON(Map<String, Object> map, String type)
+    private static String queryMapToJSON(Map<String, Object> map, String type)
     {
     	if (log.isDebugEnabled()) log.debug("\n--- Before ---\n" + toJSON(map, false));
         // Convert start
-        Map<String, Object> cloneMap = deepClone(map);
+        Map<String, Object> cloneMap = deepClone(map, type);
         Map<String, Object> newMap = new HashMap<String, Object>();
         //version
         Object version = getNestedMapObject(cloneMap, new String[]{ "version" }, 0);
@@ -987,12 +992,12 @@ public class InternalEsClient {
         }
         /////
         removeNestedMapObject(newMap, "ignore_unmapped");
-        if (query_bool_must.isEmpty()) query_bool.remove("must");
-        if (query_bool_mustnot.isEmpty()) query_bool.remove("must_not");
-        if (query_bool_should.isEmpty()) query_bool.remove("should");
-        if (query_bool_filter_bool_must.isEmpty()) query_bool_filter_bool.remove("must");
-        if (query_bool_filter_bool_mustnot.isEmpty()) query_bool_filter_bool.remove("must_not");
-        if (query_bool_filter_bool_should.isEmpty()) query_bool_filter_bool.remove("should");
+//        if (query_bool_must.isEmpty()) query_bool.remove("must");
+//        if (query_bool_mustnot.isEmpty()) query_bool.remove("must_not");
+//        if (query_bool_should.isEmpty()) query_bool.remove("should");
+//        if (query_bool_filter_bool_must.isEmpty()) query_bool_filter_bool.remove("must");
+//        if (query_bool_filter_bool_mustnot.isEmpty()) query_bool_filter_bool.remove("must_not");
+//        if (query_bool_filter_bool_should.isEmpty()) query_bool_filter_bool.remove("should");
         String jsonstr = toJSON(newMap, true);
         // Convert end
         if (log.isDebugEnabled()) log.debug("\n--- After ---\n" + jsonstr);
@@ -1140,7 +1145,7 @@ public class InternalEsClient {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             if (shaping) {
                 mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
-                //mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY);
+                mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY);
             }
             mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
             json = mapper.writeValueAsString(map);
@@ -1149,13 +1154,14 @@ public class InternalEsClient {
         }
         return json;
     }
-    private static Map<String, Object> deepClone(Map<String, Object> map) {
+    private static Map<String, Object> deepClone(Map<String, Object> map, String type) {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             String json = mapper.writeValueAsString(map);
-            //json = json.replaceAll("\\.untouched", "");
-            //json = json.replaceAll("\\.double", "");
-            //json = json.replaceAll("\\.long", "");
+            if (type != null) {
+            	if (type.equals("EntityType")) json = json.replaceAll("\"l\":", "\"lo\":");
+            	if (type.equals("UserData")) json = json.replaceAll("\"h\":", "\"ho\":");
+            }
             Map<String, Object> newMap = mapper.readValue(json, Map.class);
             return newMap;
         } catch (IOException ex) {

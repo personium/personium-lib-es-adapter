@@ -146,7 +146,9 @@
             "type" : "keyword",
             "index" : false
           }
-        },
+        }
+      },
+      "ho" : {
         "type" : "object"
       },
       "l" : {
@@ -175,7 +177,9 @@
             "type" : "keyword",
             "index" : true
           }
-        },
+        }
+      },
+      "lo" : {
         "type" : "object"
       },
       "s" : {

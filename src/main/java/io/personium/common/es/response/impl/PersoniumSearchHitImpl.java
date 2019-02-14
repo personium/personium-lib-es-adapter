@@ -91,12 +91,12 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String type() {
-        return this.searchHit.getType();
+        return (String)this.searchHit.getSourceAsMap().get("type");
     }
 
     @Override
     public String getType() {
-        return this.searchHit.getType();
+        return (String)this.searchHit.getSourceAsMap().get("type");
     }
 
     @Override
