@@ -107,6 +107,7 @@ public class InternalEsClient {
     static Logger log = LoggerFactory.getLogger(InternalEsClient.class);
 
     private static final int DEFAULT_ES_PORT = 9300;
+    private static final String UNIQE_TYPE = "_doc";
 
     private TransportClient esTransportClient;
     private boolean routingFlag;
@@ -350,7 +351,7 @@ public class InternalEsClient {
     public MappingMetaData getMapping(String index, String type) {
         ClusterState cs = esTransportClient.admin().cluster().prepareState().
                 setIndices(index).execute().actionGet().getState();
-        return cs.getMetaData().index(index).mapping(type);
+        return cs.getMetaData().index(index).mapping(UNIQE_TYPE);
     }
 
     /**
@@ -366,7 +367,7 @@ public class InternalEsClient {
         PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
                 PutMappingAction.INSTANCE)
                 .setIndices(index)
-                .setType(type)
+                .setType(UNIQE_TYPE)
                 .setSource(mappings);
         return builder.execute();
     }
@@ -392,7 +393,7 @@ public class InternalEsClient {
      */
     public ActionFuture<GetResponse> asyncGet(String index, String type, String id, String routingId,
             boolean realtime) {
-        GetRequest req = new GetRequest(index, type, id);
+        GetRequest req = new GetRequest(index, UNIQE_TYPE, id);
 
         if (routingFlag) {
             req = req.routing(routingId);
@@ -417,7 +418,8 @@ public class InternalEsClient {
             String type,
             String routingId,
             SearchSourceBuilder builder) {
-        SearchRequest req = new SearchRequest(index).types(type).searchType(SearchType.DEFAULT).source(builder);
+        // TODO type
+        SearchRequest req = new SearchRequest(index).types(UNIQE_TYPE).searchType(SearchType.DEFAULT).source(builder);
         if (routingFlag) {
             req = req.routing(routingId);
         }
@@ -439,9 +441,9 @@ public class InternalEsClient {
             String type,
             String routingId,
             Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index).types(type).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(index).types(UNIQE_TYPE).searchType(SearchType.DEFAULT);
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query));
+            req.source(makeSearchSourceBuilder(query, type));
         }
         if (routingFlag) {
             req = req.routing(routingId);
@@ -465,7 +467,7 @@ public class InternalEsClient {
             Map<String, Object> query) {
         SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query));
+            req.source(makeSearchSourceBuilder(query, null));
         }
         if (routingFlag) {
             req = req.routing(routingId);
@@ -545,11 +547,11 @@ public class InternalEsClient {
         for (Map<String, Object> query : queryList) {
             SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
             if (type != null) {
-                req.types(type);
+                req.types(UNIQE_TYPE);
             }
             // クエリ指定なしの場合はタイプに対する全件検索を行う
             if (query != null) {
-                req.source(makeSearchSourceBuilder(query));
+                req.source(makeSearchSourceBuilder(query, type));
             }
             if (routingFlag) {
                 req = req.routing(routingId);
@@ -576,10 +578,10 @@ public class InternalEsClient {
                 .searchType(SearchType.QUERY_THEN_FETCH) //TODO
                 .scroll(new TimeValue(SCROLL_SEARCH_KEEP_ALIVE_TIME));
         if (type != null) {
-            req.types(type);
+            req.types(UNIQE_TYPE);
         }
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query));
+            req.source(makeSearchSourceBuilder(query, type));
         }
 
         ActionFuture<SearchResponse> ret = esTransportClient.search(req);
@@ -607,7 +609,7 @@ public class InternalEsClient {
     public ActionFuture<SearchResponse> asyncSearch(String index, Map<String, Object> query) {
         SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query));
+            req.source(makeSearchSourceBuilder(query, null));
         }
         ActionFuture<SearchResponse> ret = esTransportClient.search(req);
         this.fireEvent(Event.afterRequest, index, null, null, JSONObject.toJSONString(query), "Search");
@@ -795,7 +797,7 @@ public class InternalEsClient {
     public BulkByScrollResponse deleteByQuery(String index, Map<String, Object> deleteQuery) {
         DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE.newRequestBuilder(esTransportClient);
         builder.source(index);
-        builder.filter(makeQueryBuilder(deleteQuery));
+        builder.filter(makeQueryBuilder(deleteQuery, null));
         BulkByScrollResponse response = builder.execute().actionGet();
         refresh(index);
         return response;
@@ -815,11 +817,11 @@ public class InternalEsClient {
     /**
      * ES2 -> ES5 非互換吸収のためにメソッド追加
      */
-    private SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map)
+    private SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type)
     {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchModule searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList());
-        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map)))
+        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map, type)))
         {
             searchSourceBuilder.parseXContent(parser);
         } catch (IOException ex) {
@@ -828,13 +830,13 @@ public class InternalEsClient {
 
         return searchSourceBuilder;
     }
-    private QueryBuilder makeQueryBuilder(Map<String, Object> map)
+    private QueryBuilder makeQueryBuilder(Map<String, Object> map, String type)
     {
         log.debug("#DeleteByQuerye");
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         Map<String, Object> queryMap = null;
         try {
-            queryMap = mapper.readValue(queryMapToJSON(map), Map.class);
+            queryMap = mapper.readValue(queryMapToJSON(map, type), Map.class);
         } catch (IOException ex) {
             throw new EsClientException("QueryBuilder Make Error.", ex);
         }
@@ -842,7 +844,7 @@ public class InternalEsClient {
         QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(query_query));
         return queryBuilder;
     }
-    private String queryMapToJSON(Map<String, Object> map)
+    private String queryMapToJSON(Map<String, Object> map, String type)
     {
     	if (log.isDebugEnabled()) log.debug("\n--- Before ---\n" + toJSON(map, false));
         // Convert start
@@ -874,6 +876,15 @@ public class InternalEsClient {
         List<Map<String, Object>> query_bool_filter_bool_must = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("must", query_bool_filter_bool_must);
         List<Map<String, Object>> query_bool_filter_bool_mustnot = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("must_not", query_bool_filter_bool_mustnot);
         List<Map<String, Object>> query_bool_filter_bool_should = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("should", query_bool_filter_bool_should);
+        // type
+        if (type != null) {
+            Map<String, Object> query_x = (Map<String, Object>)getNestedMapObject(cloneMap, new String[]{ "query" }, 0);
+            if (query_x != null) {
+	            Map<String, Object> query_bool_filter_bool_must_type = new HashMap<String, Object>();
+	            query_bool_filter_bool_must_type.put("_type", type);
+	            query_bool_filter_bool_must.add(query_bool_filter_bool_must_type);
+            }
+        }
         /////
         // -query/filterd/filter
         List<Map<String, Object>> query_x_must = (List<Map<String, Object>>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter", "bool", "must" }, 0);
