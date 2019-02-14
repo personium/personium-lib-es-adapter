@@ -1,5 +1,5 @@
 {
-  "_doc" : {
+  "doc" : {
     "date_detection" : false,
     "dynamic_templates" : [ {
       "links" : {
@@ -72,7 +72,7 @@
       }
     } ],
     "properties" : {
-      "_type" : {
+      "type" : {
         "type" : "keyword",
         "index" : true
       },

@@ -294,8 +294,8 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
             return;
         }
         mappingConfigs = new HashMap<String, Map<String, JSONObject>>();
-        loadMappingConfig(EsIndex.CATEGORY_AD, "_doc", "es/mapping/_ad.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "_doc", "es/mapping/_usr.json");
+        loadMappingConfig(EsIndex.CATEGORY_AD, "doc", "es/mapping/_ad.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "doc", "es/mapping/_usr.json");
 //        loadMappingConfig(EsIndex.CATEGORY_AD, "Domain", "es/mapping/domain.json");
 //        loadMappingConfig(EsIndex.CATEGORY_AD, "Cell", "es/mapping/cell.json");
 //        loadMappingConfig(EsIndex.CATEGORY_USR, "link", "es/mapping/link.json");

@@ -107,7 +107,7 @@ public class InternalEsClient {
     static Logger log = LoggerFactory.getLogger(InternalEsClient.class);
 
     private static final int DEFAULT_ES_PORT = 9300;
-    private static final String UNIQE_TYPE = "_doc";
+    private static final String UNIQE_TYPE = "doc";
 
     private TransportClient esTransportClient;
     private boolean routingFlag;
@@ -634,7 +634,8 @@ public class InternalEsClient {
             Map<String, Object> data,
             OpType opType,
             long version) {
-        IndexRequestBuilder req = esTransportClient.prepareIndex(index, type, id)
+        data.put("type", type);
+        IndexRequestBuilder req = esTransportClient.prepareIndex(index, UNIQE_TYPE, id)
                 .setSource(data)
                 .setOpType(opType)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
@@ -664,7 +665,7 @@ public class InternalEsClient {
      */
     public ActionFuture<DeleteResponse> asyncDelete(String index, String type,
             String id, String routingId, long version) {
-        DeleteRequestBuilder req = esTransportClient.prepareDelete(index, type, id)
+        DeleteRequestBuilder req = esTransportClient.prepareDelete(index, UNIQE_TYPE, id)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
         if (routingFlag) {
             req = req.setRouting(routingId);
@@ -728,8 +729,10 @@ public class InternalEsClient {
      * @return 作成したINDEXリクエスト
      */
     private IndexRequestBuilder createIndexRequest(String index, String routingId, EsBulkRequest data) {
+        Map<String, Object> source = data.getSource();
+        source.put("type", data.getType());
         IndexRequestBuilder request = esTransportClient.
-                prepareIndex(index, data.getType(), data.getId()).setSource(data.getSource());
+                prepareIndex(index, UNIQE_TYPE, data.getId()).setSource(source);
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -744,7 +747,7 @@ public class InternalEsClient {
      * @return 作成したDELETEリクエスト
      */
     private DeleteRequestBuilder createDeleteRequest(String index, String routingId, EsBulkRequest data) {
-        DeleteRequestBuilder request = esTransportClient.prepareDelete(index, data.getType(), data.getId());
+        DeleteRequestBuilder request = esTransportClient.prepareDelete(index, UNIQE_TYPE, data.getId());
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -765,8 +768,10 @@ public class InternalEsClient {
         // このため、execute()のレスポンスを返却し、呼び出し側でactionGet()してからレスポンスチェック、リフレッシュすること。
         for (Entry<String, List<EsBulkRequest>> ents : bulkMap.entrySet()) {
             for (EsBulkRequest data : ents.getValue()) {
+                Map<String, Object> source = data.getSource();
+                source.put("type", data.getType());
                 IndexRequestBuilder req = esTransportClient.
-                        prepareIndex(index, data.getType(), data.getId()).setSource(data.getSource());
+                        prepareIndex(index, UNIQE_TYPE, data.getId()).setSource(source);
                 if (routingFlag) {
                     req = req.setRouting(ents.getKey());
                 }
@@ -972,6 +977,13 @@ public class InternalEsClient {
             if (filter_bool_should != null) {
                 query_bool_filter_bool_should.add(filer_x_filter);
             }
+        }
+        /////
+        // type
+        if (type != null && !query_bool_filter_bool_must.isEmpty()) {
+             Map<String, Object> query_bool_filter_bool_must_term = new HashMap<String, Object>(); query_bool_filter_bool_must.add(0, query_bool_filter_bool_must_term);
+             Map<String, Object> query_bool_filter_bool_must_term_type = new HashMap<String, Object>(); query_bool_filter_bool_must_term.put("term", query_bool_filter_bool_must_term_type);
+             query_bool_filter_bool_must_term_type.put("type", type);
         }
         /////
         removeNestedMapObject(newMap, "ignore_unmapped");
