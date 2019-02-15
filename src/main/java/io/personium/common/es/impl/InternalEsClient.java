@@ -293,7 +293,6 @@ public class InternalEsClient {
         //  static
         indexSettings.put("analysis.analyzer.default.type", "cjk");
         indexSettings.put("index.mapping.total_fields.limit", "10000");
-        indexSettings.put("index.mapper.dynamic", "false");
         indexSettings.put("index.refresh_interval", "-1");
         //  dynamic
         indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
@@ -926,35 +925,35 @@ public class InternalEsClient {
         }
         // -filter
         Map<String, Object> filter = (Map<String, Object>)getNestedMapObject(cloneMap, new String[]{ "filter" }, 0);
-           if (filter != null) {
-               // -query
-               List<Map<String, Object>> filter_x_querys = new ArrayList<Map<String, Object>>();
-               parseQueryMap(filter_x_querys, filter);
-               if (!filter_x_querys.isEmpty()) {
-                Map<String, Object> queryMap =  new HashMap<String, Object>();query_bool_must.add(queryMap);
-                Map<String, Object> query_bool_must_bool = new HashMap<String, Object>(); queryMap.put("bool", query_bool_must_bool);
-                List<Map<String, Object>> query_bool_must_bool_must = new ArrayList<Map<String, Object>>(); query_bool_must_bool.put("must", query_bool_must_bool_must);
-                for(Map<String, Object> filter_x_query : filter_x_querys) {
-                       if (filter_x_query instanceof List) {
-                           query_bool_must_bool_must.addAll((List<Map<String, Object>>)filter_x_query);
-                    } else
-                       if (filter_x_query instanceof Map) {
-                           query_bool_must_bool_must.add((Map<String, Object>)filter_x_query);
-                       }
-                }
-                   removeNestedMapObject(filter, "query");
-               }
-               // -filter
-               Map<String, Object> filer_x_filter = parseMap(filter);
-               List<Map<String, Object>> filter_bool_must = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "must" }, 0);
-               if (filter_bool_must != null) {
-                   query_bool_filter_bool_must.add(filer_x_filter);
-               }
-               List<Map<String, Object>> filter_bool_should = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "should" }, 0);
-               if (filter_bool_should != null) {
-                   query_bool_filter_bool_should.add(filer_x_filter);
-               }
-           }
+        if (filter != null) {
+            // -query
+            List<Map<String, Object>> filter_x_querys = new ArrayList<Map<String, Object>>();
+            parseQueryMap(filter_x_querys, filter);
+            if (!filter_x_querys.isEmpty()) {
+             Map<String, Object> queryMap =  new HashMap<String, Object>();query_bool_must.add(queryMap);
+             Map<String, Object> query_bool_must_bool = new HashMap<String, Object>(); queryMap.put("bool", query_bool_must_bool);
+             List<Map<String, Object>> query_bool_must_bool_must = new ArrayList<Map<String, Object>>(); query_bool_must_bool.put("must", query_bool_must_bool_must);
+             for(Map<String, Object> filter_x_query : filter_x_querys) {
+                    if (filter_x_query instanceof List) {
+                        query_bool_must_bool_must.addAll((List<Map<String, Object>>)filter_x_query);
+                 } else
+                    if (filter_x_query instanceof Map) {
+                        query_bool_must_bool_must.add((Map<String, Object>)filter_x_query);
+                    }
+             }
+                removeNestedMapObject(filter, "query");
+            }
+            // -filter
+            Map<String, Object> filer_x_filter = parseMap(filter);
+            List<Map<String, Object>> filter_bool_must = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "must" }, 0);
+            if (filter_bool_must != null) {
+                query_bool_filter_bool_must.add(filer_x_filter);
+            }
+            List<Map<String, Object>> filter_bool_should = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "should" }, 0);
+            if (filter_bool_should != null) {
+                query_bool_filter_bool_should.add(filer_x_filter);
+            }
+        }
         /////
         removeNestedMapObject(newMap, "ignore_unmapped");
         if (query_bool_must.isEmpty()) query_bool.remove("must");
