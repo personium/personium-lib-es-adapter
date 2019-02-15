@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.elasticsearch.action.get.GetResponse;
 
+import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.PersoniumGetResponse;
 
 /**
@@ -126,7 +127,7 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      */
     @Override
     public Map<String, Object> getSource() {
-        return this.getResponse.getSource();
+        return InternalEsClient.deepClone(2, this.getResponse.getSource(), getType());
     }
 
     /* (non-Javadoc)
@@ -142,6 +143,6 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      */
     @Override
     public Map<String, Object> sourceAsMap() {
-        return this.getResponse.getSourceAsMap();
+        return InternalEsClient.deepClone(2, this.getResponse.getSourceAsMap(), getType());
     }
 }

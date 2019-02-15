@@ -23,6 +23,7 @@ import java.util.Map;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.SearchHit;
 
+import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.PersoniumSearchHit;
 import io.personium.common.es.response.PersoniumSearchHitField;
 
@@ -121,7 +122,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Map<String, Object> getSource() {
-        return this.searchHit.getSourceAsMap();
+        return InternalEsClient.deepClone(2, this.searchHit.getSourceAsMap(), getType());
     }
 
     @Override
@@ -136,7 +137,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Map<String, Object> sourceAsMap() {
-        return this.searchHit.getSourceAsMap();
+        return getSource();
     }
 
     @Override
