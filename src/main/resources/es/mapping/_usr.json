@@ -14,14 +14,22 @@
       "properties" : {
         "match" : "*",
         "mapping" : {
+          "type" : "keyword",
           "fields" : {
+            "double" : {
+              "type" : "double",
+              "ignore_malformed" : true
+            },
+            "long" : {
+              "type" : "long",
+              "ignore_malformed" : true
+            },
             "untouched" : {
-              "store" : true,
               "type" : "keyword",
-              "index" : true
+              "index" : true,
+              "ignore_above" : 4096
             }
-          },
-          "type" : "keyword"
+          }
         },
         "match_mapping_type" : "string"
       }
@@ -29,14 +37,22 @@
       "properties_long" : {
         "match" : "*",
         "mapping" : {
+          "type" : "keyword",
           "fields" : {
+            "double" : {
+              "type" : "double",
+              "ignore_malformed" : true
+            },
+            "long" : {
+              "type" : "long",
+              "ignore_malformed" : true
+            },
             "untouched" : {
-              "store" : true,
-              "type" : "long"
+              "type" : "keyword",
+              "index" : true,
+              "ignore_above" : 4096
             }
-          },
-          "index" : false,
-          "type" : "long"
+          }
         },
         "match_mapping_type" : "long"
       }
@@ -44,14 +60,22 @@
       "properties_double" : {
         "match" : "*",
         "mapping" : {
+          "type" : "keyword",
           "fields" : {
+            "double" : {
+              "type" : "double",
+              "ignore_malformed" : true
+            },
+            "long" : {
+              "type" : "long",
+              "ignore_malformed" : true
+            },
             "untouched" : {
-              "store" : true,
-              "type" : "double"
+              "type" : "keyword",
+              "index" : true,
+              "ignore_above" : 4096
             }
-          },
-          "index" : false,
-          "type" : "double"
+          }
         },
         "match_mapping_type" : "double"
       }
@@ -59,14 +83,22 @@
       "properties_boolean" : {
         "match" : "*",
         "mapping" : {
+          "type" : "keyword",
           "fields" : {
+            "double" : {
+              "type" : "double",
+              "ignore_malformed" : true
+            },
+            "long" : {
+              "type" : "long",
+              "ignore_malformed" : true
+            },
             "untouched" : {
-              "store" : true,
-              "type" : "boolean"
+              "type" : "keyword",
+              "index" : true,
+              "ignore_above" : 4096
             }
-          },
-          "index" : false,
-          "type" : "boolean"
+          }
         },
         "match_mapping_type" : "boolean"
       }
@@ -181,6 +213,9 @@
       },
       "lo" : {
         "type" : "object"
+      },
+      "alldata" : {
+        "type" : "text"
       },
       "s" : {
         "properties" : {
@@ -567,6 +602,7 @@
           },
           "P001" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -586,6 +622,7 @@
           },
           "P002" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -605,6 +642,7 @@
           },
           "P003" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -624,6 +662,7 @@
           },
           "P004" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -643,6 +682,7 @@
           },
           "P005" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -662,6 +702,7 @@
           },
           "P006" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -681,6 +722,7 @@
           },
           "P007" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -700,6 +742,7 @@
           },
           "P008" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -719,6 +762,7 @@
           },
           "P009" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -738,6 +782,7 @@
           },
           "P010" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -757,6 +802,7 @@
           },
           "P011" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -776,6 +822,7 @@
           },
           "P012" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -795,6 +842,7 @@
           },
           "P013" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -814,6 +862,7 @@
           },
           "P014" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -833,6 +882,7 @@
           },
           "P015" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -852,6 +902,7 @@
           },
           "P016" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -871,6 +922,7 @@
           },
           "P017" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -890,6 +942,7 @@
           },
           "P018" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -909,6 +962,7 @@
           },
           "P019" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -928,6 +982,7 @@
           },
           "P020" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -947,6 +1002,7 @@
           },
           "P021" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -966,6 +1022,7 @@
           },
           "P022" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -985,6 +1042,7 @@
           },
           "P023" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1004,6 +1062,7 @@
           },
           "P024" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1023,6 +1082,7 @@
           },
           "P025" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1042,6 +1102,7 @@
           },
           "P026" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1061,6 +1122,7 @@
           },
           "P027" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1080,6 +1142,7 @@
           },
           "P028" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1099,6 +1162,7 @@
           },
           "P029" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1118,6 +1182,7 @@
           },
           "P030" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1137,6 +1202,7 @@
           },
           "P031" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1156,6 +1222,7 @@
           },
           "P032" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1175,6 +1242,7 @@
           },
           "P033" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1194,6 +1262,7 @@
           },
           "P034" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1213,6 +1282,7 @@
           },
           "P035" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1232,6 +1302,7 @@
           },
           "P036" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1251,6 +1322,7 @@
           },
           "P037" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1270,6 +1342,7 @@
           },
           "P038" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1289,6 +1362,7 @@
           },
           "P039" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1308,6 +1382,7 @@
           },
           "P040" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1327,6 +1402,7 @@
           },
           "P041" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1346,6 +1422,7 @@
           },
           "P042" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1365,6 +1442,7 @@
           },
           "P043" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1384,6 +1462,7 @@
           },
           "P044" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1403,6 +1482,7 @@
           },
           "P045" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1422,6 +1502,7 @@
           },
           "P046" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1441,6 +1522,7 @@
           },
           "P047" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1460,6 +1542,7 @@
           },
           "P048" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1479,6 +1562,7 @@
           },
           "P049" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1498,6 +1582,7 @@
           },
           "P050" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1517,6 +1602,7 @@
           },
           "P051" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1536,6 +1622,7 @@
           },
           "P052" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1555,6 +1642,7 @@
           },
           "P053" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1574,6 +1662,7 @@
           },
           "P054" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1593,6 +1682,7 @@
           },
           "P055" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1612,6 +1702,7 @@
           },
           "P056" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1631,6 +1722,7 @@
           },
           "P057" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1650,6 +1742,7 @@
           },
           "P058" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1669,6 +1762,7 @@
           },
           "P059" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1688,6 +1782,7 @@
           },
           "P060" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1707,6 +1802,7 @@
           },
           "P061" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1726,6 +1822,7 @@
           },
           "P062" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1745,6 +1842,7 @@
           },
           "P063" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1764,6 +1862,7 @@
           },
           "P064" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1783,6 +1882,7 @@
           },
           "P065" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1802,6 +1902,7 @@
           },
           "P066" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1821,6 +1922,7 @@
           },
           "P067" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1840,6 +1942,7 @@
           },
           "P068" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1859,6 +1962,7 @@
           },
           "P069" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1878,6 +1982,7 @@
           },
           "P070" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1897,6 +2002,7 @@
           },
           "P071" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1916,6 +2022,7 @@
           },
           "P072" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1935,6 +2042,7 @@
           },
           "P073" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1954,6 +2062,7 @@
           },
           "P074" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1973,6 +2082,7 @@
           },
           "P075" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -1992,6 +2102,7 @@
           },
           "P076" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2011,6 +2122,7 @@
           },
           "P077" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2030,6 +2142,7 @@
           },
           "P078" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2049,6 +2162,7 @@
           },
           "P079" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2068,6 +2182,7 @@
           },
           "P080" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2087,6 +2202,7 @@
           },
           "P081" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2106,6 +2222,7 @@
           },
           "P082" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2125,6 +2242,7 @@
           },
           "P083" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2144,6 +2262,7 @@
           },
           "P084" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2163,6 +2282,7 @@
           },
           "P085" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2182,6 +2302,7 @@
           },
           "P086" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2201,6 +2322,7 @@
           },
           "P087" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2220,6 +2342,7 @@
           },
           "P088" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2239,6 +2362,7 @@
           },
           "P089" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2258,6 +2382,7 @@
           },
           "P090" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2277,6 +2402,7 @@
           },
           "P091" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2296,6 +2422,7 @@
           },
           "P092" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2315,6 +2442,7 @@
           },
           "P093" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2334,6 +2462,7 @@
           },
           "P094" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2353,6 +2482,7 @@
           },
           "P095" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2372,6 +2502,7 @@
           },
           "P096" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2391,6 +2522,7 @@
           },
           "P097" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2410,6 +2542,7 @@
           },
           "P098" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2429,6 +2562,7 @@
           },
           "P099" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2448,6 +2582,7 @@
           },
           "P100" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2467,6 +2602,7 @@
           },
           "P101" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2486,6 +2622,7 @@
           },
           "P102" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2505,6 +2642,7 @@
           },
           "P103" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2524,6 +2662,7 @@
           },
           "P104" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2543,6 +2682,7 @@
           },
           "P105" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2562,6 +2702,7 @@
           },
           "P106" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2581,6 +2722,7 @@
           },
           "P107" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2600,6 +2742,7 @@
           },
           "P108" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2619,6 +2762,7 @@
           },
           "P109" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2638,6 +2782,7 @@
           },
           "P110" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2657,6 +2802,7 @@
           },
           "P111" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2676,6 +2822,7 @@
           },
           "P112" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2695,6 +2842,7 @@
           },
           "P113" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2714,6 +2862,7 @@
           },
           "P114" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2733,6 +2882,7 @@
           },
           "P115" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2752,6 +2902,7 @@
           },
           "P116" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2771,6 +2922,7 @@
           },
           "P117" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2790,6 +2942,7 @@
           },
           "P118" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2809,6 +2962,7 @@
           },
           "P119" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2828,6 +2982,7 @@
           },
           "P120" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2847,6 +3002,7 @@
           },
           "P121" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2866,6 +3022,7 @@
           },
           "P122" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2885,6 +3042,7 @@
           },
           "P123" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2904,6 +3062,7 @@
           },
           "P124" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2923,6 +3082,7 @@
           },
           "P125" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2942,6 +3102,7 @@
           },
           "P126" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2961,6 +3122,7 @@
           },
           "P127" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2980,6 +3142,7 @@
           },
           "P128" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -2999,6 +3162,7 @@
           },
           "P129" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3018,6 +3182,7 @@
           },
           "P130" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3037,6 +3202,7 @@
           },
           "P131" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3056,6 +3222,7 @@
           },
           "P132" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3075,6 +3242,7 @@
           },
           "P133" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3094,6 +3262,7 @@
           },
           "P134" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3113,6 +3282,7 @@
           },
           "P135" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3132,6 +3302,7 @@
           },
           "P136" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3151,6 +3322,7 @@
           },
           "P137" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3170,6 +3342,7 @@
           },
           "P138" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3189,6 +3362,7 @@
           },
           "P139" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3208,6 +3382,7 @@
           },
           "P140" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3227,6 +3402,7 @@
           },
           "P141" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3246,6 +3422,7 @@
           },
           "P142" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3265,6 +3442,7 @@
           },
           "P143" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3284,6 +3462,7 @@
           },
           "P144" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3303,6 +3482,7 @@
           },
           "P145" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3322,6 +3502,7 @@
           },
           "P146" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3341,6 +3522,7 @@
           },
           "P147" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3360,6 +3542,7 @@
           },
           "P148" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3379,6 +3562,7 @@
           },
           "P149" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3398,6 +3582,7 @@
           },
           "P150" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3417,6 +3602,7 @@
           },
           "P151" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3436,6 +3622,7 @@
           },
           "P152" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3455,6 +3642,7 @@
           },
           "P153" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3474,6 +3662,7 @@
           },
           "P154" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3493,6 +3682,7 @@
           },
           "P155" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3512,6 +3702,7 @@
           },
           "P156" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3531,6 +3722,7 @@
           },
           "P157" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3550,6 +3742,7 @@
           },
           "P158" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3569,6 +3762,7 @@
           },
           "P159" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3588,6 +3782,7 @@
           },
           "P160" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3607,6 +3802,7 @@
           },
           "P161" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3626,6 +3822,7 @@
           },
           "P162" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3645,6 +3842,7 @@
           },
           "P163" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3664,6 +3862,7 @@
           },
           "P164" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3683,6 +3882,7 @@
           },
           "P165" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3702,6 +3902,7 @@
           },
           "P166" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3721,6 +3922,7 @@
           },
           "P167" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3740,6 +3942,7 @@
           },
           "P168" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3759,6 +3962,7 @@
           },
           "P169" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3778,6 +3982,7 @@
           },
           "P170" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3797,6 +4002,7 @@
           },
           "P171" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3816,6 +4022,7 @@
           },
           "P172" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3835,6 +4042,7 @@
           },
           "P173" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3854,6 +4062,7 @@
           },
           "P174" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3873,6 +4082,7 @@
           },
           "P175" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3892,6 +4102,7 @@
           },
           "P176" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3911,6 +4122,7 @@
           },
           "P177" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3930,6 +4142,7 @@
           },
           "P178" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3949,6 +4162,7 @@
           },
           "P179" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3968,6 +4182,7 @@
           },
           "P180" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -3987,6 +4202,7 @@
           },
           "P181" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4006,6 +4222,7 @@
           },
           "P182" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4025,6 +4242,7 @@
           },
           "P183" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4044,6 +4262,7 @@
           },
           "P184" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4063,6 +4282,7 @@
           },
           "P185" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4082,6 +4302,7 @@
           },
           "P186" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4101,6 +4322,7 @@
           },
           "P187" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4120,6 +4342,7 @@
           },
           "P188" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4139,6 +4362,7 @@
           },
           "P189" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4158,6 +4382,7 @@
           },
           "P190" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4177,6 +4402,7 @@
           },
           "P191" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4196,6 +4422,7 @@
           },
           "P192" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4215,6 +4442,7 @@
           },
           "P193" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4234,6 +4462,7 @@
           },
           "P194" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4253,6 +4482,7 @@
           },
           "P195" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4272,6 +4502,7 @@
           },
           "P196" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4291,6 +4522,7 @@
           },
           "P197" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4310,6 +4542,7 @@
           },
           "P198" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4329,6 +4562,7 @@
           },
           "P199" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4348,6 +4582,7 @@
           },
           "P200" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4367,6 +4602,7 @@
           },
           "P201" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4386,6 +4622,7 @@
           },
           "P202" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4405,6 +4642,7 @@
           },
           "P203" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4424,6 +4662,7 @@
           },
           "P204" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4443,6 +4682,7 @@
           },
           "P205" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4462,6 +4702,7 @@
           },
           "P206" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4481,6 +4722,7 @@
           },
           "P207" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4500,6 +4742,7 @@
           },
           "P208" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4519,6 +4762,7 @@
           },
           "P209" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4538,6 +4782,7 @@
           },
           "P210" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4557,6 +4802,7 @@
           },
           "P211" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4576,6 +4822,7 @@
           },
           "P212" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4595,6 +4842,7 @@
           },
           "P213" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4614,6 +4862,7 @@
           },
           "P214" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4633,6 +4882,7 @@
           },
           "P215" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4652,6 +4902,7 @@
           },
           "P216" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4671,6 +4922,7 @@
           },
           "P217" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4690,6 +4942,7 @@
           },
           "P218" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4709,6 +4962,7 @@
           },
           "P219" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4728,6 +4982,7 @@
           },
           "P220" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4747,6 +5002,7 @@
           },
           "P221" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4766,6 +5022,7 @@
           },
           "P222" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4785,6 +5042,7 @@
           },
           "P223" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4804,6 +5062,7 @@
           },
           "P224" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4823,6 +5082,7 @@
           },
           "P225" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4842,6 +5102,7 @@
           },
           "P226" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4861,6 +5122,7 @@
           },
           "P227" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4880,6 +5142,7 @@
           },
           "P228" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4899,6 +5162,7 @@
           },
           "P229" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4918,6 +5182,7 @@
           },
           "P230" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4937,6 +5202,7 @@
           },
           "P231" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4956,6 +5222,7 @@
           },
           "P232" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4975,6 +5242,7 @@
           },
           "P233" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -4994,6 +5262,7 @@
           },
           "P234" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5013,6 +5282,7 @@
           },
           "P235" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5032,6 +5302,7 @@
           },
           "P236" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5051,6 +5322,7 @@
           },
           "P237" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5070,6 +5342,7 @@
           },
           "P238" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5089,6 +5362,7 @@
           },
           "P239" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5108,6 +5382,7 @@
           },
           "P240" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5127,6 +5402,7 @@
           },
           "P241" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5146,6 +5422,7 @@
           },
           "P242" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5165,6 +5442,7 @@
           },
           "P243" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5184,6 +5462,7 @@
           },
           "P244" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5203,6 +5482,7 @@
           },
           "P245" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5222,6 +5502,7 @@
           },
           "P246" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5241,6 +5522,7 @@
           },
           "P247" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5260,6 +5542,7 @@
           },
           "P248" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5279,6 +5562,7 @@
           },
           "P249" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5298,6 +5582,7 @@
           },
           "P250" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5317,6 +5602,7 @@
           },
           "P251" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5336,6 +5622,7 @@
           },
           "P252" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5355,6 +5642,7 @@
           },
           "P253" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5374,6 +5662,7 @@
           },
           "P254" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5393,6 +5682,7 @@
           },
           "P255" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5412,6 +5702,7 @@
           },
           "P256" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5431,6 +5722,7 @@
           },
           "P257" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5450,6 +5742,7 @@
           },
           "P258" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5469,6 +5762,7 @@
           },
           "P259" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5488,6 +5782,7 @@
           },
           "P260" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5507,6 +5802,7 @@
           },
           "P261" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5526,6 +5822,7 @@
           },
           "P262" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5545,6 +5842,7 @@
           },
           "P263" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5564,6 +5862,7 @@
           },
           "P264" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5583,6 +5882,7 @@
           },
           "P265" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5602,6 +5902,7 @@
           },
           "P266" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5621,6 +5922,7 @@
           },
           "P267" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5640,6 +5942,7 @@
           },
           "P268" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5659,6 +5962,7 @@
           },
           "P269" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5678,6 +5982,7 @@
           },
           "P270" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5697,6 +6002,7 @@
           },
           "P271" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5716,6 +6022,7 @@
           },
           "P272" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5735,6 +6042,7 @@
           },
           "P273" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5754,6 +6062,7 @@
           },
           "P274" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5773,6 +6082,7 @@
           },
           "P275" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5792,6 +6102,7 @@
           },
           "P276" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5811,6 +6122,7 @@
           },
           "P277" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5830,6 +6142,7 @@
           },
           "P278" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5849,6 +6162,7 @@
           },
           "P279" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5868,6 +6182,7 @@
           },
           "P280" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5887,6 +6202,7 @@
           },
           "P281" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5906,6 +6222,7 @@
           },
           "P282" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5925,6 +6242,7 @@
           },
           "P283" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5944,6 +6262,7 @@
           },
           "P284" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5963,6 +6282,7 @@
           },
           "P285" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -5982,6 +6302,7 @@
           },
           "P286" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6001,6 +6322,7 @@
           },
           "P287" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6020,6 +6342,7 @@
           },
           "P288" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6039,6 +6362,7 @@
           },
           "P289" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6058,6 +6382,7 @@
           },
           "P290" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6077,6 +6402,7 @@
           },
           "P291" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6096,6 +6422,7 @@
           },
           "P292" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6115,6 +6442,7 @@
           },
           "P293" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6134,6 +6462,7 @@
           },
           "P294" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6153,6 +6482,7 @@
           },
           "P295" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6172,6 +6502,7 @@
           },
           "P296" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6191,6 +6522,7 @@
           },
           "P297" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6210,6 +6542,7 @@
           },
           "P298" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6229,6 +6562,7 @@
           },
           "P299" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6248,6 +6582,7 @@
           },
           "P300" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6267,6 +6602,7 @@
           },
           "P301" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6286,6 +6622,7 @@
           },
           "P302" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6305,6 +6642,7 @@
           },
           "P303" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6324,6 +6662,7 @@
           },
           "P304" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6343,6 +6682,7 @@
           },
           "P305" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6362,6 +6702,7 @@
           },
           "P306" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6381,6 +6722,7 @@
           },
           "P307" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6400,6 +6742,7 @@
           },
           "P308" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6419,6 +6762,7 @@
           },
           "P309" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6438,6 +6782,7 @@
           },
           "P310" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6457,6 +6802,7 @@
           },
           "P311" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6476,6 +6822,7 @@
           },
           "P312" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6495,6 +6842,7 @@
           },
           "P313" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6514,6 +6862,7 @@
           },
           "P314" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6533,6 +6882,7 @@
           },
           "P315" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6552,6 +6902,7 @@
           },
           "P316" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6571,6 +6922,7 @@
           },
           "P317" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6590,6 +6942,7 @@
           },
           "P318" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6609,6 +6962,7 @@
           },
           "P319" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6628,6 +6982,7 @@
           },
           "P320" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6647,6 +7002,7 @@
           },
           "P321" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6666,6 +7022,7 @@
           },
           "P322" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6685,6 +7042,7 @@
           },
           "P323" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6704,6 +7062,7 @@
           },
           "P324" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6723,6 +7082,7 @@
           },
           "P325" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6742,6 +7102,7 @@
           },
           "P326" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6761,6 +7122,7 @@
           },
           "P327" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6780,6 +7142,7 @@
           },
           "P328" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6799,6 +7162,7 @@
           },
           "P329" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6818,6 +7182,7 @@
           },
           "P330" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6837,6 +7202,7 @@
           },
           "P331" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6856,6 +7222,7 @@
           },
           "P332" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6875,6 +7242,7 @@
           },
           "P333" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6894,6 +7262,7 @@
           },
           "P334" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6913,6 +7282,7 @@
           },
           "P335" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6932,6 +7302,7 @@
           },
           "P336" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6951,6 +7322,7 @@
           },
           "P337" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6970,6 +7342,7 @@
           },
           "P338" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -6989,6 +7362,7 @@
           },
           "P339" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7008,6 +7382,7 @@
           },
           "P340" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7027,6 +7402,7 @@
           },
           "P341" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7046,6 +7422,7 @@
           },
           "P342" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7065,6 +7442,7 @@
           },
           "P343" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7084,6 +7462,7 @@
           },
           "P344" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7103,6 +7482,7 @@
           },
           "P345" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7122,6 +7502,7 @@
           },
           "P346" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7141,6 +7522,7 @@
           },
           "P347" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7160,6 +7542,7 @@
           },
           "P348" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7179,6 +7562,7 @@
           },
           "P349" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7198,6 +7582,7 @@
           },
           "P350" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7217,6 +7602,7 @@
           },
           "P351" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7236,6 +7622,7 @@
           },
           "P352" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7255,6 +7642,7 @@
           },
           "P353" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7274,6 +7662,7 @@
           },
           "P354" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7293,6 +7682,7 @@
           },
           "P355" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7312,6 +7702,7 @@
           },
           "P356" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7331,6 +7722,7 @@
           },
           "P357" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7350,6 +7742,7 @@
           },
           "P358" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7369,6 +7762,7 @@
           },
           "P359" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7388,6 +7782,7 @@
           },
           "P360" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7407,6 +7802,7 @@
           },
           "P361" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7426,6 +7822,7 @@
           },
           "P362" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7445,6 +7842,7 @@
           },
           "P363" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7464,6 +7862,7 @@
           },
           "P364" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7483,6 +7882,7 @@
           },
           "P365" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7502,6 +7902,7 @@
           },
           "P366" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7521,6 +7922,7 @@
           },
           "P367" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7540,6 +7942,7 @@
           },
           "P368" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7559,6 +7962,7 @@
           },
           "P369" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7578,6 +7982,7 @@
           },
           "P370" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7597,6 +8002,7 @@
           },
           "P371" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7616,6 +8022,7 @@
           },
           "P372" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7635,6 +8042,7 @@
           },
           "P373" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7654,6 +8062,7 @@
           },
           "P374" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7673,6 +8082,7 @@
           },
           "P375" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7692,6 +8102,7 @@
           },
           "P376" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7711,6 +8122,7 @@
           },
           "P377" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7730,6 +8142,7 @@
           },
           "P378" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7749,6 +8162,7 @@
           },
           "P379" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7768,6 +8182,7 @@
           },
           "P380" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7787,6 +8202,7 @@
           },
           "P381" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7806,6 +8222,7 @@
           },
           "P382" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7825,6 +8242,7 @@
           },
           "P383" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7844,6 +8262,7 @@
           },
           "P384" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7863,6 +8282,7 @@
           },
           "P385" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7882,6 +8302,7 @@
           },
           "P386" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7901,6 +8322,7 @@
           },
           "P387" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7920,6 +8342,7 @@
           },
           "P388" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7939,6 +8362,7 @@
           },
           "P389" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7958,6 +8382,7 @@
           },
           "P390" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7977,6 +8402,7 @@
           },
           "P391" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -7996,6 +8422,7 @@
           },
           "P392" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8015,6 +8442,7 @@
           },
           "P393" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8034,6 +8462,7 @@
           },
           "P394" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8053,6 +8482,7 @@
           },
           "P395" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8072,6 +8502,7 @@
           },
           "P396" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8091,6 +8522,7 @@
           },
           "P397" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8110,6 +8542,7 @@
           },
           "P398" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8129,6 +8562,7 @@
           },
           "P399" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {
@@ -8148,6 +8582,7 @@
           },
           "P400" : {
             "type" : "text",
+            "copy_to" : "alldata",
             "fielddata" : true,
             "fields" : {
               "double" : {

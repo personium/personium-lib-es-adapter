@@ -875,7 +875,10 @@ public class InternalEsClient {
         if (sort != null) newMap.put("sort", sort);
         // _source
         Object _source = getNestedMapObject(cloneMap, new String[]{ "_source" }, 0);
-        if (_source != null) newMap.put("_source", _source);
+        if (_source != null) {
+            if (_source instanceof List) ((List)_source).add(0, "type");
+            newMap.put("_source", _source);
+        }
         // query
         Map<String, Object> query = new HashMap<String, Object>(); newMap.put("query", query);
         Map<String, Object> query_bool = new HashMap<String, Object>(); query.put("bool", query_bool);
@@ -951,17 +954,17 @@ public class InternalEsClient {
             List<Map<String, Object>> filter_x_querys = new ArrayList<Map<String, Object>>();
             parseQueryMap(filter_x_querys, filter);
             if (!filter_x_querys.isEmpty()) {
-             Map<String, Object> queryMap =  new HashMap<String, Object>();query_bool_must.add(queryMap);
-             Map<String, Object> query_bool_must_bool = new HashMap<String, Object>(); queryMap.put("bool", query_bool_must_bool);
-             List<Map<String, Object>> query_bool_must_bool_must = new ArrayList<Map<String, Object>>(); query_bool_must_bool.put("must", query_bool_must_bool_must);
-             for(Map<String, Object> filter_x_query : filter_x_querys) {
+                Map<String, Object> queryMap =  new HashMap<String, Object>();query_bool_must.add(queryMap);
+                Map<String, Object> query_bool_must_bool = new HashMap<String, Object>(); queryMap.put("bool", query_bool_must_bool);
+                List<Map<String, Object>> query_bool_must_bool_must = new ArrayList<Map<String, Object>>(); query_bool_must_bool.put("must", query_bool_must_bool_must);
+                for(Map<String, Object> filter_x_query : filter_x_querys) {
                     if (filter_x_query instanceof List) {
                         query_bool_must_bool_must.addAll((List<Map<String, Object>>)filter_x_query);
-                 } else
+                    } else
                     if (filter_x_query instanceof Map) {
                         query_bool_must_bool_must.add((Map<String, Object>)filter_x_query);
                     }
-             }
+                }
                 removeNestedMapObject(filter, "query");
             }
             // -filter
@@ -1079,7 +1082,16 @@ public class InternalEsClient {
     private static void parseQueryMap(List<Map<String, Object>> listQueryMap, Map<String, Object> map) {
         for (Entry<String, Object> entry : map.entrySet()) {
             if (entry.getKey().equals("query")) {
-                listQueryMap.add((Map<String, Object>)entry.getValue());
+                Map<String, Object> queryMap = (Map<String, Object>)entry.getValue();
+                String type = (String)getNestedMapObject(queryMap, "type");
+                if (type != null) {
+                    Map<String, Object> match = (Map<String, Object>)getNestedMapObject(queryMap, new String[]{ "match" }, 0);
+                    removeNestedMapObject(match, "type");
+                    removeNestedMapObject(match, "operator");
+                    removeNestedMapObject(queryMap, "match");
+                    queryMap.put("match_" + type, match);
+                }
+                listQueryMap.add(queryMap);
                 return;
             }
             if (entry.getValue() instanceof List) {
@@ -1113,13 +1125,35 @@ public class InternalEsClient {
                 }
         }
     }
+    private static Object getNestedMapObject(Map<String, Object> map, String key) {
+        Map<String, Object> queryClone = new HashMap<String, Object>(map);
+        for (Entry<String, Object> entry : queryClone.entrySet()) {
+            if (entry.getKey().equals(key)) {
+                return entry.getValue();
+            }
+            if (entry.getValue() instanceof List) {
+                for (Object cmap : (List<Map<String, Object>>)entry.getValue()) {
+                    if (cmap instanceof Map) {
+                        Object cobj = getNestedMapObject((Map<String, Object>)cmap, key);
+                        if (cobj != null) return cobj;
+                    }
+                }
+            } else
+                if (entry.getValue() instanceof Map) {
+                    Object cobj = getNestedMapObject((Map<String, Object>)entry.getValue(), key);
+                    if (cobj != null) return cobj;
+                }
+        }
+        return null;
+    }
     private static Object getNestedMapObject(Map<String, Object> map, String[] keys, int index) {
         Object obj = map.get(keys[index]);
         if (obj != null) {
             if (index == keys.length -1) return obj;
             if (obj instanceof Map) {
                 ++index;
-                return getNestedMapObject((Map<String, Object>)obj, keys, index);
+                Object cobj = getNestedMapObject((Map<String, Object>)obj, keys, index);
+                if (cobj != null) return cobj;
             } else
             if (obj instanceof List) {
                 ++index;
@@ -1162,6 +1196,7 @@ public class InternalEsClient {
                         }
                     }
                     json = json.replaceAll("\"_type\":", "\"type\":");
+                    json = json.replaceAll("\"_all\":", "\"alldata\":");
                     break;
                 case 2:
                     if (type != null) {
