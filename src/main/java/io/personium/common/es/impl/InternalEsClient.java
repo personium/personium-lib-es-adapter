@@ -291,7 +291,6 @@ public class InternalEsClient {
         //  static
         indexSettings.put("analysis.analyzer.default.type", "cjk");
         indexSettings.put("index.mapping.total_fields.limit", "10000");
-        indexSettings.put("index.mapper.dynamic", "false");
         indexSettings.put("index.refresh_interval", "-1");
         //  dynamic
         indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
@@ -851,7 +850,7 @@ public class InternalEsClient {
         } catch (IOException ex) {
             throw new EsClientException("QueryBuilder Make Error.", ex);
         }
-           Map<String, Object> query_query = (Map<String, Object>)getNestedMapObject(queryMap, new String[]{ "query" }, 0);
+        Map<String, Object> query_query = (Map<String, Object>)getNestedMapObject(queryMap, new String[]{ "query" }, 0);
         QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(query_query));
         return queryBuilder;
     }
@@ -1165,7 +1164,7 @@ public class InternalEsClient {
         }
         return null;
     }
-    public static String toJSON(Map<String, Object> map, boolean shaping) {
+    private static String toJSON(Map<String, Object> map, boolean shaping) {
         String json = "{}";
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -1184,38 +1183,42 @@ public class InternalEsClient {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             String json = mapper.writeValueAsString(map);
-            if (direction > 0) {
-                switch (direction) {
-                case 1:
-                    if (type != null) {
-                        if (type.equals("EntityType")) {
-                            json = json.replaceAll("\"l\":", "\"lo\":");
-                        }
-                        if (type.equals("UserData")) {
-                            json = json.replaceAll("\"h\":", "\"ho\":");
-                        }
-                    }
-                    json = json.replaceAll("\"_type\":", "\"type\":");
-                    json = json.replaceAll("\"_all\":", "\"alldata\":");
-                    break;
-                case 2:
-                    if (type != null) {
-                        if (type.equals("EntityType")) {
-                            json = json.replaceAll("\"lo\":", "\"l\":");
-                        }
-                        if (type.equals("UserData")) {
-                            json = json.replaceAll("\"ho\":", "\"h\":");
-                        }
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
+            json = replaceSource(direction, json, type);
             Map<String, Object> newMap = mapper.readValue(json, Map.class);
             return newMap;
         } catch (IOException ex) {
             throw new EsClientException("InternalEsClient.deepClone Error.", ex);
         }
+    }
+    public static String replaceSource(int direction, String json, String type) {
+        if (direction > 0) {
+            switch (direction) {
+            case 1:
+                if (type != null) {
+                    if (type.equals("EntityType")) {
+                        json = json.replaceAll("\"l\":", "\"lo\":");
+                    }
+                    if (type.equals("UserData")) {
+                        json = json.replaceAll("\"h\":", "\"ho\":");
+                    }
+                }
+                json = json.replaceAll("\"_type\":", "\"type\":");
+                json = json.replaceAll("\"_all\":", "\"alldata\":");
+                break;
+            case 2:
+                if (type != null) {
+                    if (type.equals("EntityType")) {
+                        json = json.replaceAll("\"lo\":", "\"l\":");
+                    }
+                    if (type.equals("UserData")) {
+                        json = json.replaceAll("\"ho\":", "\"h\":");
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        return json;
     }
 }

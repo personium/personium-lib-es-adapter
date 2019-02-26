@@ -3,6 +3,7 @@ package io.personium.common.es.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -24,25 +25,25 @@ public class WorkTest
         mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
 
         String [][] mappingInfos = {
-//            {"Domain", "es/mapping/domain.json"},
-//            {"Cell", "es/mapping/cell.json"},
-            {"link", "es/mapping/link.json"},
-            {"Account", "es/mapping/account.json"},
-            {"Box", "es/mapping/box.json"},
-            {"Role", "es/mapping/role.json"},
-            {"Relation", "es/mapping/relation.json"},
-            {"SentMessage", "es/mapping/sentMessage.json"},
-            {"ReceivedMessage", "es/mapping/receivedMessage.json"},
-            {"EntityType", "es/mapping/entityType.json"},
-            {"AssociationEnd", "es/mapping/associationEnd.json"},
-            {"Property", "es/mapping/property.json"},
-            {"ComplexType", "es/mapping/complexType.json"},
-            {"ComplexTypeProperty", "es/mapping/complexTypeProperty.json"},
-            {"ExtCell", "es/mapping/extCell.json"},
-            {"ExtRole", "es/mapping/extRole.json"},
-            {"dav", "es/mapping/dav.json"},
-            {"UserData", "es/mapping/userdata.json"},
-            {"Rule", "es/mapping/rule.json"},
+            {"Domain", "es/mapping/domain.json"},
+            {"Cell", "es/mapping/cell.json"},
+//            {"link", "es/mapping/link.json"},
+//            {"Account", "es/mapping/account.json"},
+//            {"Box", "es/mapping/box.json"},
+//            {"Role", "es/mapping/role.json"},
+//            {"Relation", "es/mapping/relation.json"},
+//            {"SentMessage", "es/mapping/sentMessage.json"},
+//            {"ReceivedMessage", "es/mapping/receivedMessage.json"},
+//            {"EntityType", "es/mapping/entityType.json"},
+//            {"AssociationEnd", "es/mapping/associationEnd.json"},
+//            {"Property", "es/mapping/property.json"},
+//            {"ComplexType", "es/mapping/complexType.json"},
+//            {"ComplexTypeProperty", "es/mapping/complexTypeProperty.json"},
+//            {"ExtCell", "es/mapping/extCell.json"},
+//            {"ExtRole", "es/mapping/extRole.json"},
+//            {"dav", "es/mapping/dav.json"},
+//            {"UserData", "es/mapping/userdata.json"},
+//            {"Rule", "es/mapping/rule.json"},
 //            {"_default_", "es/mapping/default.json"}
         };
         Map<String, Object> root = new HashMap<String, Object>();
@@ -51,7 +52,8 @@ public class WorkTest
             Map<String, Object> mapping = (Map<String, Object>)mapper.readValue(EsIndexImpl.class.getClassLoader().getResourceAsStream(mappingInfo[1]), Map.class);
             marge(_doc, (Map<String, Object>)mapping.get(mappingInfo[0]));
         }
-        mapper.writeValue(new File("/var/temp/_marge_doc.json"), root);
+        remove(root);
+        mapper.writeValue(new File("/var/temp/_ad.json"), root);
     }
 
     void marge(Map<String, Object> to, Map<String, Object> from) {
@@ -69,5 +71,23 @@ public class WorkTest
         }
     }
 
-
+    void remove(Map<String, Object> map) {
+        Map<String, Object> queryClone = new HashMap<String, Object>(map);
+        for (Entry<String, Object> entry : queryClone.entrySet()) {
+            if (entry.getKey().equals("index")) {
+                if ((Boolean)entry.getValue()) map.remove(entry.getKey());
+                continue;
+            }
+            if (entry.getValue() instanceof List) {
+                for (Object cmap : (List<Map<String, Object>>)entry.getValue()) {
+                    if (cmap instanceof Map) {
+                    	remove((Map<String, Object>)cmap);
+                    }
+                }
+            } else
+                if (entry.getValue() instanceof Map) {
+                	remove((Map<String, Object>)entry.getValue());
+                }
+        }
+    }
 }

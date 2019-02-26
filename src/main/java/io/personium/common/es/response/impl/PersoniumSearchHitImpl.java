@@ -127,12 +127,12 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String sourceAsString() {
-        return this.searchHit.getSourceAsString();
+        return getSourceAsString();
     }
 
     @Override
     public String getSourceAsString() {
-        return this.searchHit.getSourceAsString();
+        return InternalEsClient.replaceSource(2, this.searchHit.getSourceAsString(), getType());
     }
 
     @Override
@@ -142,14 +142,22 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Object field(String fieldName) {
-        return this.searchHit.field(fieldName).getValue();
+    	String type = getType();
+    	String key = fieldName;
+        if (type.equals("EntityType") && key.equals("l")) key = "lo";
+        if (type.equals("UserData") && key.equals("h")) key = "ho";
+        return this.searchHit.field(key).getValue();
     }
 
     @Override
     public Map<String, PersoniumSearchHitField> fields() {
+    	String type = getType();
         Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
         for (Map.Entry<String, DocumentField> entry : this.searchHit.getFields().entrySet()) {
-            map.put(entry.getKey(), PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
+            String key = entry.getKey();
+            if (type.equals("EntityType") && key.equals("lo")) key = "l";
+            if (type.equals("UserData") && key.equals("ho")) key = "h";
+            map.put(key, PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
         }
         return map;
     }
@@ -181,10 +189,6 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Iterator<PersoniumSearchHitField> iterator() {
-        Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
-        for (Map.Entry<String, DocumentField> entry : this.searchHit.getFields().entrySet()) {
-            map.put(entry.getKey(), PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
-        }
-        return map.values().iterator();
+        return fields().values().iterator();
     }
 }

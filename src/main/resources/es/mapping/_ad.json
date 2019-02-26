@@ -1,51 +1,47 @@
 {
-  "doc": {
-    "properties": {
-      "type": {
+  "doc" : {
+    "properties" : {
+      "type" : {
         "type": "keyword",
-        "index": true
       },
-      "s": {
-        "properties": {
-          "Name": {
-            "type": "keyword",
-            "fields": {
-              "untouched": {
-                "type": "keyword",
-                "index": true
+      "s" : {
+        "properties" : {
+          "Name" : {
+            "type" : "keyword",
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword"
               }
             }
           }
         }
       },
-      "h": {
-        "properties": {
-          "Owner": {
-            "type": "keyword",
-            "fields": {
-              "untouched": {
-                "type": "keyword",
-                "index": true
+      "h" : {
+        "properties" : {
+          "Owner" : {
+            "type" : "keyword",
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword"
               }
             }
           }
         }
       },
-      "l": {
-        "properties": {
-          "Domain": {
-            "type": "keyword",
-            "index": true
+      "l" : {
+        "properties" : {
+          "Domain" : {
+            "type" : "keyword"
           }
         }
       },
-      "u": {
-        "type": "long",
-        "store": true
+      "u" : {
+        "type" : "long",
+        "store" : true
       },
-      "p": {
-        "type": "long",
-        "store": true
+      "p" : {
+        "type" : "long",
+        "store" : true
       }
     }
   }

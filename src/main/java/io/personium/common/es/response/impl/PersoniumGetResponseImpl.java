@@ -135,7 +135,7 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      */
     @Override
     public String sourceAsString() {
-        return this.getResponse.getSourceAsString();
+        return InternalEsClient.replaceSource(2, this.getResponse.getSourceAsString(), getType());
     }
 
     /* (non-Javadoc)
