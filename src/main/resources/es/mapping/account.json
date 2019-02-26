@@ -16,11 +16,21 @@
               }
             }
           },
-          "LastAuthenticated": {
-            "type": "long",
+          "IPAddressRange": {
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "long"
+                "type": "keyword",
+                "index": true
+              }
+            }
+          },
+          "AccountStatus": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword",
+                "index": true
               }
             }
           },
