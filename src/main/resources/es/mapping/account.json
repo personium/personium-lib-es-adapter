@@ -25,7 +25,7 @@
               }
             }
           },
-          "AccountStatus": {
+          "Status": {
             "type": "keyword",
             "fields": {
               "untouched": {
