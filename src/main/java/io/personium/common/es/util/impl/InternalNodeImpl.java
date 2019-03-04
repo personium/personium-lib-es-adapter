@@ -48,7 +48,7 @@ public class InternalNodeImpl {
                 .put("index.number_of_replicas", 0)
                 .put("transport.tcp.port", "9399")
                 .build();
-        internalNode = new Node(settings);
+        //internalNode = new Node(settings);
     }
 
     /**

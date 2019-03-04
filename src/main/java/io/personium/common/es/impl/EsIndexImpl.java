@@ -29,11 +29,11 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
@@ -255,7 +255,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     /**
      * Elasticsearchへの index delete処理実装.
      */
-    class DeleteRetryableRequest extends AbstractRetryableEsRequest<DeleteIndexResponse> {
+    class DeleteRetryableRequest extends AbstractRetryableEsRequest<AcknowledgedResponse > {
         String name;
 
         DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
@@ -264,7 +264,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        DeleteIndexResponse doProcess() {
+        AcknowledgedResponse doProcess() {
             return esClient.deleteIndex(this.name).actionGet();
         }
 
@@ -274,7 +274,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        DeleteIndexResponse onParticularError(ElasticsearchException e) {
+        AcknowledgedResponse  onParticularError(ElasticsearchException e) {
             if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
                 throw new EsClientException.EsIndexMissingException(e);
             }
@@ -294,26 +294,8 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
             return;
         }
         mappingConfigs = new HashMap<String, Map<String, JSONObject>>();
-        loadMappingConfig(EsIndex.CATEGORY_AD, "Domain", "es/mapping/domain.json");
-        loadMappingConfig(EsIndex.CATEGORY_AD, "Cell", "es/mapping/cell.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "link", "es/mapping/link.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Account", "es/mapping/account.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Box", "es/mapping/box.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Role", "es/mapping/role.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Relation", "es/mapping/relation.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "SentMessage", "es/mapping/sentMessage.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ReceivedMessage", "es/mapping/receivedMessage.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "EntityType", "es/mapping/entityType.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "AssociationEnd", "es/mapping/associationEnd.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Property", "es/mapping/property.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexType", "es/mapping/complexType.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexTypeProperty", "es/mapping/complexTypeProperty.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtCell", "es/mapping/extCell.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtRole", "es/mapping/extRole.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "dav", "es/mapping/dav.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "UserData", "es/mapping/userdata.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Rule", "es/mapping/rule.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "_default_", "es/mapping/default.json");
+        loadMappingConfig(EsIndex.CATEGORY_AD, "doc", "es/mapping/_ad.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "doc", "es/mapping/_usr.json");
     }
 
     static void loadMappingConfig(String indexCat, String typeCat, String resPath) {
