@@ -61,7 +61,7 @@ public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
 
     @Override
     public long allPages() {
-        return this.searchHits.totalHits();
+        return this.searchHits.getTotalHits();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
 
     @Override
     public float maxScore() {
-        return this.searchHits.maxScore();
+        return this.searchHits.getMaxScore();
     }
 
     @Override
@@ -92,7 +92,7 @@ public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
     @Override
     public PersoniumSearchHit getAt(int position) {
         List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.hits()) {
+        for (SearchHit hit : this.searchHits.getHits()) {
             list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
         }
         return list.get(position);
@@ -101,7 +101,7 @@ public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
     @Override
     public PersoniumSearchHit[] getHits() {
         List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.hits()) {
+        for (SearchHit hit : this.searchHits.getHits()) {
             list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
         }
         return list.toArray(new PersoniumSearchHit[0]);
@@ -110,7 +110,7 @@ public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
     @Override
     public Iterator<PersoniumSearchHit> iterator() {
         List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.hits()) {
+        for (SearchHit hit : this.searchHits.getHits()) {
             list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
         }
         return list.iterator();

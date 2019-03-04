@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 
+import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.PersoniumSearchHit;
 import io.personium.common.es.response.PersoniumSearchHitField;
 
@@ -61,7 +62,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public float score() {
-        return this.searchHit.score();
+        return this.searchHit.getScore();
     }
 
     @Override
@@ -71,7 +72,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String index() {
-        return this.searchHit.index();
+        return this.searchHit.getIndex();
     }
 
     @Override
@@ -81,7 +82,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String id() {
-        return this.searchHit.id();
+        return this.searchHit.getId();
     }
 
     @Override
@@ -91,17 +92,17 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String type() {
-        return this.searchHit.type();
+        return (String)this.searchHit.getSourceAsMap().get("type");
     }
 
     @Override
     public String getType() {
-        return this.searchHit.getType();
+        return (String)this.searchHit.getSourceAsMap().get("type");
     }
 
     @Override
     public long version() {
-        return this.searchHit.version();
+        return this.searchHit.getVersion();
     }
 
     @Override
@@ -111,7 +112,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public byte[] source() {
-        return this.searchHit.source();
+        return this.searchHit.getSourceRef().toBytesRef().bytes;
     }
 
     @Override
@@ -121,34 +122,42 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Map<String, Object> getSource() {
-        return this.searchHit.getSource();
+        return InternalEsClient.deepClone(2, this.searchHit.getSourceAsMap(), getType());
     }
 
     @Override
     public String sourceAsString() {
-        return this.searchHit.sourceAsString();
+        return getSourceAsString();
     }
 
     @Override
     public String getSourceAsString() {
-        return this.searchHit.getSourceAsString();
+        return InternalEsClient.replaceSource(2, this.searchHit.getSourceAsString(), getType());
     }
 
     @Override
     public Map<String, Object> sourceAsMap() {
-        return this.searchHit.sourceAsMap();
+        return getSource();
     }
 
     @Override
     public Object field(String fieldName) {
-        return this.searchHit.getSource().get(fieldName);
+    	String type = getType();
+    	String key = fieldName;
+        if (type.equals("EntityType") && key.equals("l")) key = "lo";
+        if (type.equals("UserData") && key.equals("h")) key = "ho";
+        return this.searchHit.field(key).getValue();
     }
 
     @Override
     public Map<String, PersoniumSearchHitField> fields() {
+    	String type = getType();
         Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
-        for (Map.Entry<String, SearchHitField> entry : this.searchHit.fields().entrySet()) {
-            map.put(entry.getKey(), PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
+        for (Map.Entry<String, DocumentField> entry : this.searchHit.getFields().entrySet()) {
+            String key = entry.getKey();
+            if (type.equals("EntityType") && key.equals("lo")) key = "l";
+            if (type.equals("UserData") && key.equals("ho")) key = "h";
+            map.put(key, PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
         }
         return map;
     }
@@ -160,7 +169,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Object[] sortValues() {
-        return this.searchHit.sortValues();
+        return this.searchHit.getSortValues();
     }
 
     @Override
@@ -180,10 +189,6 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Iterator<PersoniumSearchHitField> iterator() {
-        Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
-        for (Map.Entry<String, SearchHitField> entry : this.searchHit.fields().entrySet()) {
-            map.put(entry.getKey(), PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
-        }
-        return map.values().iterator();
+        return fields().values().iterator();
     }
 }

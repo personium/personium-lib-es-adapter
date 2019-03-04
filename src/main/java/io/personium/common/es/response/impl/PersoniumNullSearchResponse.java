@@ -17,7 +17,6 @@
 package io.personium.common.es.response.impl;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.ShardSearchFailure;
@@ -50,65 +49,7 @@ public class PersoniumNullSearchResponse extends SearchResponse {
 
     @Override
     public SearchHits getHits() {
-        return new SearchHits(new SearchHit[0], 0, 0) {
-            @Override
-            @Deprecated
-            public Iterator<SearchHit> iterator() {
-                return null;
-            }
-
-            @Override
-            @Deprecated
-            public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-                return null;
-            }
-
-            @Override
-            @Deprecated
-            public void writeTo(StreamOutput out) throws IOException {
-            }
-
-            @Override
-            @Deprecated
-            public void readFrom(StreamInput in) throws IOException {
-            }
-
-            @Override
-            public long totalHits() {
-                return 0;
-            }
-
-            @Override
-            public float maxScore() {
-                return 0;
-            }
-
-            @Override
-            public SearchHit[] hits() {
-                return new SearchHit[0];
-            }
-
-            @Override
-            public long getTotalHits() {
-                return 0;
-            }
-
-            @Override
-            public float getMaxScore() {
-                return 0;
-            }
-
-            @Override
-            public SearchHit[] getHits() {
-                return new SearchHit[0];
-            }
-
-            @Override
-            @Deprecated
-            public SearchHit getAt(int position) {
-                return null;
-            }
-        };
+        return new SearchHits(new SearchHit[0], 0, 0);
     }
 
 
@@ -154,21 +95,6 @@ public class PersoniumNullSearchResponse extends SearchResponse {
     @Deprecated
     public TimeValue getTook() {
         return super.getTook();
-    }
-
-    /**
-     * tookInMillis.
-     * @return long
-     */
-    @Deprecated
-    public long tookInMillis() {
-        return getTookInMillis();
-    }
-
-    @Override
-    @Deprecated
-    public long getTookInMillis() {
-        return super.getTookInMillis();
     }
 
     /**
