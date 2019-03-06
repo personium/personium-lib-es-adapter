@@ -212,11 +212,14 @@
               }
             }
           },
-          "LastAuthenticated" : {
-            "type" : "long",
+          "IPAddressRange" : {
+            "type" : "text",
+            "copy_to" : "alldata",
+            "fielddata" : true,
             "fields" : {
               "untouched" : {
-                "type" : "long"
+                "type" : "keyword",
+                "ignore_above" : 4096
               }
             }
           },
