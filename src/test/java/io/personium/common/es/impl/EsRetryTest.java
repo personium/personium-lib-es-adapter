@@ -16,7 +16,9 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 
@@ -87,7 +89,7 @@ public class EsRetryTest extends EsTestBase {
         } catch (Exception ex) {
             ex.printStackTrace();
             throw ex;
-        } finally {
+        } finally { // CHECKSTYLE IGNORE
             //index.delete();
         }
     }
@@ -223,7 +225,7 @@ public class EsRetryTest extends EsTestBase {
             assertEquals(1, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
+        } finally { // CHECKSTYLE IGNORE
             //index.delete();
         }
     }
@@ -271,7 +273,7 @@ public class EsRetryTest extends EsTestBase {
             assertEquals(1, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
+        } finally { // CHECKSTYLE IGNORE
             //index.delete();
         }
     }

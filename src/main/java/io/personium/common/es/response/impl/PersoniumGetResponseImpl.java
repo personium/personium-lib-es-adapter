@@ -87,7 +87,7 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      */
     @Override
     public String getType() {
-        return (String)this.getResponse.getSourceAsMap().get("type");
+        return (String) this.getResponse.getSourceAsMap().get("type");
     }
 
     /* (non-Javadoc)

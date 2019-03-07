@@ -16,7 +16,7 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;

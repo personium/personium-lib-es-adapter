@@ -18,7 +18,6 @@ package io.personium.common.es.util.impl;
 
 import java.io.IOException;
 
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 
 /**
@@ -37,23 +36,11 @@ public class InternalNodeImpl {
      * テスト用のElasticsearchノードを起動する.
      */
     public static void startInternalNode() {
-        Settings settings = Settings.builder()
-                .put("node.http.enabled", false)
-                .put("cluster.name", "testingCluster")
-                .put("node.name", "node1")
-                .put("gateway.type", "none")
-                .put("action.auto_create_index", "false")
-                .put("index.store.type", "memory")
-                .put("index.number_of_shards", 1)
-                .put("index.number_of_replicas", 0)
-                .put("transport.tcp.port", "9399")
-                .build();
-        //internalNode = new Node(settings);
     }
 
     /**
      * テスト用のElasticsearchノードを停止する.
-     * @throws IOException
+     * @throws IOException IOException
      */
     public static void stopInternalNode() throws IOException {
         if (internalNode != null) {

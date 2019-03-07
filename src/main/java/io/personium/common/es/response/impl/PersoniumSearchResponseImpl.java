@@ -46,12 +46,17 @@ public class PersoniumSearchResponseImpl extends PersoniumActionResponseImpl imp
 
     /**
      * .
-     * @param response .
      * @return .
      */
     public static PersoniumSearchResponse getInstance() {
         return new PersoniumSearchResponseImpl(new SearchResponse());
     }
+
+    /**
+     * .
+     * @param response .
+     * @return .
+     */
     public static PersoniumSearchResponse getInstance(SearchResponse response) {
         if (response == null) {
             return null;
