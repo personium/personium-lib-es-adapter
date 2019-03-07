@@ -56,7 +56,8 @@ public class PersoniumBulkItemResponseImpl extends BulkItemResponse implements P
         if (response == null) {
             return null;
         }
-        return new PersoniumBulkItemResponseImpl(response.getItemId(), response.getOpType().getLowercase(), response.getResponse());
+        return new PersoniumBulkItemResponseImpl(response.getItemId(), response.getOpType().getLowercase(),
+                response.getResponse());
     }
 
     @Override

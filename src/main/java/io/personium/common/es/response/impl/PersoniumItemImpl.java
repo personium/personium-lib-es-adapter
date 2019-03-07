@@ -28,7 +28,7 @@ public class PersoniumItemImpl extends MultiSearchResponse.Item implements Perso
     /**
      *  .
      * @param response .
-     * @param throwable .
+     * @param exception .
      */
     public PersoniumItemImpl(SearchResponse response, Exception exception) {
         super(response, exception);

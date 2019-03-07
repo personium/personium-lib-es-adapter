@@ -86,7 +86,7 @@ abstract class AbstractRetryableEsRequest<T> {
         try {
             return doProcess();
         } catch (ElasticsearchException e) {
-        	log.debug(this.getClass().getSimpleName()+ ".doRequest catch ElasticsearchException !!!", e);
+            log.debug(this.getClass().getSimpleName() + ".doRequest catch ElasticsearchException !!!", e);
             if (isParticularError(e)) {
                 // 検出された例外を特別扱いする場合の処理呼び出し
                 try {
@@ -177,7 +177,7 @@ abstract class AbstractRetryableEsRequest<T> {
                 // 再度リクエストを実行する。
                 return doProcess();
             } catch (ElasticsearchException e) {
-            	log.debug(this.getClass().getSimpleName()+ ".retryRequest catch ElasticsearchException !!!", e);
+                log.debug(this.getClass().getSimpleName() + ".retryRequest catch ElasticsearchException !!!", e);
                 lastError = e;
                 if (isParticularError(e)) {
                     // 検出された例外を特別扱いする場合の処理呼び出し
