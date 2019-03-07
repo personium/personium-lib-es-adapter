@@ -816,8 +816,8 @@ public class InternalEsClient {
     /**
      * ES2 -> ES6 非互換吸収のためにメソッド追加
      */
-    private static final String UNIQE_TYPE = "doc";
-    private static String makeType(String type)
+    private static final String UNIQE_TYPE = "_doc";
+    public static String makeType(String type)
     {
         return UNIQE_TYPE;
     }
