@@ -951,11 +951,12 @@ public class InternalEsClient {
                 for (Map<String, Object> tmap : queryXfilters) {
                     queryBoolFilterBoolMust.add(tmap);
                 }
-            }
-            Map<String, Object> queryXfilter = (Map<String, Object>) getNestedMapObject(cloneMap,
-                    new String[] {"query", "filtered", "filter"}, 0);
-            if (queryXfilter != null) {
-                queryBoolFilterBoolMust.add(queryXfilter);
+            } else {
+                Map<String, Object> queryXfilter = (Map<String, Object>) getNestedMapObject(cloneMap,
+                        new String[] {"query", "filtered", "filter"}, 0);
+                if (queryXfilter != null) {
+                    queryBoolFilterBoolMust.add(queryXfilter);
+                }
             }
         }
         // -query/filterd/query
