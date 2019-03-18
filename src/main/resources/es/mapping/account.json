@@ -16,11 +16,23 @@
               }
             }
           },
-          "LastAuthenticated": {
-            "type": "long",
+          "IPAddressRange": {
+            "type": "string",
             "fields": {
               "untouched": {
-                "type": "long"
+                "type": "string",
+                "index": "not_analyzed",
+                "include_in_all": false,
+                "ignore_above": 4096
+              }
+            }
+          },
+          "Status": {
+            "type": "string",
+            "fields": {
+              "untouched": {
+                "type": "string",
+                "index": "not_analyzed"
               }
             }
           },
