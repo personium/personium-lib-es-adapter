@@ -19,6 +19,7 @@
           "IPAddressRange": {
             "type": "text",
             "fielddata": true,
+            "fields": {
               "untouched": {
                 "type": "keyword",
                 "index": true,
