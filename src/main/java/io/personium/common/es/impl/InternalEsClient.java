@@ -823,9 +823,9 @@ public class InternalEsClient {
     /**
      * ES2 -> ES6 非互換吸収のためにメソッド追加。
      */
-    private static final String UNIQE_TYPE = "doc";
+    private static final String UNIQE_TYPE = "_doc";
 
-    private static String makeType(String type) { // NOPMD - Methods for incompatible absorption
+    public static String makeType(String type) { // NOPMD - Methods for incompatible absorption
         return UNIQE_TYPE;
     }
 
