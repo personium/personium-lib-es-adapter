@@ -825,6 +825,11 @@ public class InternalEsClient {
      */
     private static final String UNIQE_TYPE = "_doc";
 
+    /**
+     * Get type and return it.
+     * @param type type
+     * @return Elasticsearch type
+     */
     public static String makeType(String type) { // NOPMD - Methods for incompatible absorption
         return UNIQE_TYPE;
     }
