@@ -16,11 +16,22 @@
               }
             }
           },
-          "LastAuthenticated": {
-            "type": "long",
+          "IPAddressRange": {
+            "type": "text",
+            "fielddata": true,
+              "untouched": {
+                "type": "keyword",
+                "index": true,
+                "ignore_above": 4096
+              }
+            }
+          },
+          "Status": {
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "long"
+                "type": "keyword",
+                "index": true
               }
             }
           },
