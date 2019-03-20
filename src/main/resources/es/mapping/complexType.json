@@ -1,0 +1,46 @@
+{
+  "_doc": {
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "c": {
+        "type": "keyword"
+      },
+      "b": {
+        "type": "keyword"
+      },
+      "n": {
+        "type": "keyword"
+      },
+      "s": {
+        "properties": {
+          "Name": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "l": {
+        "properties": {
+          "ComplexTypeProperty": {
+            "type": "keyword"
+          }
+        }
+      },
+      "u": {
+        "type": "long"
+      },
+      "p": {
+        "type": "long"
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "_doc": {
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "c": {
+        "type": "keyword"
+      },
+      "b": {
+        "type": "keyword"
+      },
+      "n": {
+        "type": "keyword"
+      },
+      "s": {
+        "properties": {
+          "Name": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "l": {
+        "type" : "object"
+      },
+      "u": {
+        "type": "long",
+        "store": true
+      },
+      "p": {
+        "type": "long",
+        "store": true
+      }
+    }
+  }
+}

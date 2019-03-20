@@ -3,7 +3,7 @@
 	<groupId>io.personium</groupId>
 	<artifactId>personium-lib-es-adapter</artifactId>
 	<packaging>jar</packaging>
-	<version>1_es5.6.14_2-SNAPSHOT</version>
+	<version>1.5.2-es6-SNAPSHOT</version>
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -17,7 +17,7 @@
 		<java.version>1.8</java.version>
 		<jvm.option>-Xms512m -Xmx512m -XX:MaxPermSize=256m
 			-XX:-UseSplitVerifier</jvm.option>
-		<es.version>6.6.0</es.version>
+		<es.version>6.6.2</es.version>
 		<slf4j.version>1.7.25</slf4j.version>
 	</properties>
 	<build>

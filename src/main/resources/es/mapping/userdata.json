@@ -1,0 +1,160 @@
+{
+  "_doc": {
+    "date_detection": false,
+    "dynamic_templates": [
+      {
+        "links": {
+          "path_match": "l.*",
+          "mapping": {
+            "type": "keyword"
+          },
+          "match_mapping_type": "string"
+        }
+      },
+      {
+        "properties": {
+          "match": "*",
+          "mapping": {
+            "type": "keyword",
+            "copy_to" : "alldata",
+            "fields": {
+              "double": {
+                "type": "double",
+                "ignore_malformed": true
+              },
+              "long": {
+                "type": "long",
+                "ignore_malformed": true
+              },
+              "untouched": {
+                "type": "keyword",
+                "ignore_above": 4096
+              }
+            }
+          },
+          "match_mapping_type": "string"
+        }
+      },
+      {
+        "properties_long": {
+          "match": "*",
+          "mapping": {
+            "type": "keyword",
+            "copy_to" : "alldata",
+            "fields": {
+              "double": {
+                "type": "double",
+                "ignore_malformed": true
+              },
+              "long": {
+                "type": "long",
+                "ignore_malformed": true
+              },
+              "untouched": {
+                "type": "keyword",
+                "ignore_above": 4096
+              }
+            }
+          },
+          "match_mapping_type": "long"
+        }
+      },
+      {
+        "properties_double": {
+          "match": "*",
+          "mapping": {
+            "type": "keyword",
+            "copy_to" : "alldata",
+            "fields": {
+              "double": {
+                "type": "double",
+                "ignore_malformed": true
+              },
+              "long": {
+                "type": "long",
+                "ignore_malformed": true
+              },
+              "untouched": {
+                "type": "keyword",
+                "ignore_above": 4096
+              }
+            }
+          },
+          "match_mapping_type": "double"
+        }
+      },
+      {
+        "properties_boolean": {
+          "match": "*",
+          "mapping": {
+            "type": "keyword",
+            "copy_to" : "alldata",
+            "fields": {
+              "double": {
+                "type": "double",
+                "ignore_malformed": true
+              },
+              "long": {
+                "type": "long",
+                "ignore_malformed": true
+              },
+              "untouched": {
+                "type": "keyword",
+                "ignore_above": 4096
+              }
+            }
+          },
+          "match_mapping_type": "boolean"
+        }
+      }
+    ],
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "b": {
+        "type": "keyword"
+      },
+      "c": {
+        "type": "keyword"
+      },
+      "h": {
+        "type": "object"
+      },
+      "ll": {
+        "type": "keyword"
+      },
+      "n": {
+        "type": "keyword"
+      },
+      "p": {
+        "ignore_malformed": false,
+        "store": true,
+        "type": "long"
+      },
+      "t": {
+        "type": "keyword"
+      },
+      "u": {
+        "ignore_malformed": false,
+        "store": true,
+        "type": "long"
+      },
+      "s": {
+        "properties": {
+          "__id": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "_doc": {
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "c": {
+        "type": "keyword"
+      },
+      "s": {
+        "properties": {
+          "Name": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          },
+          "LastAuthenticated": {
+            "type": "long",
+            "fields": {
+              "untouched": {
+                "type": "long"
+              }
+            }
+          },
+          "Type": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "h": {
+        "properties": {
+          "HashedCredential": {
+            "type": "keyword",
+            "index": false
+          }
+        }
+      },
+      "u": {
+        "type": "long",
+        "store": true
+      },
+      "p": {
+        "type": "long",
+        "store": true
+      }
+    }
+  }
+}

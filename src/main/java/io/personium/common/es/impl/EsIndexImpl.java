@@ -211,6 +211,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
      */
     class CreateRetryableRequest extends AbstractRetryableEsRequest<CreateIndexResponse> {
         String name;
+        String [] types;
         Map<String, JSONObject> mappings;
 
         CreateRetryableRequest(int retryCount, long retryInterval,
@@ -294,8 +295,27 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
             return;
         }
         mappingConfigs = new HashMap<String, Map<String, JSONObject>>();
-        loadMappingConfig(EsIndex.CATEGORY_AD, InternalEsClient.makeType(EsIndex.CATEGORY_AD), "es/mapping/_ad.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, InternalEsClient.makeType(EsIndex.CATEGORY_USR), "es/mapping/_usr.json");
+        //loadMappingConfig(EsIndex.CATEGORY_AD, InternalEsClient.makeType(EsIndex.CATEGORY_AD), "es/mapping/_ad.json");
+        //loadMappingConfig(EsIndex.CATEGORY_USR, InternalEsClient.makeType(EsIndex.CATEGORY_USR), "es/mapping/_usr.json");
+        loadMappingConfig(EsIndex.CATEGORY_AD, "Domain", "es/mapping/domain.json");
+        loadMappingConfig(EsIndex.CATEGORY_AD, "Cell", "es/mapping/cell.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "link", "es/mapping/link.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Account", "es/mapping/account.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Box", "es/mapping/box.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Role", "es/mapping/role.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Relation", "es/mapping/relation.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "SentMessage", "es/mapping/sentMessage.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "ReceivedMessage", "es/mapping/receivedMessage.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "EntityType", "es/mapping/entityType.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "AssociationEnd", "es/mapping/associationEnd.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Property", "es/mapping/property.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexType", "es/mapping/complexType.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexTypeProperty", "es/mapping/complexTypeProperty.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtCell", "es/mapping/extCell.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtRole", "es/mapping/extRole.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "dav", "es/mapping/dav.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "UserData", "es/mapping/userdata.json");
+        loadMappingConfig(EsIndex.CATEGORY_USR, "Rule", "es/mapping/rule.json");
     }
 
     static void loadMappingConfig(String indexCat, String typeCat, String resPath) {
