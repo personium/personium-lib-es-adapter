@@ -171,6 +171,14 @@
           "HashedCredential" : {
             "type" : "keyword",
             "index" : false
+          },
+          "HashedAlgorithm" : {
+            "type" : "keyword",
+            "index" : false
+          },
+          "HashedAttributes" : {
+            "type" : "keyword",
+            "index" : false
           }
         }
       },
