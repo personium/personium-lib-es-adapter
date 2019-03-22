@@ -172,11 +172,11 @@
             "type" : "keyword",
             "index" : false
           },
-          "HashedAlgorithm" : {
+          "HashAlgorithm" : {
             "type" : "keyword",
             "index" : false
           },
-          "HashedAttributes" : {
+          "HashAttributes" : {
             "type" : "keyword",
             "index" : false
           }
