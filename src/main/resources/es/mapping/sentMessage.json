@@ -20,6 +20,14 @@
               }
             }
           },
+          "Name": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          },
           "InReplyTo": {
             "type": "keyword",
             "fields": {

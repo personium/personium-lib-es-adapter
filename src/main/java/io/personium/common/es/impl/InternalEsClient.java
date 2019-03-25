@@ -286,7 +286,7 @@ public class InternalEsClient {
         Settings.Builder indexSettings = Settings.builder();
         //  static
         indexSettings.put("analysis.analyzer.default.type", "cjk");
-        //indexSettings.put("index.mapping.total_fields.limit", "10000");
+        indexSettings.put("index.mapping.total_fields.limit", "10000");
         indexSettings.put("index.refresh_interval", "-1");
         //  dynamic
         indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
@@ -333,16 +333,16 @@ public class InternalEsClient {
     public Void updateIndexSettings(String index, Map<String, String> settings) {
 
         Function<String, String> keyFunction = new Function<String, String>() {
-			public String apply(String t) {
-				return t;
-			}
+            public String apply(String t) {
+                return t;
+            }
         };
-		Settings settingsForUpdate = Settings.builder()
-				.putProperties(settings, keyFunction )
-				.build();
+        Settings settingsForUpdate = Settings.builder()
+                .putProperties(settings, keyFunction )
+                .build();
         esTransportClient.admin().indices().prepareUpdateSettings(makeIndex(index, null))
-        		.setSettings(settingsForUpdate)
-        		.execute()
+                .setSettings(settingsForUpdate)
+                .execute()
                 .actionGet();
         return null;
     }
@@ -991,21 +991,6 @@ public class InternalEsClient {
             }
         }
         /////
-        // type
-//        if (type != null) {
-//             Map<String, Object> query_bool_filter_bool_must_term = new HashMap<String, Object>(); query_bool_filter_bool_must.add(0, query_bool_filter_bool_must_term);
-//             Map<String, Object> query_bool_filter_bool_must_term_type = new HashMap<String, Object>(); query_bool_filter_bool_must_term.put("term", query_bool_filter_bool_must_term_type);
-//             query_bool_filter_bool_must_term_type.put("type", type);
-//        }
-//        else {
-//            StackTraceElement[] ste = new Throwable().getStackTrace();
-//            StringBuffer sb = new StringBuffer();
-//            for (int i = 0; i < ste.length; i++) {
-//            	if (ste[i].getClassName().startsWith("io.personium.core")) sb.append("---- ").append(ste[i].toString()).append("\n");
-//            }
-//            log.info("---- type null stack tarce ----\n" + sb.toString());
-//        }
-        /////
         removeNestedMapObject(newMap, "ignore_unmapped");
         removeNestedMapObject(newMap, "_cache");
         if (query_bool_must.isEmpty()) query_bool.remove("must");
@@ -1215,26 +1200,10 @@ public class InternalEsClient {
         if (direction > 0) {
             switch (direction) {
             case 1:
-//                if (type != null) {
-//                    if (type.equals("EntityType")) {
-//                        json = json.replaceAll("\"l\":", "\"lo\":");
-//                    }
-//                    if (type.equals("UserData")) {
-//                        json = json.replaceAll("\"h\":", "\"ho\":");
-//                    }
-//                }
                 json = json.replaceAll("\"_type\":", "\"type\":");
                 json = json.replaceAll("\"_all\":", "\"alldata\":");
                 break;
             case 2:
-//                if (type != null) {
-//                    if (type.equals("EntityType")) {
-//                        json = json.replaceAll("\"lo\":", "\"l\":");
-//                    }
-//                    if (type.equals("UserData")) {
-//                        json = json.replaceAll("\"ho\":", "\"h\":");
-//                    }
-//                }
                 break;
             default:
                 break;

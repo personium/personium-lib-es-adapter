@@ -9,6 +9,14 @@
       },
       "s": {
         "properties": {
+          "__id" : {
+            "type" : "keyword",
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword"
+              }
+            }
+          },
           "Name": {
             "type": "keyword",
             "fields": {

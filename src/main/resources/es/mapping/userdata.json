@@ -15,7 +15,7 @@
         "properties": {
           "match": "*",
           "mapping": {
-            "type": "keyword",
+            "type": "text",
             "copy_to" : "alldata",
             "fields": {
               "double": {
@@ -39,7 +39,7 @@
         "properties_long": {
           "match": "*",
           "mapping": {
-            "type": "keyword",
+            "type": "text",
             "copy_to" : "alldata",
             "fields": {
               "double": {
@@ -63,7 +63,7 @@
         "properties_double": {
           "match": "*",
           "mapping": {
-            "type": "keyword",
+            "type": "text",
             "copy_to" : "alldata",
             "fields": {
               "double": {
@@ -87,7 +87,7 @@
         "properties_boolean": {
           "match": "*",
           "mapping": {
-            "type": "keyword",
+            "type": "text",
             "copy_to" : "alldata",
             "fields": {
               "double": {
@@ -145,7 +145,15 @@
       },
       "s": {
         "properties": {
-          "__id": {
+          "__id" : {
+            "type" : "keyword",
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword"
+              }
+            }
+          },
+          "Name": {
             "type": "keyword",
             "fields": {
               "untouched": {
