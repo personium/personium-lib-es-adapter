@@ -304,6 +304,7 @@ public class InternalEsClient {
             cirb.setSettings(indexSettings);
             cirb = cirb.addMapping(makeType(type), mappings.get(type));
             response = cirb.execute();
+            response.actionGet();
         }
         // 少し待機
         try {
