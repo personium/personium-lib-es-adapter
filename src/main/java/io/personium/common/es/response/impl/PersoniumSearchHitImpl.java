@@ -23,7 +23,6 @@ import java.util.Map;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.SearchHit;
 
-import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.PersoniumSearchHit;
 import io.personium.common.es.response.PersoniumSearchHitField;
 
@@ -50,7 +49,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
     private PersoniumSearchHitImpl(SearchHit hit) {
         this.searchHit = hit;
         this.type = (String)this.searchHit.getSourceAsMap().get("type");
-        this.source = InternalEsClient.deepClone(2, this.searchHit.getSourceAsMap(), getType());
+        this.source = this.searchHit.getSourceAsMap();
     }
 
     /**
@@ -137,7 +136,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public String getSourceAsString() {
-        return InternalEsClient.replaceSource(2, this.searchHit.getSourceAsString(), getType());
+        return this.searchHit.getSourceAsString();
     }
 
     @Override
@@ -152,16 +151,16 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Map<String, PersoniumSearchHitField> fields() {
+        return fields();
+    }
+
+    @Override
+    public Map<String, PersoniumSearchHitField> getFields() {
         Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
         for (Map.Entry<String, DocumentField> entry : this.searchHit.getFields().entrySet()) {
             map.put(entry.getKey(), PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
         }
         return map;
-    }
-
-    @Override
-    public Map<String, PersoniumSearchHitField> getFields() {
-        return fields();
     }
 
     @Override
