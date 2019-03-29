@@ -417,7 +417,6 @@ public class InternalEsClient {
             String type,
             String routingId,
             SearchSourceBuilder builder) {
-        // TODO type
         SearchRequest req = new SearchRequest(index).types(makeType(type)).searchType(SearchType.DEFAULT).source(builder);
         if (routingFlag) {
             req = req.routing(routingId);

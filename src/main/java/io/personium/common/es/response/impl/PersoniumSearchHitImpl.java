@@ -50,7 +50,12 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
     private PersoniumSearchHitImpl(SearchHit hit) {
         this.searchHit = hit;
         this.type = (String)this.searchHit.getSourceAsMap().get("type");
-        this.source = InternalEsClient.deepClone(2, this.searchHit.getSourceAsMap(), getType());
+        this.source = this.searchHit.getSourceAsMap();
+        if (this.type != null) {
+            if(this.type.equals("EntityType") || this.type.equals("EntityType")) {
+            	this.source = InternalEsClient.deepClone(2, this.source, getType());
+            }
+        }
     }
 
     /**
@@ -156,6 +161,11 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
 
     @Override
     public Map<String, PersoniumSearchHitField> fields() {
+        return fields();
+    }
+
+    @Override
+    public Map<String, PersoniumSearchHitField> getFields() {
     	String type = getType();
         Map<String, PersoniumSearchHitField> map = new HashMap<String, PersoniumSearchHitField>();
         for (Map.Entry<String, DocumentField> entry : this.searchHit.getFields().entrySet()) {
@@ -165,11 +175,6 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
             map.put(key, PersoniumSearchHitFieldImpl.getInstance(entry.getValue()));
         }
         return map;
-    }
-
-    @Override
-    public Map<String, PersoniumSearchHitField> getFields() {
-        return fields();
     }
 
     @Override
