@@ -1,0 +1,37 @@
+{
+  "_doc": {
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "c": {
+        "type": "keyword"
+      },
+      "b": {
+        "type": "keyword"
+      },
+      "sp": {
+        "type": "keyword"
+      },
+      "o": {
+        "type": "object",
+        "dynamic": false
+      },
+      "d": {
+        "type": "object",
+        "dynamic": false
+      },
+      "u": {
+        "type": "long",
+        "store": true
+      },
+      "p": {
+        "type": "long",
+        "store": true
+      }
+    }
+  }
+}

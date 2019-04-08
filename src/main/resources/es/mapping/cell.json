@@ -1,0 +1,59 @@
+{
+  "_doc": {
+    "properties": {
+      "alldata" : {
+        "type" : "text"
+      },
+      "type" : {
+        "type" : "keyword"
+      },
+      "s": {
+        "properties": {
+          "__id" : {
+            "type" : "keyword",
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword"
+              }
+            }
+          },
+          "Name": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "h": {
+        "properties": {
+          "Owner": {
+            "type": "keyword",
+            "fields": {
+              "untouched": {
+                "type": "keyword"
+              }
+            }
+          }
+        }
+      },
+      "l": {
+        "properties": {
+          "Domain": {
+            "type": "keyword"
+          }
+        }
+      },
+      "u": {
+        "type": "long",
+        "store": true
+      },
+      "p": {
+        "type": "long",
+        "store": true
+      }
+    }
+  }
+}

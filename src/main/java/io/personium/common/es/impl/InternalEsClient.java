@@ -168,8 +168,7 @@ public class InternalEsClient {
         for (EsHost host : hostList) {
 
             try {
-                esTransportClient.addTransportAddress(
-                        new TransportAddress(InetAddress.getByName(host.getName()), host.getPort()));
+                esTransportClient.addTransportAddress(new TransportAddress(InetAddress.getByName(host.getName()), host.getPort()));
                 connectedNodes = esTransportClient.connectedNodes();
             } catch (UnknownHostException ex) {
                 throw new EsClientException("Datastore Connection Error.", ex);
@@ -283,9 +282,6 @@ public class InternalEsClient {
      */
     public ActionFuture<CreateIndexResponse> createIndex(String index, Map<String, JSONObject> mappings) {
         this.fireEvent(Event.creatingIndex, index);
-        CreateIndexRequestBuilder cirb =
-                new CreateIndexRequestBuilder(esTransportClient.admin().indices(), CreateIndexAction.INSTANCE, index);
-
         // index setting parameters
         Settings.Builder indexSettings = Settings.builder();
         //  static
@@ -294,22 +290,29 @@ public class InternalEsClient {
         indexSettings.put("index.refresh_interval", "-1");
         //  dynamic
         indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
-        indexSettings.put("index.number_of_replicas",
-                System.getProperty("io.personium.es.index.numberOfReplicas", "0"));
-        indexSettings.put("index.max_result_window",
-                System.getProperty("io.personium.es.index.maxResultWindow", "110000"));
+        indexSettings.put("index.number_of_replicas", System.getProperty("io.personium.es.index.numberOfReplicas", "0"));
+        indexSettings.put("index.max_result_window", System.getProperty("io.personium.es.index.maxResultWindow", "110000"));
         String maxThreadCount = System.getProperty("io.personium.es.index.merge.scheduler.maxThreadCount");
-        if (maxThreadCount != null) {
-            indexSettings.put("index.merge.scheduler.max_thread_count", maxThreadCount);
-        }
+        if (maxThreadCount != null) indexSettings.put("index.merge.scheduler.max_thread_count", maxThreadCount);
 
-        cirb.setSettings(indexSettings);
-        if (mappings != null) {
-            for (Map.Entry<String, JSONObject> ent : mappings.entrySet()) {
-                cirb = cirb.addMapping(ent.getKey(), ent.getValue());
-            }
+        ActionFuture<CreateIndexResponse> response = null;
+        for (String type : mappings.keySet()) {
+            CreateIndexRequestBuilder cirb = new CreateIndexRequestBuilder(
+                    esTransportClient.admin().indices(),
+                    CreateIndexAction.INSTANCE,
+                    makeIndex(index, type));
+            cirb.setSettings(indexSettings);
+            cirb = cirb.addMapping(makeType(type), mappings.get(type));
+            response = cirb.execute();
+            response.actionGet();
         }
-        return cirb.execute();
+        // 少し待機
+        try {
+            Thread.sleep(1000 * mappings.size());
+        } catch (InterruptedException e) {
+            ;
+        }
+        return response;
     }
 
     /**
@@ -318,7 +321,7 @@ public class InternalEsClient {
      * @return 非同期応答
      */
     public ActionFuture<AcknowledgedResponse> deleteIndex(String index) {
-        DeleteIndexRequest dir = new DeleteIndexRequest(index);
+        DeleteIndexRequest dir = new DeleteIndexRequest(makeIndex(index, null));
         return esTransportClient.admin().indices().delete(dir);
     }
 
@@ -336,9 +339,9 @@ public class InternalEsClient {
             }
         };
         Settings settingsForUpdate = Settings.builder()
-                .putProperties(settings, keyFunction)
+                .putProperties(settings, keyFunction )
                 .build();
-        esTransportClient.admin().indices().prepareUpdateSettings(index)
+        esTransportClient.admin().indices().prepareUpdateSettings(makeIndex(index, null))
                 .setSettings(settingsForUpdate)
                 .execute()
                 .actionGet();
@@ -353,8 +356,8 @@ public class InternalEsClient {
      */
     public MappingMetaData getMapping(String index, String type) {
         ClusterState cs = esTransportClient.admin().cluster().prepareState().
-                setIndices(index).execute().actionGet().getState();
-        return cs.getMetaData().index(index).mapping(makeType(type));
+                setIndices(makeIndex(index, type)).execute().actionGet().getState();
+        return cs.getMetaData().index(makeIndex(index, type)).mapping(makeType(type));
     }
 
     /**
@@ -369,9 +372,9 @@ public class InternalEsClient {
             Map<String, Object> mappings) {
         PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
                 PutMappingAction.INSTANCE)
-                        .setIndices(index)
-                        .setType(makeType(type))
-                        .setSource(mappings);
+                .setIndices(makeIndex(index, type))
+                .setType(makeType(type))
+                .setSource(mappings);
         return builder.execute();
     }
 
@@ -396,7 +399,7 @@ public class InternalEsClient {
      */
     public ActionFuture<GetResponse> asyncGet(String index, String type, String id, String routingId,
             boolean realtime) {
-        GetRequest req = new GetRequest(index, makeType(type), id);
+        GetRequest req = new GetRequest(makeIndex(index, type), makeType(type), id);
 
         if (routingFlag) {
             req = req.routing(routingId);
@@ -421,9 +424,7 @@ public class InternalEsClient {
             String type,
             String routingId,
             SearchSourceBuilder builder) {
-        // TODO type
-        SearchRequest req = new SearchRequest(index).types(makeType(type)).searchType(SearchType.DEFAULT)
-                .source(builder);
+        SearchRequest req = new SearchRequest(makeIndex(index, type)).types(makeType(type)).searchType(SearchType.DEFAULT).source(builder);
         if (routingFlag) {
             req = req.routing(routingId);
         }
@@ -445,7 +446,7 @@ public class InternalEsClient {
             String type,
             String routingId,
             Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index).types(makeType(type)).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(makeIndex(index, type)).types(makeType(type)).searchType(SearchType.DEFAULT);
         if (query != null) {
             req.source(makeSearchSourceBuilder(query, type));
         }
@@ -469,7 +470,7 @@ public class InternalEsClient {
             String index,
             String routingId,
             Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
         if (query != null) {
             req.source(makeSearchSourceBuilder(query, null));
         }
@@ -493,7 +494,7 @@ public class InternalEsClient {
             String index,
             String routingId,
             QueryBuilder query) {
-        SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
 
         String queryString = "null";
         if (query != null) {
@@ -549,7 +550,7 @@ public class InternalEsClient {
             throw new EsMultiSearchQueryParseException();
         }
         for (Map<String, Object> query : queryList) {
-            SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
+            SearchRequest req = new SearchRequest(makeIndex(index, type)).searchType(SearchType.DEFAULT);
             if (type != null) {
                 req.types(makeType(type));
             }
@@ -578,7 +579,7 @@ public class InternalEsClient {
      * @return 非同期応答
      */
     public ActionFuture<SearchResponse> asyncScrollSearch(String index, String type, Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index)
+        SearchRequest req = new SearchRequest(makeIndex(index, type))
                 .searchType(SearchType.QUERY_THEN_FETCH)
                 .scroll(new TimeValue(SCROLL_SEARCH_KEEP_ALIVE_TIME));
         if (type != null) {
@@ -611,7 +612,7 @@ public class InternalEsClient {
      * @return 非同期応答
      */
     public ActionFuture<SearchResponse> asyncSearch(String index, Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(index).searchType(SearchType.DEFAULT);
+        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
         if (query != null) {
             req.source(makeSearchSourceBuilder(query, null));
         }
@@ -638,7 +639,7 @@ public class InternalEsClient {
             Map<String, Object> data,
             OpType opType,
             long version) {
-        IndexRequestBuilder req = esTransportClient.prepareIndex(index, makeType(type), id)
+        IndexRequestBuilder req = esTransportClient.prepareIndex(makeIndex(index, type), makeType(type), id)
                 .setSource(makeData(data, type))
                 .setOpType(opType)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
@@ -668,7 +669,7 @@ public class InternalEsClient {
      */
     public ActionFuture<DeleteResponse> asyncDelete(String index, String type,
             String id, String routingId, long version) {
-        DeleteRequestBuilder req = esTransportClient.prepareDelete(index, makeType(type), id)
+        DeleteRequestBuilder req = esTransportClient.prepareDelete(makeIndex(index, type), makeType(type), id)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
         if (routingFlag) {
             req = req.setRouting(routingId);
@@ -714,10 +715,8 @@ public class InternalEsClient {
         BulkResponse ret = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
         if (ret.hasFailures()) {
             for (BulkItemResponse item : ret.getItems()) {
-                if (item.isFailed()) {
-                    log.debug("BulkItemReponse:" + ":" + item.getOpType() + ":" + item.getId() + ":" + item.getIndex()
-                            + "/" + item.getType() + "/" + item.getItemId() + ":" + item.getFailureMessage());
-                }
+                if (item.isFailed())
+                    log.debug("BulkItemReponse:" + ":" + item.getOpType() + ":" + item.getId() + ":" + item.getIndex() + "/" + item.getType() + "/" + item.getItemId() + ":" + item.getFailureMessage());
             }
         }
         if (isWriteLog) {
@@ -734,8 +733,8 @@ public class InternalEsClient {
      * @return 作成したINDEXリクエスト
      */
     private IndexRequestBuilder createIndexRequest(String index, String routingId, EsBulkRequest data) {
-        IndexRequestBuilder request = esTransportClient.prepareIndex(index, makeType(data.getType()),
-                data.getId()).setSource(makeData(data.getSource(), data.getType()));
+        IndexRequestBuilder request = esTransportClient.
+                prepareIndex(makeIndex(index, data.getType()), makeType(data.getType()), data.getId()).setSource(makeData(data.getSource(), data.getType()));
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -750,7 +749,7 @@ public class InternalEsClient {
      * @return 作成したDELETEリクエスト
      */
     private DeleteRequestBuilder createDeleteRequest(String index, String routingId, EsBulkRequest data) {
-        DeleteRequestBuilder request = esTransportClient.prepareDelete(index, makeType(data.getType()), data.getId());
+        DeleteRequestBuilder request = esTransportClient.prepareDelete(makeIndex(index, data.getType()), makeType(data.getType()), data.getId());
         if (routingFlag) {
             request = request.setRouting(routingId);
         }
@@ -771,8 +770,8 @@ public class InternalEsClient {
         // このため、execute()のレスポンスを返却し、呼び出し側でactionGet()してからレスポンスチェック、リフレッシュすること。
         for (Entry<String, List<EsBulkRequest>> ents : bulkMap.entrySet()) {
             for (EsBulkRequest data : ents.getValue()) {
-                IndexRequestBuilder req = esTransportClient.prepareIndex(index, makeType(data.getType()),
-                        data.getId()).setSource(makeData(data.getSource(), data.getType()));
+                IndexRequestBuilder req = esTransportClient.
+                        prepareIndex(makeIndex(index, data.getType()), makeType(data.getType()), data.getId()).setSource(makeData(data.getSource(), data.getType()));
                 if (routingFlag) {
                     req = req.setRouting(ents.getKey());
                 }
@@ -790,7 +789,7 @@ public class InternalEsClient {
      */
     public PersoniumRefreshResponse refresh(String index) {
         RefreshResponse response = esTransportClient.admin().indices()
-                .refresh(new RefreshRequest(index)).actionGet();
+                .refresh(new RefreshRequest(makeIndex(index, null))).actionGet();
         return PersoniumRefreshResponseImpl.getInstance(response);
     }
 
@@ -802,7 +801,7 @@ public class InternalEsClient {
      */
     public BulkByScrollResponse deleteByQuery(String index, Map<String, Object> deleteQuery) {
         DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE.newRequestBuilder(esTransportClient);
-        builder.source(index);
+        builder.source(makeIndex(index, null));
         builder.filter(makeQueryBuilder(deleteQuery, null));
         BulkByScrollResponse response = builder.execute().actionGet();
         refresh(index);
@@ -815,36 +814,39 @@ public class InternalEsClient {
      * @return 非同期応答
      */
     public ActionFuture<FlushResponse> flushTransLog(String index) {
-        ActionFuture<FlushResponse> ret = esTransportClient.admin().indices().flush(new FlushRequest(index));
+        ActionFuture<FlushResponse> ret = esTransportClient.admin().indices().flush(new FlushRequest(makeIndex(index, null)));
         this.fireEvent(Event.afterRequest, index, null, null, null, "Flush");
         return ret;
     }
 
     /**
-     * ES2 -> ES6 非互換吸収のためにメソッド追加。
+     * ES2 -> ES6 非互換吸収のためにメソッド追加
      */
+    public static String makeIndex(String index, String type)
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append(index).append(".");
+        if (type == null) sb.append("*");
+        else sb.append(type.toLowerCase());
+        return sb.toString();
+    }
     private static final String UNIQE_TYPE = "_doc";
-
-    /**
-     * Get type and return it.
-     * @param type type
-     * @return Elasticsearch type
-     */
-    public static String makeType(String type) { // NOPMD - Methods for incompatible absorption
+    public static String makeType(String type)
+    {
         return UNIQE_TYPE;
     }
-
-    private static Map<String, Object> makeData(Map<String, Object> data, String type) {
+    private static Map<String, Object> makeData(Map<String, Object> data, String type)
+    {
         Map<String, Object> newData = deepClone(1, data, type);
         newData.put("type", type);
         return newData;
     }
-
-    private static SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type) {
+    private static SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type)
+    {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SearchModule searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList());
-        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(
-                new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map, type))) {
+        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map, type)))
+        {
             searchSourceBuilder.parseXContent(parser);
         } catch (IOException ex) {
             throw new EsClientException("SearchBuilder Make Error.", ex);
@@ -852,8 +854,8 @@ public class InternalEsClient {
 
         return searchSourceBuilder;
     }
-
-    private static QueryBuilder makeQueryBuilder(Map<String, Object> map, String type) {
+    private static QueryBuilder makeQueryBuilder(Map<String, Object> map, String type)
+    {
         log.debug("#DeleteByQuerye");
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         Map<String, Object> queryMap = null;
@@ -862,309 +864,234 @@ public class InternalEsClient {
         } catch (IOException ex) {
             throw new EsClientException("QueryBuilder Make Error.", ex);
         }
-        Map<String, Object> queryQuery = (Map<String, Object>) getNestedMapObject(queryMap, new String[] {"query"}, 0);
-        QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(queryQuery));
+        Map<String, Object> query_query = (Map<String, Object>)getNestedMapObject(queryMap, new String[]{ "query" }, 0);
+        QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(query_query));
         return queryBuilder;
     }
-
-    private static String queryMapToJSON(Map<String, Object> map, String type) { // CHECKSTYLE IGNORE
-        if (log.isDebugEnabled()) {
-            log.debug("\n--- Before ---\n" + toJSON(map, false));
-        }
+    private static String queryMapToJSON(Map<String, Object> map, String type)
+    {
+    	if (log.isDebugEnabled()) log.debug("\n--- Before ---\n" + toJSON(map, false));
         // Convert start
         Map<String, Object> cloneMap = deepClone(1, map, type);
         Map<String, Object> newMap = new HashMap<String, Object>();
         //version
-        Object version = getNestedMapObject(cloneMap, new String[] {"version"}, 0);
-        if (version != null) {
-            newMap.put("version", version);
-        }
+        Object version = getNestedMapObject(cloneMap, new String[]{ "version" }, 0);
+        if (version != null) newMap.put("version", version);
         // size
-        Object size = getNestedMapObject(cloneMap, new String[] {"size"}, 0);
-        if (size != null) {
-            newMap.put("size", size);
-        }
+        Object size = getNestedMapObject(cloneMap, new String[]{ "size" }, 0);
+        if (size != null) newMap.put("size", size);
         // from
-        Object from = getNestedMapObject(cloneMap, new String[] {"from"}, 0);
-        if (from != null) {
-            newMap.put("from", from);
-        }
+        Object from = getNestedMapObject(cloneMap, new String[]{ "from" }, 0);
+        if (from != null) newMap.put("from", from);
         // sort
-        Object sort = getNestedMapObject(cloneMap, new String[] {"sort"}, 0);
-        if (sort != null) {
-            newMap.put("sort", sort);
-        }
+        Object sort = getNestedMapObject(cloneMap, new String[]{ "sort" }, 0);
+        if (sort != null) newMap.put("sort", sort);
         // _source
-        Object source = getNestedMapObject(cloneMap, new String[] {"_source"}, 0);
-        if (source != null) {
-            if (source instanceof List) {
-                ((List) source).add(0, "type");
-            }
-            newMap.put("_source", source);
+        Object _source = getNestedMapObject(cloneMap, new String[]{ "_source" }, 0);
+        if (_source != null) {
+            if (_source instanceof List) ((List)_source).add(0, "type");
+            newMap.put("_source", _source);
         }
         // query
-        Map<String, Object> query = new HashMap<String, Object>();
-        newMap.put("query", query);
-        Map<String, Object> queryBool = new HashMap<String, Object>();
-        query.put("bool", queryBool);
-        Map<String, Object> queryBoolFilter = new HashMap<String, Object>();
-        queryBool.put("filter", queryBoolFilter);
-        Map<String, Object> queryBoolFilterBool = new HashMap<String, Object>();
-        queryBoolFilter.put("bool", queryBoolFilterBool);
-        List<Map<String, Object>> queryBoolMust = new ArrayList<Map<String, Object>>();
-        queryBool.put("must", queryBoolMust);
-        List<Map<String, Object>> queryBoolMustnot = new ArrayList<Map<String, Object>>();
-        queryBool.put("must_not", queryBoolMustnot);
-        List<Map<String, Object>> queryBoolShould = new ArrayList<Map<String, Object>>();
-        queryBool.put("should", queryBoolShould);
-        List<Map<String, Object>> queryBoolFilterBoolMust = new ArrayList<Map<String, Object>>();
-        queryBoolFilterBool.put("must", queryBoolFilterBoolMust);
-        List<Map<String, Object>> queryBoolFilterBoolMustnot = new ArrayList<Map<String, Object>>();
-        queryBoolFilterBool.put("must_not", queryBoolFilterBoolMustnot);
-        List<Map<String, Object>> queryBoolFilterBoolShould = new ArrayList<Map<String, Object>>();
-        queryBoolFilterBool.put("should", queryBoolFilterBoolShould);
+        Map<String, Object> query = new HashMap<String, Object>(); newMap.put("query", query);
+        Map<String, Object> query_bool = new HashMap<String, Object>(); query.put("bool", query_bool);
+        Map<String, Object> query_bool_filter = new HashMap<String, Object>(); query_bool.put("filter", query_bool_filter);
+        Map<String, Object> query_bool_filter_bool = new HashMap<String, Object>(); query_bool_filter.put("bool", query_bool_filter_bool);
+        List<Map<String, Object>> query_bool_must = new ArrayList<Map<String, Object>>(); query_bool.put("must", query_bool_must);
+        List<Map<String, Object>> query_bool_mustnot = new ArrayList<Map<String, Object>>(); query_bool.put("must_not", query_bool_mustnot);
+        List<Map<String, Object>> query_bool_should = new ArrayList<Map<String, Object>>(); query_bool.put("should", query_bool_should);
+        List<Map<String, Object>> query_bool_filter_bool_must = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("must", query_bool_filter_bool_must);
+        List<Map<String, Object>> query_bool_filter_bool_mustnot = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("must_not", query_bool_filter_bool_mustnot);
+        List<Map<String, Object>> query_bool_filter_bool_should = new ArrayList<Map<String, Object>>(); query_bool_filter_bool.put("should", query_bool_filter_bool_should);
         /////
         // -query/filterd/filter
-        List<Map<String, Object>> queryXmust = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "must"}, 0);
-        List<Map<String, Object>> queryXmustnot = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "must_not"}, 0);
-        List<Map<String, Object>> queryXshould = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "should"}, 0);
-        if (queryXmust != null) {
-            for (Map<String, Object> tmap : queryXmust) {
-                queryBoolFilterBoolMust.add(tmap);
+        List<Map<String, Object>> query_x_must = (List<Map<String, Object>>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter", "bool", "must" }, 0);
+        List<Map<String, Object>> query_x_mustnot = (List<Map<String, Object>>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter", "bool", "must_not" }, 0);
+        List<Map<String, Object>> query_x_should = (List<Map<String, Object>>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter", "bool", "should" }, 0);
+        if (query_x_must != null) {
+            for (Map<String, Object> tmap : query_x_must) {
+                query_bool_filter_bool_must.add(tmap);
             }
         }
-        if (queryXmustnot != null) {
-            for (Map<String, Object> tmap : queryXmustnot) {
-                queryBoolFilterBoolMustnot.add(tmap);
+        if (query_x_mustnot != null) {
+            for (Map<String, Object> tmap : query_x_mustnot) {
+                query_bool_filter_bool_mustnot.add(tmap);
             }
         }
-        if (queryXshould != null) {
-            for (Map<String, Object> tmap : queryXshould) {
-                queryBoolFilterBoolShould.add(tmap);
+        if (query_x_should != null) {
+            for (Map<String, Object> tmap : query_x_should) {
+                query_bool_filter_bool_should.add(tmap);
             }
         }
-        // -query/filterd/filter other pattern
-        if (queryBoolFilterBoolMust.isEmpty() && queryBoolFilterBoolMustnot.isEmpty()
-                && queryBoolFilterBoolShould.isEmpty()) {
+           // -query/filterd/filter other pattern
+        if (query_bool_filter_bool_must.isEmpty() && query_bool_filter_bool_mustnot.isEmpty() && query_bool_filter_bool_should.isEmpty()) {
             // other eregular pattern
-            List<Map<String, Object>> queryXfilters = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                    new String[] {"query", "filtered", "filter", "and", "filters"}, 0);
-            if (queryXfilters != null) {
-                for (Map<String, Object> tmap : queryXfilters) {
-                    queryBoolFilterBoolMust.add(tmap);
+            while (true) {
+                List<Map<String, Object>> query_x_filters = (List<Map<String, Object>>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter", "and", "filters" }, 0);
+                if (query_x_filters != null) {
+                    for (Map<String, Object> tmap : query_x_filters) {
+                        query_bool_filter_bool_must.add(tmap);
+                    }
+                    break;
                 }
-            } else {
-                Map<String, Object> queryXfilter = (Map<String, Object>) getNestedMapObject(cloneMap,
-                        new String[] {"query", "filtered", "filter"}, 0);
-                if (queryXfilter != null) {
-                    queryBoolFilterBoolMust.add(queryXfilter);
+                Map<String, Object> query_x_filter = (Map<String, Object>)getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "filter" }, 0);
+                if (query_x_filter != null) {
+                    query_bool_filter_bool_must.add(query_x_filter);
+                    break;
                 }
+                break;
             }
         }
         // -query/filterd/query
-        Object queryFilteredQuery = getNestedMapObject(cloneMap, new String[] {"query", "filtered", "query"}, 0);
-        if (queryFilteredQuery != null) {
-            if (queryFilteredQuery instanceof List) {
-                queryBoolMust.addAll((List<Map<String, Object>>) queryFilteredQuery);
-            } else if (queryFilteredQuery instanceof Map) {
-                queryBoolMust.add((Map<String, Object>) queryFilteredQuery);
-            }
+        Object query_filtered_query = getNestedMapObject(cloneMap, new String[]{ "query", "filtered", "query" }, 0);
+        if (query_filtered_query != null) {
+               if (query_filtered_query instanceof List) {
+                query_bool_must.addAll((List<Map<String, Object>>)query_filtered_query);
+            } else
+               if (query_filtered_query instanceof Map) {
+                   query_bool_must.add((Map<String, Object>)query_filtered_query);
+               }
         }
         /////
         // -filter/ids
-        Map<String, Object> filterIds = (Map<String, Object>) getNestedMapObject(cloneMap,
-                new String[] {"filter", "ids"}, 0);
-        if (filterIds != null) {
+        Map<String, Object> filter_ids = (Map<String, Object>)getNestedMapObject(cloneMap, new String[]{ "filter", "ids" }, 0);
+        if (filter_ids != null) {
             Map<String, Object> ids = new HashMap<String, Object>();
-            ids.put("ids", filterIds);
-            queryBoolFilterBoolMust.add(ids);
+            ids.put("ids", filter_ids);
+            query_bool_filter_bool_must.add(ids);
         }
         // -filter
-        Map<String, Object> filter = (Map<String, Object>) getNestedMapObject(cloneMap, new String[] {"filter"}, 0);
+        Map<String, Object> filter = (Map<String, Object>)getNestedMapObject(cloneMap, new String[]{ "filter" }, 0);
         if (filter != null) {
             // -query
-            List<Map<String, Object>> filterXquerys = new ArrayList<Map<String, Object>>();
-            parseQueryMap(filterXquerys, filter);
-            if (!filterXquerys.isEmpty()) {
-                Map<String, Object> queryMap = new HashMap<String, Object>();
-                queryBoolMust.add(queryMap);
-                Map<String, Object> queryBoolMustBool = new HashMap<String, Object>();
-                queryMap.put("bool", queryBoolMustBool);
-                List<Map<String, Object>> queryBoolMustBoolMust = new ArrayList<Map<String, Object>>();
-                queryBoolMustBool.put("must", queryBoolMustBoolMust);
-                for (Map<String, Object> filterXquery : filterXquerys) {
-                    if (filterXquery instanceof List) {
-                        queryBoolMustBoolMust.addAll((List<Map<String, Object>>) filterXquery);
-                    } else if (filterXquery instanceof Map) {
-                        queryBoolMustBoolMust.add((Map<String, Object>) filterXquery);
+            List<Map<String, Object>> filter_x_querys = new ArrayList<Map<String, Object>>();
+            parseQueryMap(filter_x_querys, filter);
+            if (!filter_x_querys.isEmpty()) {
+                Map<String, Object> queryMap =  new HashMap<String, Object>();query_bool_must.add(queryMap);
+                Map<String, Object> query_bool_must_bool = new HashMap<String, Object>(); queryMap.put("bool", query_bool_must_bool);
+                List<Map<String, Object>> query_bool_must_bool_must = new ArrayList<Map<String, Object>>(); query_bool_must_bool.put("must", query_bool_must_bool_must);
+                for(Map<String, Object> filter_x_query : filter_x_querys) {
+                    if (filter_x_query instanceof List) {
+                        query_bool_must_bool_must.addAll((List<Map<String, Object>>)filter_x_query);
+                    } else
+                    if (filter_x_query instanceof Map) {
+                        query_bool_must_bool_must.add((Map<String, Object>)filter_x_query);
                     }
                 }
                 removeNestedMapObject(filter, "query");
             }
             // -filter
-            Map<String, Object> filerXfilter = parseMap(filter);
-            List<Map<String, Object>> filterBoolMust = (List<Map<String, Object>>) getNestedMapObject(filerXfilter,
-                    new String[] {"bool", "must"}, 0);
-            if (filterBoolMust != null) {
-                queryBoolFilterBoolMust.add(filerXfilter);
+            Map<String, Object> filer_x_filter = parseMap(filter);
+            List<Map<String, Object>> filter_bool_must = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "must" }, 0);
+            if (filter_bool_must != null) {
+                query_bool_filter_bool_must.add(filer_x_filter);
             }
-            List<Map<String, Object>> filterBoolShould = (List<Map<String, Object>>) getNestedMapObject(
-                    filerXfilter, new String[] {"bool", "should"}, 0);
-            if (filterBoolShould != null) {
-                queryBoolFilterBoolShould.add(filerXfilter);
+            List<Map<String, Object>> filter_bool_should = (List<Map<String, Object>>)getNestedMapObject(filer_x_filter, new String[]{ "bool", "should" }, 0);
+            if (filter_bool_should != null) {
+                query_bool_filter_bool_should.add(filer_x_filter);
             }
-        }
-        /////
-        // type
-        if (type != null) {
-            Map<String, Object> queryBoolFilterBoolMustTerm = new HashMap<String, Object>();
-            queryBoolFilterBoolMust.add(0, queryBoolFilterBoolMustTerm);
-            Map<String, Object> queryBoolFilterBoolMustTermType = new HashMap<String, Object>();
-            queryBoolFilterBoolMustTerm.put("term", queryBoolFilterBoolMustTermType);
-            queryBoolFilterBoolMustTermType.put("type", type);
         }
         /////
         removeNestedMapObject(newMap, "ignore_unmapped");
         removeNestedMapObject(newMap, "_cache");
-        if (queryBoolMust.isEmpty()) {
-            queryBool.remove("must");
-        }
-        if (queryBoolMustnot.isEmpty()) {
-            queryBool.remove("must_not");
-        }
-        if (queryBoolShould.isEmpty()) {
-            queryBool.remove("should");
-        }
-        if (queryBoolFilterBoolMust.isEmpty()) {
-            queryBoolFilterBool.remove("must");
-        }
-        if (queryBoolFilterBoolMustnot.isEmpty()) {
-            queryBoolFilterBool.remove("must_not");
-        }
-        if (queryBoolFilterBoolShould.isEmpty()) {
-            queryBoolFilterBool.remove("should");
-        }
+        if (query_bool_must.isEmpty()) query_bool.remove("must");
+        if (query_bool_mustnot.isEmpty()) query_bool.remove("must_not");
+        if (query_bool_should.isEmpty()) query_bool.remove("should");
+        if (query_bool_filter_bool_must.isEmpty()) query_bool_filter_bool.remove("must");
+        if (query_bool_filter_bool_mustnot.isEmpty()) query_bool_filter_bool.remove("must_not");
+        if (query_bool_filter_bool_should.isEmpty()) query_bool_filter_bool.remove("should");
         String jsonstr = toJSON(newMap, true);
         // Convert end
-        if (log.isDebugEnabled()) {
-            log.debug("\n--- After ---\n" + jsonstr);
-        }
+        if (log.isDebugEnabled()) log.debug("\n--- After ---\n" + jsonstr);
 
         return jsonstr;
     }
-
     private static Map<String, Object> parseMap(Map<String, Object> map) {
         if (map.get("and") != null) {
             Object value = map.get("and");
             Map<String, Object> and = new HashMap<String, Object>();
-            Map<String, Object> bool = new HashMap<String, Object>();
-            and.put("bool", bool);
-            List<Map<String, Object>> boolMust = new ArrayList<Map<String, Object>>();
-            bool.put("must", boolMust);
-            parseAndOrNotMap(boolMust, value);
+            Map<String, Object> bool = new HashMap<String, Object>(); and.put("bool", bool);
+            List<Map<String, Object>> bool_must = new ArrayList<Map<String, Object>>(); bool.put("must", bool_must);
+            parseAndOrNotMap(bool_must, value);
             return and;
         }
         if (map.get("or") != null) {
             Object value = map.get("or");
             Map<String, Object> or = new HashMap<String, Object>();
-            Map<String, Object> bool = new HashMap<String, Object>();
-            or.put("bool", bool);
-            List<Map<String, Object>> boolShould = new ArrayList<Map<String, Object>>();
-            bool.put("should", boolShould);
-            parseAndOrNotMap(boolShould, value);
+            Map<String, Object> bool = new HashMap<String, Object>(); or.put("bool", bool);
+            List<Map<String, Object>> bool_should = new ArrayList<Map<String, Object>>(); bool.put("should", bool_should);
+            parseAndOrNotMap(bool_should, value);
             return or;
         }
         if (map.get("not") != null) {
             Object value = map.get("not");
             Map<String, Object> not = new HashMap<String, Object>();
-            Map<String, Object> bool = new HashMap<String, Object>();
-            not.put("bool", bool);
-            List<Map<String, Object>> boolMustnot = new ArrayList<Map<String, Object>>();
-            bool.put("must_not", boolMustnot);
-            parseAndOrNotMap(boolMustnot, value);
+            Map<String, Object> bool = new HashMap<String, Object>(); not.put("bool", bool);
+            List<Map<String, Object>> bool_mustnot = new ArrayList<Map<String, Object>>(); bool.put("must_not", bool_mustnot);
+            parseAndOrNotMap(bool_mustnot, value);
             return not;
         }
         if (map.get("missing") != null) {
             Map<String, Object> missing = new HashMap<String, Object>();
-            Map<String, Object> bool = new HashMap<String, Object>();
-            missing.put("bool", bool);
-            List<Map<String, Object>> boolMustnot = new ArrayList<Map<String, Object>>();
-            bool.put("must_not", boolMustnot);
-            Map<String, Object> exists = new HashMap<String, Object>();
-            boolMustnot.add(exists);
+            Map<String, Object> bool = new HashMap<String, Object>(); missing.put("bool", bool);
+            List<Map<String, Object>> bool_mustnot = new ArrayList<Map<String, Object>>(); bool.put("must_not", bool_mustnot);
+            Map<String, Object> exists = new HashMap<String, Object>(); bool_mustnot.add(exists);
             exists.put("exists", map.get("missing"));
             return missing;
         }
         return map;
     }
-
     private static void parseAndOrNotMap(List<Map<String, Object>> listmap, Object value) {
         if (value instanceof List) {
-            List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) value);
-            if (!lmap.isEmpty()) {
-                listmap.addAll(lmap);
+            List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>)value);
+            if (!lmap.isEmpty()) listmap.addAll(lmap);
+        } else
+            if (value instanceof Map) {
+                Map<String, Object> nestedMap = (Map<String, Object>)value;
+                if (nestedMap.get("filters") != null) {
+                    Object filters_value = nestedMap.get("filters");
+                    if (filters_value instanceof List) {
+                        List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>)filters_value);
+                        if (!lmap.isEmpty()) listmap.addAll(lmap);
+                    } else
+                        if (filters_value instanceof Map) {
+                            Map<String, Object> map = parseMap((Map<String, Object>)filters_value);
+                            if (!map.isEmpty()) listmap.add(map);
+                        }
+                } else
+                    if (nestedMap.get("filter") != null) {
+                        Object filter_value = nestedMap.get("filter");
+                        if (filter_value instanceof List) {
+                            List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>)filter_value);
+                            if (!lmap.isEmpty()) listmap.addAll(lmap);
+                        } else
+                            if (filter_value instanceof Map) {
+                                Map<String, Object> map = parseMap((Map<String, Object>)filter_value);
+                                if (!map.isEmpty()) listmap.add(map);
+                            }
+                    } else {
+                        Map<String, Object> map = parseMap((Map<String, Object>)value);
+                        if (!map.isEmpty()) listmap.add(map);
+                    }
             }
-        } else if (value instanceof Map) {
-            Map<String, Object> nestedMap = (Map<String, Object>) value;
-            if (nestedMap.get("filters") != null) {
-                Object filtersValue = nestedMap.get("filters");
-                if (filtersValue instanceof List) {
-                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filtersValue);
-                    if (!lmap.isEmpty()) {
-                        listmap.addAll(lmap);
-                    }
-                } else if (filtersValue instanceof Map) {
-                    Map<String, Object> map = parseMap((Map<String, Object>) filtersValue);
-                    if (!map.isEmpty()) {
-                        listmap.add(map);
-                    }
-                }
-            } else if (nestedMap.get("filter") != null) {
-                Object filterValue = nestedMap.get("filter");
-                if (filterValue instanceof List) {
-                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filterValue);
-                    if (!lmap.isEmpty()) {
-                        listmap.addAll(lmap);
-                    }
-                } else if (filterValue instanceof Map) {
-                    Map<String, Object> map = parseMap((Map<String, Object>) filterValue);
-                    if (!map.isEmpty()) {
-                        listmap.add(map);
-                    }
-                }
-            } else {
-                Map<String, Object> map = parseMap((Map<String, Object>) value);
-                if (!map.isEmpty()) {
-                    listmap.add(map);
-                }
-            }
-        }
     }
-
     private static List<Map<String, Object>> parseListMap(List<Map<String, Object>> listmap) {
         List<Map<String, Object>> rlistmap = new ArrayList<Map<String, Object>>();
         for (Map<String, Object> emap : listmap) {
             if (emap instanceof Map) {
                 Map<String, Object> rmap = parseMap(emap);
-                if (!rmap.isEmpty()) {
-                    rlistmap.add(rmap);
-                }
+                if (!rmap.isEmpty()) rlistmap.add(rmap);
             }
         }
         return rlistmap;
     }
-
     private static void parseQueryMap(List<Map<String, Object>> listQueryMap, Map<String, Object> map) {
         for (Entry<String, Object> entry : map.entrySet()) {
             if (entry.getKey().equals("query")) {
-                Map<String, Object> queryMap = (Map<String, Object>) entry.getValue();
-                String type = (String) getNestedMapObject(queryMap, "type");
+                Map<String, Object> queryMap = (Map<String, Object>)entry.getValue();
+                String type = (String)getNestedMapObject(queryMap, "type");
                 if (type != null) {
-                    Map<String, Object> match = (Map<String, Object>) getNestedMapObject(queryMap,
-                            new String[] {"match"}, 0);
+                    Map<String, Object> match = (Map<String, Object>)getNestedMapObject(queryMap, new String[]{ "match" }, 0);
                     removeNestedMapObject(match, "type");
                     removeNestedMapObject(match, "operator");
                     removeNestedMapObject(queryMap, "match");
@@ -1174,17 +1101,17 @@ public class InternalEsClient {
                 return;
             }
             if (entry.getValue() instanceof List) {
-                for (Object cmap : (List<Map<String, Object>>) entry.getValue()) {
+                for (Object cmap : (List<Map<String, Object>>)entry.getValue()) {
                     if (cmap instanceof Map) {
-                        parseQueryMap(listQueryMap, (Map<String, Object>) cmap);
+                        parseQueryMap(listQueryMap, (Map<String, Object>)cmap);
                     }
                 }
-            } else if (entry.getValue() instanceof Map) {
-                parseQueryMap(listQueryMap, (Map<String, Object>) entry.getValue());
-            }
+            } else
+                if (entry.getValue() instanceof Map) {
+                    parseQueryMap(listQueryMap, (Map<String, Object>)entry.getValue());
+                }
         }
     }
-
     private static void removeNestedMapObject(Map<String, Object> map, String key) {
         Map<String, Object> queryClone = new HashMap<String, Object>(map);
         for (Entry<String, Object> entry : queryClone.entrySet()) {
@@ -1193,17 +1120,17 @@ public class InternalEsClient {
                 continue;
             }
             if (entry.getValue() instanceof List) {
-                for (Object cmap : (List<Map<String, Object>>) entry.getValue()) {
+                for (Object cmap : (List<Map<String, Object>>)entry.getValue()) {
                     if (cmap instanceof Map) {
-                        removeNestedMapObject((Map<String, Object>) cmap, key);
+                        removeNestedMapObject((Map<String, Object>)cmap, key);
                     }
                 }
-            } else if (entry.getValue() instanceof Map) {
-                removeNestedMapObject((Map<String, Object>) entry.getValue(), key);
-            }
+            } else
+                if (entry.getValue() instanceof Map) {
+                    removeNestedMapObject((Map<String, Object>)entry.getValue(), key);
+                }
         }
     }
-
     private static Object getNestedMapObject(Map<String, Object> map, String key) {
         Map<String, Object> queryClone = new HashMap<String, Object>(map);
         for (Entry<String, Object> entry : queryClone.entrySet()) {
@@ -1211,49 +1138,39 @@ public class InternalEsClient {
                 return entry.getValue();
             }
             if (entry.getValue() instanceof List) {
-                for (Object cmap : (List<Map<String, Object>>) entry.getValue()) {
+                for (Object cmap : (List<Map<String, Object>>)entry.getValue()) {
                     if (cmap instanceof Map) {
-                        Object cobj = getNestedMapObject((Map<String, Object>) cmap, key);
-                        if (cobj != null) {
-                            return cobj;
-                        }
+                        Object cobj = getNestedMapObject((Map<String, Object>)cmap, key);
+                        if (cobj != null) return cobj;
                     }
                 }
-            } else if (entry.getValue() instanceof Map) {
-                Object cobj = getNestedMapObject((Map<String, Object>) entry.getValue(), key);
-                if (cobj != null) {
-                    return cobj;
+            } else
+                if (entry.getValue() instanceof Map) {
+                    Object cobj = getNestedMapObject((Map<String, Object>)entry.getValue(), key);
+                    if (cobj != null) return cobj;
                 }
-            }
         }
         return null;
     }
-
     private static Object getNestedMapObject(Map<String, Object> map, String[] keys, int index) {
         Object obj = map.get(keys[index]);
         if (obj != null) {
-            if (index == keys.length - 1) {
-                return obj;
-            }
+            if (index == keys.length -1) return obj;
             if (obj instanceof Map) {
                 ++index;
-                Object cobj = getNestedMapObject((Map<String, Object>) obj, keys, index);
-                if (cobj != null) {
-                    return cobj;
-                }
-            } else if (obj instanceof List) {
+                Object cobj = getNestedMapObject((Map<String, Object>)obj, keys, index);
+                if (cobj != null) return cobj;
+            } else
+            if (obj instanceof List) {
                 ++index;
-                for (Map<String, Object> cmap : (List<Map<String, Object>>) obj) {
+                for (Map<String, Object> cmap : (List<Map<String, Object>>)obj) {
                     Object cobj = getNestedMapObject(cmap, keys, index);
-                    if (cobj != null) {
-                        return cobj;
-                    }
+                    if (cobj != null) return cobj;
                 }
             }
         }
         return null;
     }
-
     private static String toJSON(Map<String, Object> map, boolean shaping) {
         String json = "{}";
         try {
@@ -1269,14 +1186,6 @@ public class InternalEsClient {
         }
         return json;
     }
-
-    /**
-     * deep clone.
-     * @param direction direction
-     * @param map map
-     * @param type type
-     * @return deep clone map
-     */
     public static Map<String, Object> deepClone(int direction, Map<String, Object> map, String type) {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -1288,38 +1197,14 @@ public class InternalEsClient {
             throw new EsClientException("InternalEsClient.deepClone Error.", ex);
         }
     }
-
-    /**
-     * replace source.
-     * @param direction direction
-     * @param json json
-     * @param type type
-     * @return replace source string
-     */
     public static String replaceSource(int direction, String json, String type) {
         if (direction > 0) {
             switch (direction) {
             case 1:
-                if (type != null) {
-                    if (type.equals("EntityType")) {
-                        json = json.replaceAll("\"l\":", "\"lo\":");
-                    }
-                    if (type.equals("UserData")) {
-                        json = json.replaceAll("\"h\":", "\"ho\":");
-                    }
-                }
                 json = json.replaceAll("\"_type\":", "\"type\":");
                 json = json.replaceAll("\"_all\":", "\"alldata\":");
                 break;
             case 2:
-                if (type != null) {
-                    if (type.equals("EntityType")) {
-                        json = json.replaceAll("\"lo\":", "\"l\":");
-                    }
-                    if (type.equals("UserData")) {
-                        json = json.replaceAll("\"ho\":", "\"h\":");
-                    }
-                }
                 break;
             default:
                 break;
