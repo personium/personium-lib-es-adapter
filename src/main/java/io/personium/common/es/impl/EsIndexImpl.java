@@ -235,13 +235,14 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
          */
         @Override
         boolean isParticularError(ElasticsearchException e) {
-            return e instanceof ResourceAlreadyExistsException  || e.getCause() instanceof ResourceAlreadyExistsException ;
+            return e instanceof ResourceAlreadyExistsException
+                    || e.getCause() instanceof ResourceAlreadyExistsException;
         }
 
         @Override
         CreateIndexResponse onParticularError(ElasticsearchException e) {
             if (e instanceof ResourceAlreadyExistsException
-                    || e.getCause() instanceof ResourceAlreadyExistsException ) {
+                    || e.getCause() instanceof ResourceAlreadyExistsException) {
                 throw new EsClientException.EsIndexAlreadyExistsException(e);
             }
             throw e;
@@ -256,7 +257,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     /**
      * Elasticsearchへの index delete処理実装.
      */
-    class DeleteRetryableRequest extends AbstractRetryableEsRequest<AcknowledgedResponse > {
+    class DeleteRetryableRequest extends AbstractRetryableEsRequest<AcknowledgedResponse> {
         String name;
 
         DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
@@ -275,7 +276,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
         }
 
         @Override
-        AcknowledgedResponse  onParticularError(ElasticsearchException e) {
+        AcknowledgedResponse onParticularError(ElasticsearchException e) {
             if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
                 throw new EsClientException.EsIndexMissingException(e);
             }

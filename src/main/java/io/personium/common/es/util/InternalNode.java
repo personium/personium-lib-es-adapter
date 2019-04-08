@@ -39,7 +39,7 @@ public class InternalNode {
 
     /**
      * テスト用のElasticsearchノードを停止する.
-     * @throws IOException
+     * @throws IOException IOException
      */
     public static void stopInternalNode() throws IOException {
         InternalNodeImpl.stopInternalNode();

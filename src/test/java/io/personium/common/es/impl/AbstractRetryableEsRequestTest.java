@@ -16,7 +16,8 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Constructor;
 
@@ -496,7 +497,7 @@ public class AbstractRetryableEsRequestTest extends EsTestBase {
             throws Exception {
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
                 .getDeclaredConstructor(new Class[] {
-                        EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                        EsTranslogHandler.class, Integer.TYPE, Long.TYPE});
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(
@@ -521,7 +522,7 @@ public class AbstractRetryableEsRequestTest extends EsTestBase {
     public void translogのflush時にBroadcastShardOperationFailedExceptionが発生した場合にflushのリトライをしないこと()
             throws Exception {
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
-                .getDeclaredConstructor(new Class[] { EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                .getDeclaredConstructor(new Class[] {EsTranslogHandler.class, Integer.TYPE, Long.TYPE});
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(
@@ -547,7 +548,7 @@ public class AbstractRetryableEsRequestTest extends EsTestBase {
             throws Exception {
 
         Constructor<FlushTranslogRetryableRequest> constructor = FlushTranslogRetryableRequest.class
-                .getDeclaredConstructor(new Class[] { EsTranslogHandler.class, Integer.TYPE, Long.TYPE });
+                .getDeclaredConstructor(new Class[] {EsTranslogHandler.class, Integer.TYPE, Long.TYPE});
         constructor.setAccessible(true);
         EsTranslogHandler handler = new EsTranslogHandler(RETRY_COUNT, 0, null, INDEX_FOR_TEST);
         FlushTranslogRetryableRequest flushMock = Mockito.spy((FlushTranslogRetryableRequest) constructor.newInstance(

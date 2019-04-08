@@ -16,7 +16,8 @@
  */
 package io.personium.common.es.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.elasticsearch.action.index.IndexResponse;
 import org.json.simple.JSONObject;
@@ -29,8 +30,7 @@ import io.personium.common.es.response.EsClientException;
 /**
  * EsModelの単体テストケース.
  */
-public class EsTest extends EsTestBase
-{
+public class EsTest extends EsTestBase {
     /**
      * ドキュメント登録チェックでドキュメントがすでに存在している場合に正常終了すること.
      * @throws ParseException ParseException
