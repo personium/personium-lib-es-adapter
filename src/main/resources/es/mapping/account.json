@@ -28,11 +28,23 @@
               }
             }
           },
-          "LastAuthenticated": {
-            "type": "long",
+          "IPAddressRange" : {
+            "type" : "text",
+            "copy_to" : "alldata",
+            "fielddata" : true,
+            "fields" : {
+              "untouched" : {
+                "type" : "keyword",
+                "ignore_above" : 4096
+              }
+            }
+          },
+          "Status": {
+            "type": "keyword",
             "fields": {
               "untouched": {
-                "type": "long"
+                "type": "keyword",
+                "index": true
               }
             }
           },
@@ -51,6 +63,14 @@
           "HashedCredential": {
             "type": "keyword",
             "index": false
+          },
+          "HashAlgorithm" : {
+            "type" : "keyword",
+            "index" : false
+          },
+          "HashAttributes" : {
+            "type" : "keyword",
+            "index" : false
           }
         }
       },
