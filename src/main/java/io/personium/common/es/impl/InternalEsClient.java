@@ -1083,9 +1083,9 @@ public class InternalEsClient {
             Map<String, Object> and = new HashMap<String, Object>();
             Map<String, Object> bool = new HashMap<String, Object>();
             and.put("bool", bool);
-            List<Map<String, Object>> bool_must = new ArrayList<Map<String, Object>>();
-            bool.put("must", bool_must);
-            parseAndOrNotMap(bool_must, value);
+            List<Map<String, Object>> boolMust = new ArrayList<Map<String, Object>>();
+            bool.put("must", boolMust);
+            parseAndOrNotMap(boolMust, value);
             return and;
         }
         if (map.get("or") != null) {
@@ -1093,9 +1093,9 @@ public class InternalEsClient {
             Map<String, Object> or = new HashMap<String, Object>();
             Map<String, Object> bool = new HashMap<String, Object>();
             or.put("bool", bool);
-            List<Map<String, Object>> bool_should = new ArrayList<Map<String, Object>>();
-            bool.put("should", bool_should);
-            parseAndOrNotMap(bool_should, value);
+            List<Map<String, Object>> boolShould = new ArrayList<Map<String, Object>>();
+            bool.put("should", boolShould);
+            parseAndOrNotMap(boolShould, value);
             return or;
         }
         if (map.get("not") != null) {
@@ -1103,19 +1103,19 @@ public class InternalEsClient {
             Map<String, Object> not = new HashMap<String, Object>();
             Map<String, Object> bool = new HashMap<String, Object>();
             not.put("bool", bool);
-            List<Map<String, Object>> bool_mustnot = new ArrayList<Map<String, Object>>();
-            bool.put("must_not", bool_mustnot);
-            parseAndOrNotMap(bool_mustnot, value);
+            List<Map<String, Object>> boolMustnot = new ArrayList<Map<String, Object>>();
+            bool.put("must_not", boolMustnot);
+            parseAndOrNotMap(boolMustnot, value);
             return not;
         }
         if (map.get("missing") != null) {
             Map<String, Object> missing = new HashMap<String, Object>();
             Map<String, Object> bool = new HashMap<String, Object>();
             missing.put("bool", bool);
-            List<Map<String, Object>> bool_mustnot = new ArrayList<Map<String, Object>>();
-            bool.put("must_not", bool_mustnot);
+            List<Map<String, Object>> boolMustnot = new ArrayList<Map<String, Object>>();
+            bool.put("must_not", boolMustnot);
             Map<String, Object> exists = new HashMap<String, Object>();
-            bool_mustnot.add(exists);
+            boolMustnot.add(exists);
             exists.put("exists", map.get("missing"));
             return missing;
         }
@@ -1131,27 +1131,27 @@ public class InternalEsClient {
         } else if (value instanceof Map) {
             Map<String, Object> nestedMap = (Map<String, Object>) value;
             if (nestedMap.get("filters") != null) {
-                Object filters_value = nestedMap.get("filters");
-                if (filters_value instanceof List) {
-                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filters_value);
+                Object filtersValue = nestedMap.get("filters");
+                if (filtersValue instanceof List) {
+                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filtersValue);
                     if (!lmap.isEmpty()) {
                         listmap.addAll(lmap);
                     }
-                } else if (filters_value instanceof Map) {
-                    Map<String, Object> map = parseMap((Map<String, Object>) filters_value);
+                } else if (filtersValue instanceof Map) {
+                    Map<String, Object> map = parseMap((Map<String, Object>) filtersValue);
                     if (!map.isEmpty()) {
                         listmap.add(map);
                     }
                 }
             } else if (nestedMap.get("filter") != null) {
-                Object filter_value = nestedMap.get("filter");
-                if (filter_value instanceof List) {
-                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filter_value);
+                Object filterValue = nestedMap.get("filter");
+                if (filterValue instanceof List) {
+                    List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) filterValue);
                     if (!lmap.isEmpty()) {
                         listmap.addAll(lmap);
                     }
-                } else if (filter_value instanceof Map) {
-                    Map<String, Object> map = parseMap((Map<String, Object>) filter_value);
+                } else if (filterValue instanceof Map) {
+                    Map<String, Object> map = parseMap((Map<String, Object>) filterValue);
                     if (!map.isEmpty()) {
                         listmap.add(map);
                     }
