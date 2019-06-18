@@ -48,7 +48,7 @@ public class PersoniumSearchHitImpl implements PersoniumSearchHit {
      */
     private PersoniumSearchHitImpl(SearchHit hit) {
         this.searchHit = hit;
-        this.type = (String)this.searchHit.getSourceAsMap().get("type");
+        this.type = (String) this.searchHit.getSourceAsMap().get("type");
         this.source = this.searchHit.getSourceAsMap();
     }
 
