@@ -297,6 +297,7 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
+        <!-- If elasticsearch version is upgraded, following dependency may not be needed. -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
