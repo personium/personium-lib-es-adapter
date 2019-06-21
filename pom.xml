@@ -3,7 +3,7 @@
     <groupId>io.personium</groupId>
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
-    <version>1_es6.6.1_5-SNAPSHOT</version>
+    <version>1_es6.6.1_5</version>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
