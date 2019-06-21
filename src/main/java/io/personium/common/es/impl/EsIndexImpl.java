@@ -211,7 +211,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
      */
     class CreateRetryableRequest extends AbstractRetryableEsRequest<CreateIndexResponse> {
         String name;
-        String [] types;
+        String[] types;
         Map<String, JSONObject> mappings;
 
         CreateRetryableRequest(int retryCount, long retryInterval,
