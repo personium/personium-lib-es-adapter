@@ -1,6 +1,7 @@
 /**
- * personium.io
- * Copyright 2014 FUJITSU LIMITED
+ * Personium
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +223,8 @@ public class EsRetryTest extends EsTestBase {
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
-            assertEquals(1, response.getVersion());
+            // IndexResponse.getVersion returns 0 if the document already exists.
+            assertEquals(0, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
         } finally { // CHECKSTYLE IGNORE
@@ -270,7 +272,8 @@ public class EsRetryTest extends EsTestBase {
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
-            assertEquals(1, response.getVersion());
+            // IndexResponse.getVersion returns 0 if the document already exists.
+            assertEquals(0, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
         } finally { // CHECKSTYLE IGNORE
