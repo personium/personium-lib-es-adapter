@@ -26,6 +26,7 @@ import java.util.Map;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -125,8 +126,11 @@ public class EsUpdateSettingsTest extends EsTestBase {
 
     private String getNumberOfReplicas(TransportClient client, String key) {
         ClusterStateRequestBuilder request = client.admin().cluster().prepareState();
-        ClusterStateResponse response = request.setIndices(index.getName()).execute().actionGet();
-        Settings retrievedSettings = response.getState().getMetaData().index(index.getName()).getSettings();
+        ClusterStateResponse response = request.setIndices(index.getName() + ".*").execute().actionGet();
+        MetaData metadata = response.getState().getMetaData();
+        String firstIndexKey = metadata.getIndices().iterator().next().key;
+
+        Settings retrievedSettings = metadata.index(firstIndexKey).getSettings();
         String numberOfReplicas = retrievedSettings.get(key);
         return numberOfReplicas;
     }

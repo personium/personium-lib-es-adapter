@@ -223,7 +223,8 @@ public class EsRetryTest extends EsTestBase {
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
-            assertEquals(1, response.getVersion());
+            // IndexResponse.getVersion returns 0 if the document already exists.
+            assertEquals(0, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
         } finally { // CHECKSTYLE IGNORE
@@ -271,7 +272,8 @@ public class EsRetryTest extends EsTestBase {
             assertEquals("index_for_test_" + EsIndex.CATEGORY_AD, response.getIndex());
             assertEquals("dummyId", response.getId());
             assertEquals("TypeForTest", response.getType());
-            assertEquals(1, response.getVersion());
+            // IndexResponse.getVersion returns 0 if the document already exists.
+            assertEquals(0, response.getVersion());
         } catch (Exception e) {
             e.printStackTrace();
         } finally { // CHECKSTYLE IGNORE
