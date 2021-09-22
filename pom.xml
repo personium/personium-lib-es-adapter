@@ -4,6 +4,9 @@
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
     <version>1_es6.8.15_1</version>
+    <name>personium-lib-es-adapter</name>
+    <description>An abstract layer to absorb version incompatibilities of ElasticSearch for Personium.</description>
+    <url>https://github.com/personium/personium-lib-es-adapter</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -11,6 +14,37 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <developers>
+        <developer>
+            <name>Akio Shimono</name>
+            <email>shimono.akio@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Dixon Siu</name>
+            <email>siu.dixon@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yasufumi Tochiori</name>
+            <email>tochiori.y@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yo Ishiguro</name>
+            <email>ishiguro.yo@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git://github.com/personium/personium-lib-es-adapter.git</connection>
+        <developerConnection>scm:git:ssh://github.com:personium/personium-lib-es-adapter.git</developerConnection>
+        <url>http://github.com/personium/personium-lib-es-adapter/tree/master</url>
+    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <final.name>personium-lib-es-adapter</final.name>
