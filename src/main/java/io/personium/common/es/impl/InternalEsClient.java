@@ -113,15 +113,15 @@ public class InternalEsClient {
     private boolean routingFlag;
 
     /**
-     * デフォルトコンストラクタ.
+     * Default constructor.
      */
     protected InternalEsClient() {
     }
 
     /**
-     * コンストラクタ.
-     * @param cluster クラスタ名
-     * @param hosts ホスト
+     * constructor.
+     * @param cluster cluster name
+     * @param hosts hosts
      */
     protected InternalEsClient(String cluster, String hosts) {
         routingFlag = true;
@@ -468,12 +468,12 @@ public class InternalEsClient {
     }
 
     /**
-     * 非同期でドキュメントを検索. <br />
+     * 非同期でドキュメントを検索.
      * Queryの指定方法をMapで直接記述せずにQueryBuilderにするため、非推奨とする.
      * @param index インデックス名
      * @param routingId routingId
      * @param query クエリ情報
-     * @return 非同期応答
+     * @return async response
      */
     public ActionFuture<SearchResponse> asyncSearch(
             String index,
@@ -497,7 +497,6 @@ public class InternalEsClient {
      * @param routingId routingId
      * @param query クエリ情報
      * @return 非同期応答
-     * @throws IOException
      */
     public ActionFuture<SearchResponse> asyncSearch(
             String index,

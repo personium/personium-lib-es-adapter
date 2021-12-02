@@ -56,13 +56,13 @@ import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
 import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 
 /**
- * Index 操作用 Class.
+ * Class for index operations .
  */
 public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     private InternalEsClient esClient;
 
     /**
-     * ログ.
+     * logger.
      */
     static Logger log = LoggerFactory.getLogger(EsIndexImpl.class);
 
@@ -78,10 +78,10 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
 
     /**
      * インデックス名とカテゴリを指定してインスタンスを生成する.
-     * @param name インデックス名
+     * @param name index name
      * @param category カテゴリ
-     * @param times ESでエラーが発生した場合のリトライ回数
-     * @param interval ESでエラーが発生した場合のリトライ間隔(ミリ秒)
+     * @param times retry times when ES error occurs
+     * @param interval retry interval (milli sec) when ES error occurs
      * @param client EsClientオブジェクト
      */
     public EsIndexImpl(final String name, final String category, int times, int interval, InternalEsClient client) {
@@ -557,7 +557,7 @@ public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
     }
 
     /**
-     * 非同期でドキュメントを検索. <br />
+     * 非同期でドキュメントを検索.
      * Queryの指定方法をMapで直接記述せずにQueryBuilderにするため、非推奨とする.
      * @param routingId routingId
      * @param query クエリ情報

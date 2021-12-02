@@ -53,8 +53,8 @@ public class UserDataQueryHandlerHelper {
     }
 
     /**
-     * UserDataの文字列型プロパティのOrderByに指定する値を取得する.<br />
-     * 既存の動作と互換性のあるソートの順序にしたい場合は本メソッドを使用する.<br />
+     * UserDataの文字列型プロパティのOrderByに指定する値を取得する.<br>
+     * 既存の動作と互換性のあるソートの順序にしたい場合は本メソッドを使用する.<br>
      * ※1.2.1でNULLの場所が変わっている
      * @param orderOption asc/desc
      * @param key sortKey
