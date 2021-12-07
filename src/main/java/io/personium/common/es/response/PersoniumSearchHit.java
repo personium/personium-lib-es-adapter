@@ -85,7 +85,7 @@ public interface PersoniumSearchHit extends Iterable<PersoniumSearchHitField> {
     long getVersion();
 
     /**
-     * The source of the document (can be <tt>null</tt>).
+     * The source of the document (can be <code>null</code>).
      * @return .
      */
     byte[] source();
