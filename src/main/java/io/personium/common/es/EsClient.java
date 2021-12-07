@@ -40,7 +40,7 @@ public class EsClient {
     private InternalEsClient internalClient;
 
     /**
-     * デフォルトコンストラクタ.
+     * Default constructor.
      * @param cluster クラスタ名
      * @param hosts ホスト
      */

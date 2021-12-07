@@ -20,7 +20,7 @@ package io.personium.common.es.response;
 import java.util.Map;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class for IndexResponse.
  */
 public interface PersoniumSearchHit extends Iterable<PersoniumSearchHitField> {
 
@@ -85,8 +85,7 @@ public interface PersoniumSearchHit extends Iterable<PersoniumSearchHitField> {
     long getVersion();
 
     /**
-     * The source of the document (can be <tt>null</tt>). Note, its a copy of the source
-     * into a byte array, consider using {@link #sourceRef()} so there won't be a need to copy.
+     * The source of the document (can be <code>null</code>).
      * @return .
      */
     byte[] source();
