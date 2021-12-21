@@ -49,7 +49,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <es.version>6.8.21</es.version>
+        <es.version>6.8.22</es.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
     </properties>
