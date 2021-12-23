@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [ master ]
+    types: [closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.merged == true
+
+    env:
+      GITHUB_USER: personiumio
+      GITHUB_TOKEN: ${{ secrets.PERSONIUM_GITHUB_TOKEN }}
+
+    steps:
+
+    - name: git settings
+      run: |
+        if [ -z "$GITHUB_USER" -o -z "$GITHUB_TOKEN" ]; then
+          echo '$GITHUB_USER or $GITHUB_TOKEN is empty.'
+          exit 1
+        fi
+        cat << EOS >~/.netrc
+        machine github.com
+        login $GITHUB_USER
+        password $GITHUB_TOKEN
+        EOS
+        git config --global user.name "Personium Bot"
+        git config --global user.email "personium.io@gmail.com"
+        git clone https://github.com/${GITHUB_REPOSITORY}.git .
+        git checkout master
+
+    - name: Get Component Name
+      run: |
+        echo "COMPONENT=$(echo $GITHUB_REPOSITORY | awk -F '/' '{ print $2 }')" >> $GITHUB_ENV
+
+    - name: Remove -SNAPSHOT from pom.xml, and get version string which is to be released.
+      run: |
+        mvn -B versions:set -DremoveSnapshot && mvn -B versions:commit
+        echo "RELEASE_VERSION=$(mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
+    - name: Commit and push
+      run: |
+        git add pom.xml
+        git commit -m "Update to v${RELEASE_VERSION}"
+        git push origin master
+
+    - name: Set next -SNAPSHOT version, and get next version string.
+      run: |
+        mvn -B versions:set -DnextSnapshot && mvn -B versions:commit
+        echo "NEXT_SNAPSHOT_VERSION=$(mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
+    - name: Update versions on develop branch
+      run: |
+        git checkout develop
+        git rebase master
+        git add pom.xml
+        git commit -m "Update to v${NEXT_SNAPSHOT_VERSION}"
+        git push origin develop
