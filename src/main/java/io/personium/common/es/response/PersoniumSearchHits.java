@@ -23,21 +23,21 @@ package io.personium.common.es.response;
  */
 public interface PersoniumSearchHits extends Iterable<PersoniumSearchHit> {
     /**
-     * 検索でヒットすべきデータの総件数を取得. <br />
+     * 検索でヒットすべきデータの総件数を取得. <br>
      * 検索で取得したデータの件数ではない
      * @return 検索でヒットすべきデータの総件数.
      */
     long allPages();
 
     /**
-     * 検索でヒットすべきデータの総件数を取得. <br />
+     * 検索でヒットすべきデータの総件数を取得. <br>
      * 検索で取得したデータの件数ではない
      * @return 検索でヒットすべきデータの総件数.
      */
     long getAllPages();
 
     /**
-     * 検索で取得したデータの件数. <br />
+     * 検索で取得したデータの件数. <br>
      * 検索でヒットすべきデータの総件数ではない
      * @return 検索でヒットすべきデータの総件数.
      */
