@@ -3,7 +3,7 @@
     <groupId>io.personium</groupId>
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
-    <version>1_es6.8.22_1</version>
+    <version>1_es6.8.22_2-SNAPSHOT</version>
     <name>personium-lib-es-adapter</name>
     <description>An abstract layer to absorb version incompatibilities of ElasticSearch for Personium.</description>
     <url>https://github.com/personium/personium-lib-es-adapter</url>
