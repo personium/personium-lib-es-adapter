@@ -97,25 +97,25 @@ public interface PersoniumSearchHit extends Iterable<PersoniumSearchHitField> {
     boolean isSourceEmpty();
 
     /**
-     * The source of the document as a map (can be <tt>null</tt>).
+     * The source of the document as a map (can be <code>null</code>).
      * @return .
      */
     Map<String, Object> getSource();
 
     /**
-     * The source of the document as string (can be <tt>null</tt>).
+     * The source of the document as string (can be <code>null</code>).
      * @return .
      */
     String sourceAsString();
 
     /**
-     * The source of the document as string (can be <tt>null</tt>).
+     * The source of the document as string (can be <code>null</code>).
      * @return .
      */
     String getSourceAsString();
 
     /**
-     * The source of the document as a map (can be <tt>null</tt>).
+     * The source of the document as a map (can be <code>null</code>).
      * @return .
      */
     Map<String, Object> sourceAsMap();
