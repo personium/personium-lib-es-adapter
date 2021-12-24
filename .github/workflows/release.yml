@@ -3,7 +3,7 @@ name: Release
 on:
   pull_request:
     branches: [ master ]
-    types: [closed]
+    types: [ closed ]
 
 jobs:
   build:
@@ -39,14 +39,44 @@ jobs:
 
     - name: Remove -SNAPSHOT from pom.xml, and get version string which is to be released.
       run: |
-        mvn -B versions:set -DremoveSnapshot && mvn -B versions:commit
+        sed -i 's|\-SNAPSHOT||' pom.xml
         echo "RELEASE_VERSION=$(mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
+    - name: Get extension of artifact
+      run: |
+        echo "EXT_PACKAGING=$mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
     - name: Commit and push
       run: |
         git add pom.xml
         git commit -m "Update to v${RELEASE_VERSION}"
         git push origin master
+
+    - name: Create Release Note
+      run: awk '/##/{i++}i==1' CHANGELOG.md | tail +2 > ${{ github.workflow }}_CHANGELOG.md
+
+    - name: Build with maven
+      run: |
+        mvn -B package --file pom.xml -DskipTests
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "Release v${{ env.RELEASE_VERSION }}"
+        tag_name: "v${{ env.RELEASE_VERSION }}"
+        body_path: ${{ github.workflow }}_CHANGELOG.md
+        draft: true
+        files: |
+          target/${{ env.COMPONENT }}-${{ env.RELEASE_VERSION }}.${{ env.EXT_PACKAGING }}
+        target_commitish: master
+
+    - name: Delete Temporary Release Note
+      run: rm ${{ github.workflow }}_CHANGELOG.md
+
+    - name: Prepare develop branch
+      run: |
+        git checkout develop
+        git rebase master
 
     - name: Set next -SNAPSHOT version, and get next version string.
       run: |
@@ -55,8 +85,6 @@ jobs:
 
     - name: Update versions on develop branch
       run: |
-        git checkout develop
-        git rebase master
         git add pom.xml
         git commit -m "Update to v${NEXT_SNAPSHOT_VERSION}"
         git push origin develop
