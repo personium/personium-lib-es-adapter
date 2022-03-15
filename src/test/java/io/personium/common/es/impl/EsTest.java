@@ -45,7 +45,8 @@ public class EsTest extends EsTestBase {
                 .parse("{\"u\":1406596187938,\"t\":\"K0QK5DXWT5qKIPDU2eTdhA\",\"b\":\"IKv5hMRPRDGc68BnIcVx6g\","
                         + "\"s\":{\"P003\":\"secondDynamicPropertyValue\",\"P002\":\"true\",\"P001\":\"false\","
                         + "\"P011\":\"null\",\"P012\":\"123.0\",\"P007\":\"123\",\"P006\":\"false\",\"P005\":null,"
-                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\",\"P008\":\"true\",\"__id\":\"userdata001:\","
+                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\","
+                        + "\"P008\":\"true\",\"__id\":\"userdata001:\","
                         + "\"P010\":\"123.123\"},\"c\":\"Q1fp4zrWTm-gSSs7zVCJQg\",\"p\":1406596187938,"
                         + "\"n\":\"vWy9OQj2ScykYize2d7Z5A\",\"l\":[],\"h\":{}}");
         type.create(id, data);
@@ -67,7 +68,8 @@ public class EsTest extends EsTestBase {
                 .parse("{\"u\":1406596187938,\"t\":\"K0QK5DXWT5qKIPDU2eTdhA\",\"b\":\"IKv5hMRPRDGc68BnIcVx6g\","
                         + "\"s\":{\"P003\":\"secondDynamicPropertyValue\",\"P002\":\"true\",\"P001\":\"false\","
                         + "\"P011\":\"null\",\"P012\":\"123.0\",\"P007\":\"123\",\"P006\":\"false\",\"P005\":null,"
-                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\",\"P008\":\"true\",\"__id\":\"userdata001:\","
+                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\","
+                        + "\"P008\":\"true\",\"__id\":\"userdata001:\","
                         + "\"P010\":\"123.123\"},\"c\":\"Q1fp4zrWTm-gSSs7zVCJQg\",\"p\":1406596187938,"
                         + "\"n\":\"vWy9OQj2ScykYize2d7Z5A\",\"l\":[],\"h\":{}}");
         type.checkDocumentCreated(id, data, null);
@@ -86,7 +88,8 @@ public class EsTest extends EsTestBase {
                 .parse("{\"u\":1406596187938,\"t\":\"K0QK5DXWT5qKIPDU2eTdhA\",\"b\":\"IKv5hMRPRDGc68BnIcVx6g\","
                         + "\"s\":{\"P003\":\"secondDynamicPropertyValue\",\"P002\":\"true\",\"P001\":\"false\","
                         + "\"P011\":\"null\",\"P012\":\"123.0\",\"P007\":\"123\",\"P006\":\"false\",\"P005\":null,"
-                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\",\"P008\":\"true\",\"__id\":\"userdata001:\","
+                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\","
+                        + "\"P008\":\"true\",\"__id\":\"userdata001:\","
                         + "\"P010\":\"123.123\"},\"c\":\"Q1fp4zrWTm-gSSs7zVCJQg\",\"p\":1406596187938,"
                         + "\"n\":\"vWy9OQj2ScykYize2d7Z5A\",\"l\":[],\"h\":{}}");
         type.create(id, data);
@@ -95,7 +98,8 @@ public class EsTest extends EsTestBase {
                 .parse("{\"u\":123456789,\"t\":\"K0QK5DXWT5qKIPDU2eTdhA\",\"b\":\"IKv5hMRPRDGc68BnIcVx6g\","
                         + "\"s\":{\"P003\":\"secondDynamicPropertyValue\",\"P002\":\"true\",\"P001\":\"false\","
                         + "\"P011\":\"null\",\"P012\":\"123.0\",\"P007\":\"123\",\"P006\":\"false\",\"P005\":null,"
-                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\",\"P008\":\"true\",\"__id\":\"userdata001:\","
+                        + "\"P004\":\"dynamicPropertyValue\",\"P009\":\"123.123\","
+                        + "\"P008\":\"true\",\"__id\":\"userdata001:\","
                         + "\"P010\":\"123.123\"},\"c\":\"Q1fp4zrWTm-gSSs7zVCJQg\",\"p\":1406596187938,"
                         + "\"n\":\"vWy9OQj2ScykYize2d7Z5A\",\"l\":[],\"h\":{}}");
 

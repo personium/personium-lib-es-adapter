@@ -1,3 +1,20 @@
+/**
+ * Personium
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.personium.common.es.impl;
 
 import java.io.File;
@@ -17,6 +34,7 @@ public class WorkTest {
 
     @Ignore
     @Test
+    @SuppressWarnings("unchecked")
     public void marageMappingMain() throws IOException {
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
@@ -46,17 +64,18 @@ public class WorkTest {
                 //            {"_default_", "es/mapping/default.json"}
         };
         Map<String, Object> root = new HashMap<String, Object>();
-        Map<String, Object> _doc = new HashMap<String, Object>();
-        root.put("_doc", _doc);
+        Map<String, Object> doc = new HashMap<String, Object>();
+        root.put("_doc", doc);
         for (String[] mappingInfo : mappingInfos) {
             Map<String, Object> mapping = (Map<String, Object>) mapper
                     .readValue(EsIndexImpl.class.getClassLoader().getResourceAsStream(mappingInfo[1]), Map.class);
-            marge(_doc, (Map<String, Object>) mapping.get(mappingInfo[0]));
+            marge(doc, (Map<String, Object>) mapping.get(mappingInfo[0]));
         }
         remove(root);
         mapper.writeValue(new File("/var/temp/_ad.json"), root);
     }
 
+    @SuppressWarnings("unchecked")
     void marge(Map<String, Object> to, Map<String, Object> from) {
         for (Entry<String, Object> entry : from.entrySet()) {
             Object entryItem = to.get(entry.getKey());
@@ -72,12 +91,14 @@ public class WorkTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     void remove(Map<String, Object> map) {
         Map<String, Object> queryClone = new HashMap<String, Object>(map);
         for (Entry<String, Object> entry : queryClone.entrySet()) {
             if (entry.getKey().equals("index")) {
-                if ((Boolean) entry.getValue())
+                if ((Boolean) entry.getValue()) {
                     map.remove(entry.getKey());
+                }
                 continue;
             }
             if (entry.getValue() instanceof List) {

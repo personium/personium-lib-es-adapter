@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Map;
+import java.util.HashMap;
 
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
@@ -99,8 +99,8 @@ public class EsRetryOnParticularErrorTest {
         IndexNotFoundException toBeThrown = new IndexNotFoundException("abc");
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
-                        (org.elasticsearch.action.DocWriteRequest.OpType) Mockito.anyObject(), Mockito.anyLong());
+                .asyncIndex(Mockito.anyString(), Mockito.any(),
+                        (org.elasticsearch.action.DocWriteRequest.OpType) Mockito.any(), Mockito.anyLong());
         // メソッド呼び出し
         try {
             esTypeObject.update("dummyId", null, 1);
@@ -123,11 +123,11 @@ public class EsRetryOnParticularErrorTest {
         SettingsException toBeThrown = new SettingsException("foo", new IndexNotFoundException("dummy"));
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
-                        (OpType) Mockito.anyObject(), Mockito.anyLong());
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
+                        (OpType) Mockito.any(), Mockito.anyLong());
         // メソッド呼び出し
         try {
-            esTypeObject.update("dummyId", null, 1);
+            esTypeObject.update("dummyId", new HashMap<String, Object>(), 1);
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsIndexMissingException e) {
             assertTrue(e.getCause() instanceof SettingsException);
@@ -148,11 +148,11 @@ public class EsRetryOnParticularErrorTest {
         VersionConflictEngineException toBeThrown = Mockito.mock(VersionConflictEngineException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
-                        (OpType) Mockito.anyObject(), Mockito.anyLong());
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
+                        (OpType) Mockito.any(), Mockito.anyLong());
         // メソッド呼び出し
         try {
-            esTypeObject.update("dummyId", null, 1);
+            esTypeObject.update("dummyId", new HashMap<String, Object>(), 1);
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsVersionConflictException e) {
             assertTrue(e.getCause() instanceof VersionConflictEngineException);
@@ -172,11 +172,11 @@ public class EsRetryOnParticularErrorTest {
         MapperParsingException toBeThrown = Mockito.mock(MapperParsingException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
-                        (OpType) Mockito.anyObject(), Mockito.anyLong());
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
+                        (OpType) Mockito.any(), Mockito.anyLong());
         // メソッド呼び出し
         try {
-            esTypeObject.update("dummyId", null, 1);
+            esTypeObject.update("dummyId", new HashMap<String, Object>(), 1);
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsSchemaMismatchException e) {
             assertTrue(e.getCause() instanceof MapperParsingException);
@@ -196,9 +196,9 @@ public class EsRetryOnParticularErrorTest {
         IndexNotFoundException toBeThrown = new IndexNotFoundException("abc");
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncSearch(Mockito.anyMapOf(String.class, Object.class));
+                .asyncSearch(Mockito.anyMap());
         // メソッド呼び出し
-        PersoniumSearchResponse result = esTypeObject.search(null);
+        PersoniumSearchResponse result = esTypeObject.search(new HashMap<String, Object>());
         assertTrue(result.isNullResponse());
     }
 
@@ -215,9 +215,9 @@ public class EsRetryOnParticularErrorTest {
         SettingsException toBeThrown = new SettingsException("foo", new IndexNotFoundException("dummy"));
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncSearch(Mockito.anyMapOf(String.class, Object.class));
+                .asyncSearch(Mockito.anyMap());
         // メソッド呼び出し
-        PersoniumSearchResponse result = esTypeObject.search(null);
+        PersoniumSearchResponse result = esTypeObject.search(new HashMap<String, Object>());
         assertTrue(result.isNullResponse());
     }
 
@@ -234,10 +234,10 @@ public class EsRetryOnParticularErrorTest {
         SearchPhaseExecutionException toBeThrown = Mockito.mock(SearchPhaseExecutionException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncSearch(Mockito.anyMapOf(String.class, Object.class));
+                .asyncSearch(Mockito.anyMap());
         // メソッド呼び出し
         try {
-            esTypeObject.search(null);
+            esTypeObject.search(new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (EsClientException e) {
             assertTrue(e.getCause() instanceof PersoniumSearchPhaseExecutionException);
@@ -327,10 +327,10 @@ public class EsRetryOnParticularErrorTest {
         IndexNotFoundException toBeThrown = new IndexNotFoundException("abc");
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncPutMapping(Mockito.anyMapOf(String.class, Object.class));
+                .asyncPutMapping(Mockito.anyMap());
         // メソッド呼び出し
         try {
-            esTypeObject.putMapping(null);
+            esTypeObject.putMapping(new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsIndexMissingException e) {
             assertTrue(e.getCause() instanceof IndexNotFoundException);
@@ -350,10 +350,10 @@ public class EsRetryOnParticularErrorTest {
         SettingsException toBeThrown = new SettingsException("foo", new IndexNotFoundException("dummy"));
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncPutMapping(Mockito.anyMapOf(String.class, Object.class));
+                .asyncPutMapping(Mockito.anyMap());
         // メソッド呼び出し
         try {
-            esTypeObject.putMapping(null);
+            esTypeObject.putMapping(new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsIndexMissingException e) {
             assertTrue(e.getCause() instanceof SettingsException);
@@ -374,10 +374,10 @@ public class EsRetryOnParticularErrorTest {
         MapperParsingException toBeThrown = Mockito.mock(MapperParsingException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncPutMapping(Mockito.anyMapOf(String.class, Object.class));
+                .asyncPutMapping(Mockito.anyMap());
         // メソッド呼び出し
         try {
-            esTypeObject.putMapping(null);
+            esTypeObject.putMapping(new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (EsClientException.EsSchemaMismatchException e) {
             assertTrue(e.getCause() instanceof MapperParsingException);
@@ -397,9 +397,9 @@ public class EsRetryOnParticularErrorTest {
         IndexNotFoundException toBeThrown = new IndexNotFoundException("abc");
         Mockito.doThrow(toBeThrown)
                 .when(esIndexObject)
-                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class));
+                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMap());
         // メソッド呼び出し
-        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
+        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", new HashMap<String, Object>());
         assertNull(result);
     }
 
@@ -416,9 +416,9 @@ public class EsRetryOnParticularErrorTest {
         SettingsException toBeThrown = new SettingsException("foo", new IndexNotFoundException("dummy"));
         Mockito.doThrow(toBeThrown)
                 .when(esIndexObject)
-                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class));
+                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMap());
         // メソッド呼び出し
-        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
+        PersoniumSearchResponse result = esIndexObject.search("dummyRoutingId", new HashMap<String, Object>());
         assertNull(result);
     }
 
@@ -435,10 +435,10 @@ public class EsRetryOnParticularErrorTest {
         SearchPhaseExecutionException toBeThrown = Mockito.mock(SearchPhaseExecutionException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esIndexObject)
-                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class));
+                .asyncIndexSearch(Mockito.anyString(), Mockito.anyMap());
         // メソッド呼び出し
         try {
-            esIndexObject.search("dummyRoutingId", (Map<String, Object>) null);
+            esIndexObject.search("dummyRoutingId", new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (EsClientException e) {
             assertTrue(e.getCause() instanceof SearchPhaseExecutionException);

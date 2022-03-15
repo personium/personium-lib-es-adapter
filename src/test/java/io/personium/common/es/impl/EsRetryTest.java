@@ -82,10 +82,10 @@ public class EsRetryTest extends EsTestBase {
             VersionConflictEngineException toBeThrown = Mockito.mock(VersionConflictEngineException.class);
             Mockito.doThrow(toBeThrown)
                     .when(esTypeObject)
-                    .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                    .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                             Mockito.any(OpType.class), Mockito.anyLong());
             // メソッド呼び出し
-            esTypeObject.create("dummyId", null);
+            esTypeObject.create("dummyId", new HashMap<String, Object>());
             fail("EsClientException should be thrown.");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -108,10 +108,10 @@ public class EsRetryTest extends EsTestBase {
         IndexNotFoundException toBeThrown = new IndexNotFoundException("dummy");
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                         Mockito.any(OpType.class), Mockito.anyLong());
         // メソッド呼び出し
-        esTypeObject.create("dummyId", null);
+        esTypeObject.create("dummyId", new HashMap<String, Object>());
         fail("EsIndexMissingException should be thrown.");
     }
 
@@ -126,9 +126,9 @@ public class EsRetryTest extends EsTestBase {
         ElasticsearchException toBeThrown = new ElasticsearchException("dummy", new IndexNotFoundException("foo"));
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                         Mockito.any(OpType.class), Mockito.anyLong());
-        esTypeObject.create("dummyId", null);
+        esTypeObject.create("dummyId", new HashMap<String, Object>());
         fail("EsIndexMissingException should be thrown.");
     }
 
@@ -145,7 +145,7 @@ public class EsRetryTest extends EsTestBase {
         MapperParsingException toBeThrown = Mockito.mock(MapperParsingException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                         Mockito.any(OpType.class), Mockito.anyLong());
         // メソッド呼び出し
         esTypeObject.create("dummyId", new HashMap<Object, Object>());
@@ -165,10 +165,10 @@ public class EsRetryTest extends EsTestBase {
         NodeDisconnectedException toBeThrown = Mockito.mock(NodeDisconnectedException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                         Mockito.any(OpType.class), Mockito.anyLong());
         // メソッド呼び出し
-        esTypeObject.create("dummyId", null);
+        esTypeObject.create("dummyId", new HashMap<String, Object>());
         fail("EsNoResponseException should be thrown.");
     }
 
@@ -185,10 +185,10 @@ public class EsRetryTest extends EsTestBase {
         NoNodeAvailableException toBeThrown = Mockito.mock(NoNodeAvailableException.class);
         Mockito.doThrow(toBeThrown)
                 .when(esTypeObject)
-                .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                         Mockito.any(OpType.class), Mockito.anyLong());
         // メソッド呼び出し
-        esTypeObject.create("dummyId", null);
+        esTypeObject.create("dummyId", new HashMap<String, Object>());
         fail("EsNoResponseException should be thrown.");
     }
 
@@ -215,7 +215,7 @@ public class EsRetryTest extends EsTestBase {
                     .doThrow(documentAlreadyExists)
                     // リトライ1回目
                     .when(esTypeObject)
-                    .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                    .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                             Mockito.any(OpType.class), Mockito.anyLong());
             // メソッド呼び出し
             PersoniumIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
@@ -264,7 +264,7 @@ public class EsRetryTest extends EsTestBase {
                     // リトライ4回目
                     .doThrow(documentAlreadyExists)
                     .when(esTypeObject)
-                    .asyncIndex(Mockito.anyString(), Mockito.anyMapOf(String.class, Object.class),
+                    .asyncIndex(Mockito.anyString(), Mockito.anyMap(),
                             Mockito.any(OpType.class), Mockito.anyLong());
             // メソッド呼び出し
             PersoniumIndexResponse response = esTypeObject.create("dummyId", new HashMap<Object, Object>());
