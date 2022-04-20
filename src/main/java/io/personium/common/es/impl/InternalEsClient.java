@@ -89,7 +89,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsClient.Event;
 import io.personium.common.es.EsClient.EventHandler;
