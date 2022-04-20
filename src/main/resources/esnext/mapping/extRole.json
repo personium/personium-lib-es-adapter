@@ -1,0 +1,56 @@
+{
+  "properties": {
+    "alldata" : {
+      "type" : "text"
+    },
+    "type" : {
+      "type" : "keyword"
+    },
+    "c": {
+      "type": "keyword"
+    },
+    "s": {
+      "properties": {
+        "__id" : {
+          "type" : "keyword",
+          "fields" : {
+            "untouched" : {
+              "type" : "keyword"
+            }
+          }
+        },
+        "Name": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "ExtRole": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    },
+    "l": {
+      "properties": {
+        "Relation": {
+          "type": "keyword"
+        }
+      }
+    },
+    "u": {
+      "type": "long",
+      "store": true
+    },
+    "p": {
+      "type": "long",
+      "store": true
+    }
+  }
+}

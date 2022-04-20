@@ -1,0 +1,213 @@
+{
+  "properties": {
+    "alldata" : {
+      "type" : "text"
+    },
+    "type" : {
+      "type" : "keyword"
+    },
+    "c": {
+      "type": "keyword"
+    },
+    "s": {
+      "properties": {
+        "__id": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "Name": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "InReplyTo": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "To": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "ToRelation": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "Type": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "Title": {
+          "type": "text",
+          "copy_to" : "alldata",
+          "fields": {
+            "untouched": {
+              "type": "keyword",
+              "ignore_above": 4096
+            }
+          }
+        },
+        "Body": {
+          "type": "text",
+          "copy_to" : "alldata",
+          "fields": {
+            "untouched": {
+              "type": "keyword",
+              "ignore_above": 4096
+            }
+          }
+        },
+        "Priority": {
+          "type": "long",
+          "index": false,
+          "fields": {
+            "untouched": {
+              "type": "long"
+            }
+          }
+        },
+        "RequestObjects": {
+          "properties": {
+            "RequestType": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                "type": "keyword"
+                }
+              }
+            },
+            "Name": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                "type": "keyword"
+                }
+              }
+            },
+            "TargetUrl": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "ClassUrl": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                "type": "keyword"
+                }
+              }
+            },
+            "EventSubject": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "EventType": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "EventObject": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "EventInfo": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "Action": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "Result": {
+          "properties": {
+            "To": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "Code": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "Reason": {
+              "type": "keyword",
+              "fields": {
+                "untouched": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "l": {
+      "properties": {
+        "Box": {
+          "type": "keyword"
+        }
+      }
+    },
+    "u": {
+      "type": "long",
+      "store": true
+    },
+    "p": {
+      "type": "long",
+      "store": true
+    }
+  }
+}

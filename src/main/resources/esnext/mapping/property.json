@@ -1,0 +1,113 @@
+{
+  "properties": {
+    "alldata" : {
+      "type" : "text"
+    },
+    "type" : {
+      "type" : "keyword"
+    },
+    "c": {
+      "type": "keyword"
+    },
+    "b": {
+      "type": "keyword"
+    },
+    "n": {
+      "type": "keyword"
+    },
+    "s": {
+      "properties": {
+        "__id" : {
+          "type" : "keyword",
+          "fields" : {
+            "untouched" : {
+              "type" : "keyword"
+            }
+          }
+        },
+        "Name": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "Type": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "Nullable": {
+          "type": "boolean",
+          "index": false,
+          "fields": {
+            "untouched": {
+              "type": "boolean"
+            }
+          }
+        },
+        "DefaultValue": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "CollectionKind": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "IsKey": {
+          "type": "boolean",
+          "index": false,
+          "fields": {
+            "untouched": {
+              "type": "boolean"
+            }
+          }
+        },
+        "UniqueKey": {
+          "type": "keyword",
+          "fields": {
+            "untouched": {
+              "type": "keyword"
+            }
+          }
+        },
+        "IsDeclared": {
+          "type": "boolean",
+          "index": false,
+          "fields": {
+            "untouched": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "l": {
+      "properties": {
+        "EntityType": {
+          "type": "keyword"
+        }
+      }
+    },
+    "u": {
+      "type": "long",
+      "store": true
+    },
+    "p": {
+      "type": "long",
+      "store": true
+    }
+  }
+}

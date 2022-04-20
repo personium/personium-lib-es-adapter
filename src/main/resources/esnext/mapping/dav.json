@@ -1,0 +1,33 @@
+{
+  "properties": {
+    "alldata" : {
+      "type" : "text"
+    },
+    "type" : {
+      "type" : "keyword"
+    },
+    "c": {
+      "type": "keyword"
+    },
+    "b": {
+      "type": "keyword"
+    },
+    "sp": {
+      "type": "keyword"
+    },
+    "o": {
+      "type": "object"
+    },
+    "d": {
+      "type": "object"
+    },
+    "u": {
+      "type": "long",
+      "store": true
+    },
+    "p": {
+      "type": "long",
+      "store": true
+    }
+  }
+}
