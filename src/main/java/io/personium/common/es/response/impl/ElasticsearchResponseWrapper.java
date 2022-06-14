@@ -1,6 +1,6 @@
 /**
  * Personium
- * Copyright 2014-2021 Personium Project Authors
+ * Copyright 2022 Personium Project Authors
  * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,29 +17,38 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.ActionResponse;
-
 import io.personium.common.es.response.PersoniumActionResponse;
 
 /**
- * ActionResponseのラッパークラス.
+ * Abstract Wrapper class for Elasticsearch responses.
  */
-public class PersoniumActionResponseImpl implements PersoniumActionResponse {
-    private ActionResponse actionResponse;
+public abstract class ElasticsearchResponseWrapper<T> implements PersoniumActionResponse {
 
     /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
+     * Wrapped response object.
      */
-    protected PersoniumActionResponseImpl(ActionResponse response) {
-        this.actionResponse = response;
+    private T response;
+
+    /**
+     * Getter of response.
+     * @return response
+     */
+    protected T getResponse() {
+        return this.response;
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.dcActionResponse#isNull()
+    /**
+     * Constructor.
+     * @param response response to be wrapped.
      */
-    @Override
+    protected ElasticsearchResponseWrapper(T response) {
+        this.response = response;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public boolean isNull() {
-        return actionResponse == null;
+        return response == null;
     }
 }

@@ -17,37 +17,27 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.index.IndexResponse;
-
+import co.elastic.clients.elasticsearch.core.IndexResponse;
 import io.personium.common.es.response.PersoniumIndexResponse;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper of IndexResponse.
  */
-public class PersoniumIndexResponseImpl extends PersoniumActionResponseImpl implements PersoniumIndexResponse {
-    private IndexResponse indexResponse;
+public class PersoniumIndexResponseImpl extends ElasticsearchResponseWrapper<IndexResponse>
+        implements PersoniumIndexResponse {
 
     /**
-     * .
-     */
-    private PersoniumIndexResponseImpl() {
-        super(null);
-        throw new IllegalStateException();
-    }
-
-    /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
+     * constructor.
+     * @param response response object.
      */
     private PersoniumIndexResponseImpl(IndexResponse response) {
         super(response);
-        this.indexResponse = response;
     }
 
     /**
-     * .
-     * @param response .
-     * @return .
+     * PersoniumIndexResponse factory method.
+     * @param response base IndexResponse
+     * @return created PersoniumIndexResponse
      */
     public static PersoniumIndexResponse getInstance(IndexResponse response) {
         if (response == null) {
@@ -56,43 +46,43 @@ public class PersoniumIndexResponseImpl extends PersoniumActionResponseImpl impl
         return new PersoniumIndexResponseImpl(response);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcIndexResponse#getIndex()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getIndex() {
-        return this.indexResponse.getIndex();
+        return this.getResponse().index();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcIndexResponse#getType()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getType() {
-        return this.indexResponse.getType();
+        return this.getResponse().type();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcIndexResponse#getId()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getId() {
-        return this.indexResponse.getId();
+        return this.getResponse().id();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcIndexResponse#version()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long version() {
-        return this.indexResponse.getVersion();
+        return this.getResponse().version();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcIndexResponse#getVersion()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long getVersion() {
-        return this.indexResponse.getVersion();
+        return this.getResponse().version();
     }
 }

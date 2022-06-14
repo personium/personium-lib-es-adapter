@@ -17,6 +17,9 @@
  */
 package io.personium.common.es.response;
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.ErrorCause;
+
 /**
  * EsModel関連の例外を扱うクラス. これが発生したときはすべて500系エラーとして扱うので、RuntimeExceptionを継承しており、 利用者はこれをcatchしてもよいがせずに放置してもよいという考え方としている。
  */
@@ -27,6 +30,34 @@ public class EsClientException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private Throwable causeThrowable;
+
+    /**
+     * Wrap ElasticsearchException with EsClientException.
+     * @param msg   Message.
+     * @param e     Original ElasticsearchException.
+     * @return      Wrapped class.
+     */
+    public static RuntimeException wrapException(String msg, ElasticsearchException e) {
+        return new EsClientException(msg, convertException(e));
+    }
+
+    /**
+     * Convert ElasticsearchException to specific exception.
+     * @param e     Original ElasticsearchException.
+     * @return      Converted class.
+     */
+    public static RuntimeException convertException(ElasticsearchException e) {
+        ErrorCause error = e.error();
+
+        switch (error.type()) {
+        case "search_phase_execution_exception":
+            return new EsClientException.PersoniumSearchPhaseExecutionException(e);
+        case "index_not_found_exception":
+            return new EsClientException.EsIndexMissingException(e);
+        default:
+            return e;
+        }
+    }
 
     /**
      * コンストラクタ.
@@ -79,9 +110,9 @@ public class EsClientException extends RuntimeException {
     }
 
     /**
-     * ESのIndexが存在しない場合の例外を扱うクラス.
+     * search_phase_execution_exception.
      */
-    public static class PersoniumSearchPhaseExecutionException extends RuntimeException {
+    public static class PersoniumSearchPhaseExecutionException extends EsClientException {
         /**
          * デフォルトシリアルバージョンID.
          */
@@ -91,9 +122,10 @@ public class EsClientException extends RuntimeException {
          * コンストラクタ.
          * @param cause 親例外
          */
-        public PersoniumSearchPhaseExecutionException(Throwable cause) {
-            super(cause);
+        public PersoniumSearchPhaseExecutionException(ElasticsearchException cause) {
+            super("Index not found.", cause);
         }
+
     }
 
     /**
@@ -257,4 +289,3 @@ public class EsClientException extends RuntimeException {
         }
     }
 }
-

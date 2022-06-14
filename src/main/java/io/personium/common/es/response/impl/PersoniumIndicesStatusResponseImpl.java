@@ -21,31 +21,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.elasticsearch.action.admin.indices.recovery.RecoveryResponse;
-import org.elasticsearch.indices.recovery.RecoveryState;
-
+import co.elastic.clients.elasticsearch.indices.RecoveryResponse;
+import co.elastic.clients.elasticsearch.indices.recovery.RecoveryStatus;
 import io.personium.common.es.response.PersoniumIndicesStatusResponse;
 
 /**
- * IndicesStatusResponseのラッパークラス.
- * index-status classes are deprecated
+ * IndicesStatusResponseのラッパークラス. index-status classes are deprecated
  * https://discuss.elastic.co/t/deprecated-index-status-classes-in-es-1-2/17761
  */
-public class PersoniumIndicesStatusResponseImpl implements PersoniumIndicesStatusResponse {
-    private RecoveryResponse indicesStatusResponse;
+public class PersoniumIndicesStatusResponseImpl extends ElasticsearchResponseWrapper<RecoveryResponse>
+        implements PersoniumIndicesStatusResponse {
 
     /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
+     * Constructor with RecoveryResponse instance.
+     * @param response RecoveryResponse object.
      */
     private PersoniumIndicesStatusResponseImpl(RecoveryResponse response) {
-        this.indicesStatusResponse = response;
+        super(response);
     }
 
     /**
-     * .
-     * @param response .
-     * @return .
+     * Instanciate from RecoveryResponse.
+     * @param response RecoveryResponse object.
+     * @return Created instance.
      */
     public static PersoniumIndicesStatusResponse getInstance(RecoveryResponse response) {
         if (response == null) {
@@ -55,12 +53,12 @@ public class PersoniumIndicesStatusResponseImpl implements PersoniumIndicesStatu
     }
 
     /**
-     * Indexの一覧を取得する.
-     * @return Indexの一覧
+     * Get list of indices.
+     * @return List of indices.
      */
     @Override
     public List<String> getIndices() {
-        Map<String, List<RecoveryState>> indexStatus = this.indicesStatusResponse.shardRecoveryStates();
+        Map<String, RecoveryStatus> indexStatus = this.getResponse().result();
         return new ArrayList<String>(indexStatus.keySet());
     }
 }

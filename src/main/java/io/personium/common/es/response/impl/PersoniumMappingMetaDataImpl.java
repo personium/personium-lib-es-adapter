@@ -20,49 +20,46 @@ package io.personium.common.es.response.impl;
 import java.io.IOException;
 import java.util.Map;
 
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
 import io.personium.common.es.response.PersoniumMappingMetaData;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class of TypeMapping.
  */
-public class PersoniumMappingMetaDataImpl implements PersoniumMappingMetaData {
-    private MappingMetaData mappingMetaData;
+public class PersoniumMappingMetaDataImpl extends ElasticsearchResponseWrapper<TypeMapping>
+        implements PersoniumMappingMetaData {
 
     /**
-     * .
+     * Instantiate with mapping.
+     * @param mapping TypeMapping object.
      */
-    private PersoniumMappingMetaDataImpl() {
-        throw new IllegalStateException();
+    private PersoniumMappingMetaDataImpl(TypeMapping mapping) {
+        super(mapping);
     }
 
     /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
+     * Instantiate with mapping.
+     * @param mapping TypeMapping
+     * @return instance
      */
-    private PersoniumMappingMetaDataImpl(MappingMetaData meta) {
-        this.mappingMetaData = meta;
-    }
-
-    /**
-     * .
-     * @param meta .
-     * @return .
-     */
-    public static PersoniumMappingMetaData getInstance(MappingMetaData meta) {
-        if (meta == null) {
+    public static PersoniumMappingMetaData getInstance(TypeMapping mapping) {
+        if (mapping == null) {
             return null;
         }
-        return new PersoniumMappingMetaDataImpl(meta);
+        return new PersoniumMappingMetaDataImpl(mapping);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcMappingMetaData#getSourceAsMap()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<String, Object> getSourceAsMap() throws IOException {
-        return this.mappingMetaData.getSourceAsMap();
+        ObjectMapper mapper = new ObjectMapper();
+        // convert from Map<String, Property> to Map<String, Object>
+        Map<String, Object> result = mapper.readValue(this.getResponse().toString(), new TypeReference<Map<String, Object>>(){});
+        return result;
     }
 }
-

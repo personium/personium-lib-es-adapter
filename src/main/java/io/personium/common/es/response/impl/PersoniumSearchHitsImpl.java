@@ -21,97 +21,110 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 import io.personium.common.es.response.PersoniumSearchHit;
 import io.personium.common.es.response.PersoniumSearchHits;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class of HitsMetadata.
  */
 public class PersoniumSearchHitsImpl implements PersoniumSearchHits {
-    private SearchHits searchHits;
+    private HitsMetadata<ObjectNode> hitsMetadata;
 
     /**
-     * .
+     * Create instance from HitsMetadata.
+     * @param hits HitsMetadata
      */
-    private PersoniumSearchHitsImpl() {
-        throw new IllegalStateException();
+    private PersoniumSearchHitsImpl(HitsMetadata<ObjectNode> hits) {
+        this.hitsMetadata = hits;
     }
 
     /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param hits ESからのレスポンスオブジェクト
+     * Get instance generated from HitsMetadata.
+     * @param hits HitsMetadata
+     * @return PersoniumSearchHits
      */
-    private PersoniumSearchHitsImpl(SearchHits hits) {
-        this.searchHits = hits;
-    }
-
-    /**
-     * .
-     * @param hits .
-     * @return .
-     */
-    public static PersoniumSearchHits getInstance(SearchHits hits) {
+    public static PersoniumSearchHits getInstance(HitsMetadata<ObjectNode> hits) {
         if (hits == null) {
             return null;
         }
         return new PersoniumSearchHitsImpl(hits);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long allPages() {
-        return this.searchHits.getTotalHits();
+        return this.getAllPages();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long getAllPages() {
-        return this.searchHits.getTotalHits();
+        return this.hitsMetadata.total().value();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long getCount() {
-        return this.searchHits.getHits().length;
+        return this.hitsMetadata.hits().size();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float maxScore() {
-        return this.searchHits.getMaxScore();
+        return this.getMaxScore();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getMaxScore() {
-        return this.searchHits.getMaxScore();
+        return this.hitsMetadata.maxScore().floatValue();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PersoniumSearchHit[] hits() {
         return getHits();
     }
 
-    @Override
-    public PersoniumSearchHit getAt(int position) {
-        List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.getHits()) {
-            list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
-        }
-        return list.get(position);
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PersoniumSearchHit[] getHits() {
-        List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.getHits()) {
-            list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
-        }
-        return list.toArray(new PersoniumSearchHit[0]);
+        return this.hitsMetadata.hits().stream().map(hit -> PersoniumSearchHitImpl.getInstance(hit))
+                .toArray(size -> new PersoniumSearchHit[size]);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PersoniumSearchHit getAt(int position) {
+        return this.getHits()[0];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Iterator<PersoniumSearchHit> iterator() {
         List<PersoniumSearchHit> list = new ArrayList<PersoniumSearchHit>();
-        for (SearchHit hit : this.searchHits.getHits()) {
+        for (var hit : this.hitsMetadata.hits()) {
             list.add((PersoniumSearchHit) PersoniumSearchHitImpl.getInstance(hit));
         }
         return list.iterator();

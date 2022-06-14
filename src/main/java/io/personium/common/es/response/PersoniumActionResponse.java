@@ -18,13 +18,13 @@
 package io.personium.common.es.response;
 
 /**
- * PersoniumActionResponseのinterface.
+ * Interface PersoniumActionResponse.
  */
 public interface PersoniumActionResponse {
 
     /**
-     * nullレスポンスかどうかを返却.
-     * @return trueORfalse.
+     * Function for checking the response is null.
+     * @return true if response is null
      */
     boolean isNull();
 

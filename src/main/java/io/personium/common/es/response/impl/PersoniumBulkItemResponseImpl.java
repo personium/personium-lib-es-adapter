@@ -17,52 +17,56 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.DocWriteRequest;
-import org.elasticsearch.action.DocWriteResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import io.personium.common.es.response.PersoniumBulkItemResponse;
 
 /**
- * BulkItemResponseのラッパークラス.
+ * Wrapper class of BulkItemResponse.
  */
-public class PersoniumBulkItemResponseImpl extends BulkItemResponse implements PersoniumBulkItemResponse {
+public class PersoniumBulkItemResponseImpl extends ElasticsearchResponseWrapper<BulkResponseItem>
+        implements PersoniumBulkItemResponse {
 
     /**
-     * .
-     * @param id .
-     * @param opType .
-     * @param response .
+     * Constructor with BulkResponseItem object.
+     * @param response BulkResponseItem object.
      */
-    public PersoniumBulkItemResponseImpl(int id, String opType, DocWriteResponse response) {
-        super(id, DocWriteRequest.OpType.fromString(opType), response);
+    public PersoniumBulkItemResponseImpl(BulkResponseItem response) {
+        super(response);
     }
 
     /**
-     *  .
-     * @param id .
-     * @param opType .
-     * @param failure .
+     * Instantiate PersoniumBulkItemResponse from BulkResponseItem object.
+     * @param response BulkResponseItem object.
+     * @return Created instance.
      */
-    public PersoniumBulkItemResponseImpl(int id, String opType, Failure failure) {
-        super(id, DocWriteRequest.OpType.fromString(opType), failure);
-    }
-
-    /**
-     * .
-     * @param response .
-     * @return .
-     */
-    public static PersoniumBulkItemResponse getInstance(BulkItemResponse response) {
+    public static PersoniumBulkItemResponse getInstance(BulkResponseItem response) {
         if (response == null) {
             return null;
         }
-        return new PersoniumBulkItemResponseImpl(response.getItemId(),
-                response.getOpType().getLowercase(), response.getResponse());
+        return new PersoniumBulkItemResponseImpl(response);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getId() {
+        return this.getResponse().id();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFailed() {
+        return !(this.getResponse().error() == null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long version() {
-        return super.getVersion();
+        return this.getResponse().version();
     }
 }

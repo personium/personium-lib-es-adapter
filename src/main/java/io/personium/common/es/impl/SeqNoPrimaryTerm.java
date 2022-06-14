@@ -1,6 +1,6 @@
 /**
  * Personium
- * Copyright 2014-2021 Personium Project Authors
+ * Copyright 2022 Personium Project Authors
  * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.personium.common.es.query;
-
-import org.elasticsearch.index.query.QueryBuilder;
+package io.personium.common.es.impl;
 
 /**
- * クエリビルダーのinterface.
- * elasticsearchのバージョン差異を吸収する為のインターフェース
+ * Class for elasticsearch internal version.
  */
-public interface PersoniumQueryBuilder {
+public class SeqNoPrimaryTerm {
+    long seqNo;
+
+    long primaryTerm;
 
     /**
-     * QueryBuilderを取得する.
-     * @return QueryBuilder
+     * @param seqNo seq_no
+     * @param primaryTerm primary_term
      */
-    QueryBuilder getQueryBuilder();
-
+    public SeqNoPrimaryTerm(long seqNo, long primaryTerm) {
+        this.seqNo = seqNo;
+        this.primaryTerm = primaryTerm;
+    }
 }

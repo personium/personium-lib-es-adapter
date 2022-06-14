@@ -17,36 +17,40 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.search.MultiSearchResponse;
-import org.elasticsearch.action.search.SearchResponse;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch.core.msearch.MultiSearchResponseItem;
 import io.personium.common.es.response.PersoniumItem;
 import io.personium.common.es.response.PersoniumSearchHit;
+
 /**
- * .
+ * Wrapper class for MultiSeasrchResponseItem.
  */
-public class PersoniumItemImpl extends MultiSearchResponse.Item implements PersoniumItem {
+public class PersoniumItemImpl extends ElasticsearchResponseWrapper<MultiSearchResponseItem<ObjectNode>>
+        implements PersoniumItem {
     /**
-     *  .
+     * .
      * @param response .
-     * @param exception .
      */
-    public PersoniumItemImpl(SearchResponse response, Exception exception) {
-        super(response, exception);
+    protected PersoniumItemImpl(MultiSearchResponseItem<ObjectNode> response) {
+        super(response);
     }
 
     /**
-     *  .
-     * @param source .
+     * .
+     * @param response .
      * @return .
      */
-    public static PersoniumItem getInstance(MultiSearchResponse.Item source) {
-        return new PersoniumItemImpl(source.getResponse(), source.getFailure());
+    public static PersoniumItem getInstance(MultiSearchResponseItem<ObjectNode> response) {
+        return new PersoniumItemImpl(response);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public PersoniumSearchHit[] getSearchHits() {
-        return PersoniumSearchHitsImpl.getInstance(getResponse().getHits()).getHits();
+        return PersoniumSearchHitsImpl.getInstance(getResponse().result().hits()).getHits();
     }
 
 }
