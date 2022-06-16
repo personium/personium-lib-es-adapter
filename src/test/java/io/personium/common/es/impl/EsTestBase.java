@@ -24,39 +24,31 @@ import org.junit.BeforeClass;
 
 import io.personium.common.es.EsClient;
 import io.personium.common.es.EsIndex;
-import io.personium.common.es.test.util.EsTestNode;
 
 /**
  * EsModelの単体テストケース.
  */
 public class EsTestBase {
 
-    static final String DEFAULT_TESTING_HOSTS = "localhost:9300";
-    static final String DEFAULT_TESTING_CLUSTER = "es-personium";
-    static final String DEFAULT_INDEX_FOR_TEST = "index_for_test";
+    private static final String DEFAULT_ES_TESTING_HOSTNAME = "localhost";
+    private static final String DEFAULT_ES_TESTING_PORT = "9200";
+    private static final String DEFAULT_INDEX_FOR_TEST = "index_for_test";
 
-    static final String TESTING_HOSTS;
-    static final String TESTING_CLUSTER;
-    static final String INDEX_FOR_TEST;
+    static String testTargetHostname;
+    static int testTargetPort;
+    static String testTargetIndex;
 
-    static {
-        TESTING_HOSTS = System.getProperty("io.personium.esTestingHost", DEFAULT_TESTING_HOSTS);
-        TESTING_CLUSTER = System.getProperty("io.personium.esTestingCluster", DEFAULT_TESTING_CLUSTER);
-        INDEX_FOR_TEST = System.getProperty("io.personium.esIndexForTest", DEFAULT_INDEX_FOR_TEST);
-    }
-
-    static EsTestNode node;
     EsClient esClient;
     EsIndex index;
 
     /**
-     * テストケース共通の初期化処理. テスト用のElasticsearchのNodeを初期化する
-     * @throws Exception 異常が発生した場合の例外
+     * Setup target elasticsearch.
      */
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        node = new EsTestNode();
-        node.create();
+    public static void setUpBeforeClass() {
+        testTargetHostname = System.getProperty("io.personium.esTestingHost", DEFAULT_ES_TESTING_HOSTNAME);
+        testTargetPort = Integer.parseInt(System.getProperty("io.personium.esTestingPort", DEFAULT_ES_TESTING_PORT));
+        testTargetIndex = System.getProperty("io.personium.esIndexForTest", DEFAULT_INDEX_FOR_TEST);
     }
 
     /**
@@ -65,7 +57,6 @@ public class EsTestBase {
      */
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        node.close();
     }
 
     /**
@@ -74,8 +65,8 @@ public class EsTestBase {
      */
     @Before
     public void setUp() throws Exception {
-        esClient = new EsClient(TESTING_CLUSTER, TESTING_HOSTS);
-        index = esClient.idxAdmin(INDEX_FOR_TEST);
+        esClient = new EsClient(testTargetHostname, testTargetPort);
+        index = esClient.idxAdmin(testTargetIndex);
         index.create();
     }
 

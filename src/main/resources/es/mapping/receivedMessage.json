@@ -65,7 +65,7 @@
             "copy_to" : "alldata",
             "fields": {
               "untouched": {
-                "type": "keyword"
+                "type": "keyword",
                 "ignore_above": 4096
               }
             }
@@ -75,7 +75,7 @@
             "copy_to" : "alldata",
             "fields": {
               "untouched": {
-                "type": "keyword"
+                "type": "keyword",
                 "ignore_above": 4096
               }
             }

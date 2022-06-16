@@ -20,7 +20,6 @@ package io.personium.common.es;
 import java.util.List;
 import java.util.Map;
 
-import io.personium.common.es.query.PersoniumQueryBuilder;
 import io.personium.common.es.response.PersoniumBulkResponse;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
@@ -73,14 +72,6 @@ public interface EsIndex {
     PersoniumSearchResponse search(String routingId, Map<String, Object> query);
 
     /**
-     * ドキュメントを検索.
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return ES応答
-     */
-    PersoniumSearchResponse search(String routingId, PersoniumQueryBuilder query);
-
-    /**
      * ドキュメントをマルチ検索.
      * @param routingId routingId
      * @param queryList クエリ情報一覧
@@ -110,5 +101,12 @@ public interface EsIndex {
      * @param settings 更新するインデックス設定
      * @return Void
      */
+    @Deprecated
     Void updateSettings(String index, Map<String, String> settings);
+
+    /**
+     * update index settings.
+     * @param settings index settings to be put
+     */
+    void updateSettings(Map<String, String> settings);
 }

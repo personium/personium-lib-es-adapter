@@ -17,88 +17,58 @@
  */
 package io.personium.common.es.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthRequest;
-import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexAction;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushRequest;
-import org.elasticsearch.action.admin.indices.flush.FlushResponse;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingAction;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequestBuilder;
-import org.elasticsearch.action.admin.indices.recovery.RecoveryAction;
-import org.elasticsearch.action.admin.indices.recovery.RecoveryRequestBuilder;
-import org.elasticsearch.action.admin.indices.recovery.RecoveryResponse;
-import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
-import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.delete.DeleteRequestBuilder;
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.action.search.MultiSearchRequest;
-import org.elasticsearch.action.search.MultiSearchResponse;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.ClusterState;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
-import org.elasticsearch.cluster.node.DiscoveryNode;
-import org.elasticsearch.common.io.stream.OutputStreamStreamOutput;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.DeleteByQueryAction;
-import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
-import org.elasticsearch.search.SearchModule;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.Refresh;
+import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
+import co.elastic.clients.elasticsearch.cluster.HealthResponse;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
+import co.elastic.clients.elasticsearch.core.DeleteResponse;
+import co.elastic.clients.elasticsearch.core.GetResponse;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.MsearchResponse;
+import co.elastic.clients.elasticsearch.core.ScrollResponse;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.msearch.RequestItem;
+import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
+import co.elastic.clients.elasticsearch.indices.PutMappingResponse;
+import co.elastic.clients.elasticsearch.indices.RecoveryResponse;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsClient.Event;
 import io.personium.common.es.EsClient.EventHandler;
 import io.personium.common.es.EsRequestLogInfo;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.EsClientException.EsMultiSearchQueryParseException;
-import io.personium.common.es.response.PersoniumBulkResponse;
-import io.personium.common.es.response.PersoniumRefreshResponse;
-import io.personium.common.es.response.impl.PersoniumBulkResponseImpl;
-import io.personium.common.es.response.impl.PersoniumRefreshResponseImpl;
+import jakarta.json.Json;
 
 /**
  * ElasticSearchのアクセサクラス.
@@ -106,9 +76,10 @@ import io.personium.common.es.response.impl.PersoniumRefreshResponseImpl;
 public class InternalEsClient {
     static Logger log = LoggerFactory.getLogger(InternalEsClient.class);
 
-    private static final int DEFAULT_ES_PORT = 9300;
+    private RestClient restClient;
 
-    private TransportClient esTransportClient;
+    private ElasticsearchClient esClient;
+
     private boolean routingFlag;
 
     /**
@@ -119,117 +90,43 @@ public class InternalEsClient {
 
     /**
      * constructor.
-     * @param cluster cluster name
-     * @param hosts hosts
+     * @param hostname elasticsearch hostname
+     * @param port port number
      */
-    protected InternalEsClient(String cluster, String hosts) {
+    protected InternalEsClient(String hostname, int port) {
         routingFlag = true;
-        prepareClient(cluster, hosts);
+        HttpHost host = new HttpHost(hostname, port);
+        prepareClient(host);
     }
 
     /**
      * クラスタ名、接続先情報を指定してEsClientのインスタンスを返す.
-     * 既に生成されているインスタンスは破棄する
-     * @param cluster クラスタ名
-     * @param hosts 接続先情報
+     * @param hostname elasticsearch hostname
+     * @param port port number
      * @return EsClientのインスタンス
      */
-    public static InternalEsClient getInstance(String cluster, String hosts) {
-        return new InternalEsClient(cluster, hosts);
+    public static InternalEsClient getInstance(String hostname, int port) {
+        return new InternalEsClient(hostname, port);
     }
 
     /**
      * ESとのコネクションを一度明示的に閉じる.
      */
     public void closeConnection() {
-        if (esTransportClient == null) {
-            return;
-        }
-        esTransportClient.close();
-        esTransportClient = null;
-    }
-
-    private void prepareClient(String clusterName, String hostNames) {
-        if (esTransportClient != null) {
-            return;
-        }
-
-        if (clusterName == null || hostNames == null) {
-            return;
-        }
-
-        Settings st = Settings.builder()
-                .put("cluster.name", clusterName)
-                //.put("client.transport.sniff", true)
-                .build();
-        List<DiscoveryNode> connectedNodes = null;
-        esTransportClient = new PreBuiltTransportClient(st);
-        List<EsHost> hostList = parseConfigAndInitializeHostsList(hostNames);
-        for (EsHost host : hostList) {
-
-            try {
-                esTransportClient.addTransportAddress(
-                        new TransportAddress(InetAddress.getByName(host.getName()), host.getPort()));
-                connectedNodes = esTransportClient.connectedNodes();
-            } catch (UnknownHostException ex) {
-                throw new EsClientException("Datastore Connection Error.", ex);
-            }
-        }
-        if (connectedNodes.isEmpty()) {
-            throw new EsClientException("Datastore Connection Error.");
-        }
-        loggingConnectedNode(connectedNodes);
-    }
-
-    private List<EsHost> parseConfigAndInitializeHostsList(String hostNames) {
-        List<EsHost> hostList = new ArrayList<EsHost>();
-        StringTokenizer tokenizer = new StringTokenizer(hostNames, ",");
-        while (tokenizer.hasMoreTokens()) {
-            String host = tokenizer.nextToken();
-            hostList.add(createEsHost(host));
-        }
-        return hostList;
-    }
-
-    private EsHost createEsHost(String host) {
-        EsHost hostInfo = null;
-        if (hasPortNumber(host)) {
-            int index = host.indexOf(":");
-            hostInfo = new EsHost(host.substring(0, index), Integer.parseInt(host.substring(index + 1)));
-        } else {
-            hostInfo = new EsHost(host, DEFAULT_ES_PORT);
-        }
-        return hostInfo;
-    }
-
-    private boolean hasPortNumber(String host) {
-        return host.indexOf(":") > 0;
-    }
-
-    private void loggingConnectedNode(List<DiscoveryNode> list) {
-        DiscoveryNode node = list.get(0);
-        this.fireEvent(Event.connected, node.getAddress().toString());
     }
 
     /**
-     * elasticsearchのノード情報（ホスト名、ポート番号）を保持するコンテナクラス.
+     * Preparing esClient for communicating with elasticsearch.
+     * @param host elasticsearch host
      */
-    private static class EsHost {
-        private String name;
-        private int port;
-
-        EsHost(String name, int port) {
-            this.name = name;
-            this.port = port;
+    private void prepareClient(HttpHost host) {
+        if (esClient != null) {
+            return;
         }
 
-        public String getName() {
-            return name;
-        }
-
-        public int getPort() {
-            return port;
-        }
+        restClient = RestClient.builder(host).build();
+        var transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        this.esClient = new ElasticsearchClient(transport);
     }
 
     static Map<Event, EventHandler> eventHandlerMap = new HashMap<Event, EventHandler>();
@@ -255,103 +152,88 @@ public class InternalEsClient {
     }
 
     /**
-     * Clusterの状態取得.
-     * @return 状態Map
+     * Get cluster status.
+     * @return cluster status map.
+     * @throws IOException exception while calling health api.
      */
-    public Map<String, Object> checkHealth() {
-        ClusterHealthResponse clusterHealth;
-        clusterHealth = esTransportClient.admin().cluster().health(new ClusterHealthRequest()).actionGet();
+    public Map<String, Object> checkHealth() throws IOException {
+        HealthResponse clusterHealth = esClient.cluster().health();
         HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("cluster_name", clusterHealth.getClusterName());
-        map.put("status", clusterHealth.getStatus().name());
-        map.put("timed_out", clusterHealth.isTimedOut());
-        map.put("number_of_nodes", clusterHealth.getNumberOfNodes());
-        map.put("number_of_data_nodes", clusterHealth.getNumberOfDataNodes());
-        map.put("active_primary_shards", clusterHealth.getActivePrimaryShards());
-        map.put("active_shards", clusterHealth.getActiveShards());
-        map.put("relocating_shards", clusterHealth.getRelocatingShards());
-        map.put("initializing_shards", clusterHealth.getInitializingShards());
-        map.put("unassigned_shards", clusterHealth.getUnassignedShards());
+        map.put("cluster_name", clusterHealth.clusterName());
+        map.put("status", clusterHealth.status().name());
+        map.put("timed_out", clusterHealth.timedOut());
+        map.put("number_of_nodes", clusterHealth.numberOfNodes());
+        map.put("number_of_data_nodes", clusterHealth.numberOfDataNodes());
+        map.put("active_primary_shards", clusterHealth.activePrimaryShards());
+        map.put("active_shards", clusterHealth.activeShards());
+        map.put("relocating_shards", clusterHealth.relocatingShards());
+        map.put("initializing_shards", clusterHealth.initializingShards());
+        map.put("unassigned_shards", clusterHealth.unassignedShards());
         return map;
     }
 
     /**
-     * インデックスを作成する.
-     * @param index インデックス名
-     * @param mappings マッピング情報
-     * @return 非同期応答
+     * Create Index.
+     * @param index Name of index.
+     * @param mappings Map of type mappings.
+     * @param settingJson Json of index settings.
+     * @return response.
+     * @throws IOException exception while calling api.
      */
-    public ActionFuture<CreateIndexResponse> createIndex(String index, Map<String, JSONObject> mappings) {
-        this.fireEvent(Event.creatingIndex, index);
-        // index setting parameters
-        Settings.Builder indexSettings = Settings.builder();
-        //  static
-        indexSettings.put("analysis.analyzer.default.type", "cjk");
-        indexSettings.put("index.mapping.total_fields.limit", "10000");
-        indexSettings.put("index.refresh_interval", "-1");
-        //  dynamic
-        indexSettings.put("index.number_of_shards", System.getProperty("io.personium.es.index.numberOfShards", "10"));
-        indexSettings.put("index.number_of_replicas",
-                System.getProperty("io.personium.es.index.numberOfReplicas", "0"));
-        indexSettings.put("index.max_result_window",
-                System.getProperty("io.personium.es.index.maxResultWindow", "110000"));
-        String maxThreadCount = System.getProperty("io.personium.es.index.merge.scheduler.maxThreadCount");
-        if (maxThreadCount != null) {
-            indexSettings.put("index.merge.scheduler.max_thread_count", maxThreadCount);
-        }
-
-        ActionFuture<CreateIndexResponse> response = null;
+    public List<CreateIndexResponse> syncCreateIndex(String index,
+        Map<String, ObjectNode> mappings,
+        ObjectNode settingJson) throws IOException {
+            this.fireEvent(Event.creatingIndex, index);
+        ObjectMapper mapper = new ObjectMapper();
+        var result = new ArrayList<CreateIndexResponse>();
         for (String type : mappings.keySet()) {
-            CreateIndexRequestBuilder cirb = new CreateIndexRequestBuilder(
-                    esTransportClient.admin().indices(),
-                    CreateIndexAction.INSTANCE,
-                    makeIndex(index, type));
-            cirb.setSettings(indexSettings);
-            cirb = cirb.addMapping(makeType(type), mappings.get(type));
-            response = cirb.execute();
-            response.actionGet();
+            JsonNode mappingJson = null;
+            if (mappings.get(type).has("_doc")) {
+                // for mapping for prior version Elasticsearch
+                mappingJson = mappings.get(type).get("_doc");
+            } else {
+                mappingJson = mappings.get(type);
+            }
+            try (StringReader indexSr = new StringReader(mapper.writeValueAsString(settingJson));
+                StringReader sr = new StringReader(mapper.writeValueAsString(mappingJson))) {
+                // var indexSrParser = Json.createParser(indexSr);
+                result.add(esClient.indices()
+                        .create(cir -> cir
+                            .index(makeIndex(index, type))
+                            // https://github.com/elastic/elasticsearch-java/issues/297
+                            //.settings(iset -> iset.withJson(indexSrParser, esClient._jsonpMapper()))
+                            .settings(iset -> iset.withJson(indexSr))
+                            .mappings(mtb -> mtb.withJson(sr))
+                        ));
+            }
         }
-        // 少し待機
-        try {
-            Thread.sleep(1000 * mappings.size()); // CHECKSTYLE IGNORE - formula
-        } catch (InterruptedException e) {
-            // If sleep fails, Error
-            throw new RuntimeException(e);
-        }
-        return response;
+        return result;
     }
 
     /**
      * インデックスを削除する.
      * @param index インデックス名
      * @return 非同期応答
+     * @throws IOException exception while calling API.
      */
-    public ActionFuture<AcknowledgedResponse> deleteIndex(String index) {
-        DeleteIndexRequest dir = new DeleteIndexRequest(makeIndex(index, null));
-        return esTransportClient.admin().indices().delete(dir);
+    public DeleteIndexResponse syncDeleteIndex(String index) throws IOException {
+        return esClient.indices().delete(dir -> dir.index(makeIndex(index, null)));
     }
 
     /**
      * インデックスの設定を更新する.
      * @param index インデックス名
      * @param settings 更新するインデックス設定
-     * @return Void
+     * @throws IOException exception while calling API.
      */
-    public Void updateIndexSettings(String index, Map<String, String> settings) {
-
-        Function<String, String> keyFunction = new Function<String, String>() {
-            public String apply(String t) {
-                return t;
-            }
-        };
-        Settings settingsForUpdate = Settings.builder()
-                .putProperties(settings, keyFunction)
-                .build();
-        esTransportClient.admin().indices().prepareUpdateSettings(makeIndex(index, null))
-                .setSettings(settingsForUpdate)
-                .execute()
-                .actionGet();
-        return null;
+    public void updateIndexSettings(String index, Map<String, String> settings) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        try (StringReader sr = new StringReader(mapper.writeValueAsString(settings))) {
+            esClient.indices().putSettings(psr -> psr
+                .index(makeIndex(index, null))
+                .settings(is -> is.withJson(sr))
+            );
+        }
     }
 
     /**
@@ -359,11 +241,11 @@ public class InternalEsClient {
      * @param index インデックス名
      * @param type タイプ名
      * @return Mapping定義
+     * @throws IOException exception while calling API.
      */
-    public MappingMetaData getMapping(String index, String type) {
-        ClusterState cs = esTransportClient.admin().cluster().prepareState().
-                setIndices(makeIndex(index, type)).execute().actionGet().getState();
-        return cs.getMetaData().index(makeIndex(index, type)).mapping(makeType(type));
+    public TypeMapping getMapping(String index, String type) throws IOException {
+        return esClient.indices().getMapping(gmr -> gmr.index(makeIndex(index, type))).get(makeIndex(index, type))
+                .mappings();
     }
 
     /**
@@ -372,72 +254,67 @@ public class InternalEsClient {
      * @param type タイプ名
      * @param mappings マッピング情報
      * @return 非同期応答
+     * @throws IOException exception while calling API.
      */
-    public ActionFuture<AcknowledgedResponse> putMapping(String index,
-            String type,
-            Map<String, Object> mappings) {
-        PutMappingRequestBuilder builder = new PutMappingRequestBuilder(esTransportClient.admin().indices(),
-                PutMappingAction.INSTANCE)
-                .setIndices(makeIndex(index, type))
-                .setType(makeType(type))
-                .setSource(mappings);
-        return builder.execute();
+    public PutMappingResponse putMapping(String index, String type, Map<String, Object> mappings) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        try (StringReader sr = new StringReader(mapper.writeValueAsString(mappings))) {
+            return esClient.indices()
+                    .putMapping(pmr -> pmr.index(makeIndex(index, type)).type(makeType(type)).withJson(sr));
+        }
     }
 
     /**
      * インデックスステータスを取得する.
      * @return 非同期応答
+     * @throws IOException exception while calling recovery api.
      */
-    public ActionFuture<RecoveryResponse> indicesStatus() {
-        RecoveryRequestBuilder cirb =
-                new RecoveryRequestBuilder(esTransportClient.admin().indices(), RecoveryAction.INSTANCE);
-        return cirb.execute();
+    public RecoveryResponse syncGetIndicesStatus() throws IOException {
+        return esClient.indices().recovery();
     }
 
     /**
-     * 非同期でドキュメントを取得.
+     * Get document with specified version.
+     * @param index インデックス名
+     * @param type タイプ名
+     * @param id ドキュメントのID
+     * @param routingId routingId
+     * @param realtime リアルタイムモードなら真
+     * @param version version
+     * @return 非同期応答
+     * @throws IOException IO exception while calling API.
+     * @throws ElasticsearchException ES exception while calling API.
+     */
+    public GetResponse<ObjectNode> syncGet(String index, String type, String id, String routingId, boolean realtime, long version)
+            throws IOException, ElasticsearchException {
+        this.fireEvent(Event.afterRequest, index, type, id, null, "Get");
+        return esClient.get(gr -> {
+            var getRequest = gr.index(makeIndex(index, type)).type(makeType(type)).id(id).realtime(realtime);
+            if (routingFlag) {
+                getRequest = getRequest.routing(routingId);
+            }
+            if (version != -1) {
+                getRequest = getRequest.version(version);
+            }
+            return getRequest;
+        }, ObjectNode.class);
+
+    }
+
+    /**
+     * Get document.
      * @param index インデックス名
      * @param type タイプ名
      * @param id ドキュメントのID
      * @param routingId routingId
      * @param realtime リアルタイムモードなら真
      * @return 非同期応答
+     * @throws IOException IO exception while calling API.
+     * @throws ElasticsearchException ES exception while calling API.
      */
-    public ActionFuture<GetResponse> asyncGet(String index, String type, String id, String routingId,
-            boolean realtime) {
-        GetRequest req = new GetRequest(makeIndex(index, type), makeType(type), id);
-
-        if (routingFlag) {
-            req = req.routing(routingId);
-        }
-
-        req.realtime(realtime);
-        ActionFuture<GetResponse> ret = esTransportClient.get(req);
-        this.fireEvent(Event.afterRequest, index, type, id, null, "Get");
-        return ret;
-    }
-
-    /**
-     * 非同期でドキュメントを検索.
-     * @param index インデックス名
-     * @param type タイプ名
-     * @param routingId routingId
-     * @param builder クエリ情報
-     * @return 非同期応答
-     */
-    public ActionFuture<SearchResponse> asyncSearch(
-            String index,
-            String type,
-            String routingId,
-            SearchSourceBuilder builder) {
-        SearchRequest req = new SearchRequest(makeIndex(index, type)).types(makeType(type))
-                .searchType(SearchType.DEFAULT).source(builder);
-        if (routingFlag) {
-            req = req.routing(routingId);
-        }
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
-        this.fireEvent(Event.afterRequest, index, type, null, builder.toString(), "Search");
-        return ret;
+    public GetResponse<ObjectNode> syncGet(String index, String type, String id, String routingId, boolean realtime)
+            throws IOException, ElasticsearchException {
+                return syncGet(index, type, id, routingId, realtime, -1);
     }
 
     /**
@@ -448,245 +325,257 @@ public class InternalEsClient {
      * @param query クエリ情報
      * @return 非同期応答
      */
-    public ActionFuture<SearchResponse> asyncSearch(
-            String index,
+    ElasticsearchAsyncClient aClient;
+
+    public <T> CompletableFuture<SearchResponse<T>> asyncSearch(String index,
             String type,
             String routingId,
-            Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(makeIndex(index, type)).types(makeType(type))
-                .searchType(SearchType.DEFAULT);
-        if (query != null) {
-            req.source(makeSearchSourceBuilder(query, type));
-        }
-        if (routingFlag) {
-            req = req.routing(routingId);
-        }
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
+            Map<String, Object> query,
+            Class<T> tDocumentClass) {
+        var result = aClient.search(sreq -> {
+            var builder = sreq.index(makeIndex(index, type)).type(makeType(type));
+            if (query != null) {
+                try (var sr = new StringReader(queryMapToJSON(query, type))) {
+                    builder.withJson(sr);
+                }
+            }
+            if (routingFlag) {
+                builder.routing(routingId);
+            }
+            return builder;
+        }, tDocumentClass);
         this.fireEvent(Event.afterRequest, index, type, null, JSONObject.toJSONString(query), "Search");
-        return ret;
+        result.whenComplete((var res, var ex) -> {
+
+        });
+        return result;
     }
 
     /**
-     * 非同期でドキュメントを検索.
-     * Queryの指定方法をMapで直接記述せずにQueryBuilderにするため、非推奨とする.
+     * Search documents with specifying type.
+     * @param index インデックス名
+     * @param type タイプ名
+     * @param routingId routingId
+     * @param query クエリ情報
+     * @return 非同期応答
+     * @throws IOException IO exception while calling API.
+     */
+    public SearchResponse<ObjectNode> syncSearch(String index, String type, String routingId, Map<String, Object> query)
+            throws IOException {
+        var result = esClient.search(sreq -> {
+            var searchReq = sreq.index(makeIndex(index, type)).type(makeType(type));
+            if (query != null) {
+                String queryJson = queryMapToJSON(query, type);
+                try (var sr = new StringReader(queryJson)) {
+                    searchReq = searchReq.withJson(sr);
+                }
+            }
+            if (routingFlag) {
+                searchReq = searchReq.routing(routingId);
+            }
+            return searchReq.version(true);
+        }, ObjectNode.class);
+        this.fireEvent(Event.afterRequest, index, type, null, JSONObject.toJSONString(query), "Search");
+        return result;
+    }
+
+    /**
+     * Search douments.
      * @param index インデックス名
      * @param routingId routingId
      * @param query クエリ情報
      * @return async response
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<SearchResponse> asyncSearch(
-            String index,
-            String routingId,
-            Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
-        if (query != null) {
-            req.source(makeSearchSourceBuilder(query, null));
-        }
-        if (routingFlag) {
-            req = req.routing(routingId);
-        }
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
-        this.fireEvent(Event.afterRequest, index, null, null, JSONObject.toJSONString(query), "Search");
-        return ret;
+    public SearchResponse<ObjectNode> syncSearch(String index, String routingId, Map<String, Object> query)
+            throws IOException {
+        return this.syncSearch(index, null, routingId, query);
     }
 
     /**
-     * 非同期でドキュメントを検索.
-     * @param index インデックス名
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return 非同期応答
-     */
-    public ActionFuture<SearchResponse> asyncSearch(
-            String index,
-            String routingId,
-            QueryBuilder query) {
-        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
-
-        String queryString = "null";
-        if (query != null) {
-            req.source(new SearchSourceBuilder().query(query));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            OutputStreamStreamOutput osso = new OutputStreamStreamOutput(baos);
-            try {
-                query.writeTo(osso);
-                queryString = baos.toString("UTF-8");
-            } catch (IOException ex) {
-                throw new EsClientException("query to string error.", ex);
-            }
-        }
-        if (routingFlag) {
-            req = req.routing(routingId);
-        }
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
-        this.fireEvent(Event.afterRequest, index, null, null, queryString, "Search");
-        return ret;
-    }
-
-    /**
-     * 非同期でインデックスに対してドキュメントをマルチ検索.
-     * 存在しないインデックスに対して本メソッドを使用すると、TransportSerializationExceptionがスローされるので注意すること
+     * Search documents from multiple indices.
      * @param index インデックス名
      * @param routingId routingId
      * @param queryList マルチ検索用のクエリ情報リスト
      * @return 非同期応答
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<MultiSearchResponse> asyncMultiSearch(
-            String index,
+    public MsearchResponse<ObjectNode> syncMultiSearch(String index,
             String routingId,
-            List<Map<String, Object>> queryList) {
-        return this.asyncMultiSearch(index, null, routingId, queryList);
+            List<Map<String, Object>> queryList) throws IOException {
+        return this.syncMultiSearch(index, null, routingId, queryList);
     }
 
     /**
-     * 非同期でドキュメントをマルチ検索.
-     * 存在しないインデックスに対して本メソッドを使用すると、TransportSerializationExceptionがスローされるので注意すること
+     * Search documents from multiple indices.
      * @param index インデックス名
      * @param type タイプ名
      * @param routingId routingId
      * @param queryList マルチ検索用のクエリ情報リスト
      * @return 非同期応答
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<MultiSearchResponse> asyncMultiSearch(
-            String index,
+    public MsearchResponse<ObjectNode> syncMultiSearch(String index,
             String type,
             String routingId,
-            List<Map<String, Object>> queryList) {
-        MultiSearchRequest mrequest = new MultiSearchRequest();
+            List<Map<String, Object>> queryList) throws IOException {
         if (queryList == null || queryList.size() == 0) {
             throw new EsMultiSearchQueryParseException();
         }
-        for (Map<String, Object> query : queryList) {
-            SearchRequest req = new SearchRequest(makeIndex(index, type)).searchType(SearchType.DEFAULT);
-            if (type != null) {
-                req.types(makeType(type));
-            }
-            // クエリ指定なしの場合はタイプに対する全件検索を行う
-            if (query != null) {
-                req.source(makeSearchSourceBuilder(query, type));
-            }
-            if (routingFlag) {
-                req = req.routing(routingId);
-            }
-            mrequest.add(req);
+
+        List<RequestItem> listRequestItems = new ArrayList<RequestItem>();
+
+        for (var query : queryList) {
+            var riBuilder = new RequestItem.Builder();
+            riBuilder = riBuilder.header(mh -> {
+                var mheader = mh.index(makeIndex(index, type));
+                if (routingFlag) {
+                    return mheader.routing(routingId);
+                }
+                return mheader;
+            }).body(mb -> {
+                var mbody = mb;
+                if (query != null) {
+                    String queryJson = queryMapToJSON(query, null);
+                    try (StringReader sr = new StringReader(queryJson)) {
+                        var parser = Json.createParser(sr);
+                        mbody = mbody.withJson(parser, esClient._jsonpMapper());
+                    }
+                }
+                return mbody;
+            });
+            listRequestItems.add(riBuilder.build());
         }
 
-        ActionFuture<MultiSearchResponse> ret = esTransportClient.multiSearch(mrequest);
         this.fireEvent(Event.afterRequest, index, type, null, JSONArray.toJSONString(queryList), "MultiSearch");
-        return ret;
+        return esClient.msearch(mr -> mr.searches(listRequestItems), ObjectNode.class);
     }
 
-    private static final int SCROLL_SEARCH_KEEP_ALIVE_TIME = 1000 * 60 * 5;
+    private static final String SCROLL_SEARCH_KEEP_ALIVE_TIME = "5m";
 
     /**
-     * クエリを指定してスクロールサーチを実行する.
+     * ScrollSearch with query.
      * @param index インデックス名
      * @param type タイプ名
      * @param query 検索クエリ
-     * @return 非同期応答
+     * @return SearchResponse.
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<SearchResponse> asyncScrollSearch(String index, String type, Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(makeIndex(index, type))
-                .searchType(SearchType.QUERY_THEN_FETCH)
-                .scroll(new TimeValue(SCROLL_SEARCH_KEEP_ALIVE_TIME));
+    public SearchResponse<ObjectNode> scrollSearch(String index, String type, Map<String, Object> query)
+            throws IOException {
+        var builder = new SearchRequest.Builder().index(makeIndex(index, type))
+                .scroll(t -> t.time(SCROLL_SEARCH_KEEP_ALIVE_TIME));
         if (type != null) {
-            req.types(makeType(type));
+            builder = builder.type(makeType(type));
         }
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query, type));
+            try (StringReader sr = new StringReader(queryMapToJSON(query, null))) {
+                builder = builder.withJson(sr);
+            }
         }
-
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
-        return ret;
+        return esClient.search(builder.build(), ObjectNode.class);
     }
 
     /**
-     * スクロールIDを指定してスクロールサーチを継続する.
+     * Continue scroll search with specified scrollId.
      * @param scrollId スクロールID
-     * @return 非同期応答
+     * @return SearchResponse.
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<SearchResponse> asyncScrollSearch(String scrollId) {
-        ActionFuture<SearchResponse> ret = esTransportClient.prepareSearchScroll(scrollId)
-                .setScroll(new TimeValue(SCROLL_SEARCH_KEEP_ALIVE_TIME))
-                .execute();
-        return ret;
+    public ScrollResponse<ObjectNode> scrollSearch(String scrollId) throws IOException {
+        return esClient.scroll(sr -> sr.scrollId(scrollId), ObjectNode.class);
     }
 
     /**
-     * 非同期でドキュメントを検索.
+     * Search documents in all types in an index.
      * @param index インデックス名
      * @param query クエリ情報
-     * @return 非同期応答
+     * @return SearchResponse.
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<SearchResponse> asyncSearch(String index, Map<String, Object> query) {
-        SearchRequest req = new SearchRequest(makeIndex(index, null)).searchType(SearchType.DEFAULT);
+    public SearchResponse<ObjectNode> indexSearch(String index, Map<String, Object> query) throws IOException {
+        SearchRequest.Builder builder = new SearchRequest.Builder().index(makeIndex(index, null));
         if (query != null) {
-            req.source(makeSearchSourceBuilder(query, null));
+            try (StringReader sr = new StringReader(queryMapToJSON(query, null))) {
+                builder = builder.withJson(sr);
+            }
         }
-        ActionFuture<SearchResponse> ret = esTransportClient.search(req);
         this.fireEvent(Event.afterRequest, index, null, null, JSONObject.toJSONString(query), "Search");
-        return ret;
+        return esClient.search(builder.build(), ObjectNode.class);
     }
 
     /**
-     * 非同期でドキュメントを登録する.
+     * Index a document.
      * @param index インデックス名
      * @param type タイプ名
      * @param id ドキュメントのid
      * @param routingId routingId
      * @param data データ
      * @param opType 操作タイプ
-     * @param version version番号
-     * @return 非同期応答
+     * @param seqNoPrimaryTerm SeqNoPrimaryTerm for optimistic lock.
+     * @return IndexResponse
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<IndexResponse> asyncIndex(String index,
+    public IndexResponse syncIndex(String index,
             String type,
             String id,
             String routingId,
             Map<String, Object> data,
-            OpType opType,
-            long version) {
-        IndexRequestBuilder req = esTransportClient.prepareIndex(makeIndex(index, type), makeType(type), id)
-                .setSource(makeData(data, type))
-                .setOpType(opType)
-                .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-        if (routingFlag) {
-            req = req.setRouting(routingId);
-        }
-        if (version > -1) {
-            req.setVersion(version);
-        }
+            co.elastic.clients.elasticsearch._types.OpType opType,
+            SeqNoPrimaryTerm seqNoPrimaryTerm) throws IOException {
 
-        ActionFuture<IndexResponse> ret = req.execute();
-        EsRequestLogInfo logInfo = new EsRequestLogInfo(index, type, id, routingId, data, opType.toString(),
-                version);
+        var response = esClient.index(ir -> {
+            var indexReq = ir
+                    .index(makeIndex(index, type))
+                    .type(makeType(type))
+                    .id(id)
+                    .opType(opType)
+                    .refresh(Refresh.True)
+                    .document(data);
+            if (routingFlag) {
+                indexReq = indexReq.routing(routingId);
+            }
+            if (seqNoPrimaryTerm != null) {
+                indexReq = indexReq.ifSeqNo(seqNoPrimaryTerm.seqNo).ifPrimaryTerm(seqNoPrimaryTerm.primaryTerm);
+            }
+            return indexReq;
+        });
+
+        EsRequestLogInfo logInfo = new EsRequestLogInfo(index, type, id, routingId, data, opType.toString(), response.version());
         this.fireEvent(Event.afterCreate, logInfo);
 
-        return ret;
+        return response;
     }
 
     /**
-     * 非同期でversionつきでdocumentを削除します.
+     * Delete a document.
      * @param index インデックス名
      * @param type タイプ名
      * @param id Document id to delete
      * @param routingId routingId
      * @param version The version of the document to delete
-     * @return 非同期応答
+     * @return DeleteResponse.
+     * @throws IOException IO exception while calling API.
      */
-    public ActionFuture<DeleteResponse> asyncDelete(String index, String type,
-            String id, String routingId, long version) {
-        DeleteRequestBuilder req = esTransportClient.prepareDelete(makeIndex(index, type), makeType(type), id)
-                .setRefreshPolicy(RefreshPolicy.IMMEDIATE);
-        if (routingFlag) {
-            req = req.setRouting(routingId);
-        }
-        if (version > -1) {
-            req.setVersion(version);
-        }
-        ActionFuture<DeleteResponse> ret = req.execute();
+    public DeleteResponse syncDelete(String index, String type, String id, String routingId, long version)
+            throws IOException {
+        var response = esClient.delete(dr -> {
+            var deleteReq = dr
+                .index(makeIndex(index, type))
+                .type(makeType(type))
+                .id(id)
+                .refresh(Refresh.True);
+            if (routingFlag) {
+                deleteReq = deleteReq.routing(routingId);
+            }
+            if (version > -1) {
+                deleteReq = deleteReq.version(version);
+            }
+            return deleteReq;
+        });
+
         this.fireEvent(Event.afterRequest, index, type, id, null, "Delete");
-        return ret;
+        return response;
     }
 
     /**
@@ -695,19 +584,27 @@ public class InternalEsClient {
      * @param routingId routingId
      * @param datas バルクドキュメント
      * @param isWriteLog リクエスト情報のログ出力有無
-     * @return ES応答
+     * @param refresh refresh flag.
+     * @return BulkResponse
+     * @throws IOException IO exception while calling API.
      */
     @SuppressWarnings("unchecked")
-    public BulkResponse bulkRequest(String index, String routingId, List<EsBulkRequest> datas, boolean isWriteLog) {
-        BulkRequestBuilder bulkRequest = esTransportClient.prepareBulk();
-        List<Map<String, Object>> bulkList = new ArrayList<Map<String, Object>>();
-        for (EsBulkRequest data : datas) {
+    public BulkResponse bulkRequest(String index,
+        String routingId,
+        List<EsBulkRequest> datas,
+        boolean isWriteLog,
+        Refresh refresh) throws IOException {
 
+        List<BulkOperation> lOperations = new ArrayList<BulkOperation>();
+        List<Map<String, Object>> bulkList = new ArrayList<Map<String, Object>>();
+
+        for (EsBulkRequest data : datas) {
             if (EsBulkRequest.BulkRequestType.DELETE == data.getRequestType()) {
-                bulkRequest.add(createDeleteRequest(index, routingId, data));
+                lOperations.add(createDeleteOperation(index, routingId, data));
             } else {
-                bulkRequest.add(createIndexRequest(index, routingId, data));
+                lOperations.add(createIndexOperation(index, routingId, data));
             }
+
             JSONObject logData = new JSONObject();
             logData.put("reqType", data.getRequestType().toString());
             logData.put("type", data.getType());
@@ -719,52 +616,60 @@ public class InternalEsClient {
         Map<String, Object> debug = new HashMap<String, Object>();
         debug.put("bulk", bulkList);
 
-        BulkResponse ret = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
-        if (ret.hasFailures()) {
-            for (BulkItemResponse item : ret.getItems()) {
-                if (item.isFailed()) {
-                    log.debug("BulkItemReponse:" + ":" + item.getOpType() + ":" + item.getId() + ":" + item.getIndex()
-                            + "/" + item.getType() + "/" + item.getItemId() + ":" + item.getFailureMessage());
+        var result = esClient.bulk(br -> br.operations(lOperations).refresh(refresh));
+        if (result.errors()) {
+            for (var item: result.items()) {
+                if (item.error() != null) {
+                    log.debug("BulkItemReponse:" + ":" + item.operationType() + ":" + item.id() + ":" + item.index()
+                    + "/" + item.type() + "/" /*+ item.getItemId()*/ + ":" + item.error().reason());
                 }
             }
         }
         if (isWriteLog) {
             this.fireEvent(Event.afterRequest, index, "none", "none", debug, "bulkRequest");
         }
-        return ret;
+        return result;
     }
 
     /**
-     * バルクリクエストのINDEXリクエストを作成する.
-     * @param index インデックス名
-     * @param routingId ルーティングID
-     * @param data バルクドキュメント情報
-     * @return 作成したINDEXリクエスト
-     */
-    private IndexRequestBuilder createIndexRequest(String index, String routingId, EsBulkRequest data) {
-        IndexRequestBuilder request = esTransportClient
-                .prepareIndex(makeIndex(index, data.getType()), makeType(data.getType()), data.getId())
-                .setSource(makeData(data.getSource(), data.getType()));
-        if (routingFlag) {
-            request = request.setRouting(routingId);
-        }
-        return request;
+    * バルクリクエストのINDEXリクエストを作成する.
+    * @param index インデックス名
+    * @param routingId ルーティングID
+    * @param data バルクドキュメント情報
+    * @return 作成したINDEXリクエスト
+    */
+    private BulkOperation createDeleteOperation(String index, String routingId, EsBulkRequest data) {
+        BulkOperation.Builder builder = new BulkOperation.Builder();
+        return builder.delete(dob -> {
+            var deleteBuilder = dob
+                .index(makeIndex(index, data.getType()))
+                .id(data.getId());
+            if (routingFlag) {
+                deleteBuilder = deleteBuilder.routing(routingId);
+            }
+            return deleteBuilder;
+        }).build();
     }
 
     /**
-     * バルクリクエストのDELETEリクエストを作成する.
-     * @param index インデックス名
-     * @param routingId ルーティングID
-     * @param data バルクドキュメント情報
-     * @return 作成したDELETEリクエスト
-     */
-    private DeleteRequestBuilder createDeleteRequest(String index, String routingId, EsBulkRequest data) {
-        DeleteRequestBuilder request = esTransportClient
-                .prepareDelete(makeIndex(index, data.getType()), makeType(data.getType()), data.getId());
-        if (routingFlag) {
-            request = request.setRouting(routingId);
-        }
-        return request;
+    * バルクリクエストのDELETEリクエストを作成する.
+    * @param index インデックス名
+    * @param routingId ルーティングID
+    * @param data バルクドキュメント情報
+    * @return 作成したDELETEリクエスト
+    */
+    private BulkOperation createIndexOperation(String index, String routingId, EsBulkRequest data) {
+        BulkOperation.Builder builder = new BulkOperation.Builder();
+        return builder.index(ib -> {
+            var indexBuilder = ib
+                .index(makeIndex(index, data.getType()))
+                .id(data.getId())
+                .document(makeData(data.getSource(), data.getType()));
+            if (routingFlag) {
+                indexBuilder = indexBuilder.routing(routingId);
+            }
+            return indexBuilder;
+        }).build();
     }
 
     /**
@@ -773,64 +678,70 @@ public class InternalEsClient {
      * @param bulkMap バルクドキュメント
      * @return ES応答
      */
-    public PersoniumBulkResponse asyncBulkCreate(
-            String index, Map<String, List<EsBulkRequest>> bulkMap) {
-        BulkRequestBuilder bulkRequest = esTransportClient.prepareBulk();
-        // ルーティングIDごとにバルク登録を行うと効率が悪いため、引数で渡されたEsBulkRequestは全て一括登録する。
-        // また、バルク登録後にactionGet()すると同期実行となるため、ここでは実行しない。
-        // このため、execute()のレスポンスを返却し、呼び出し側でactionGet()してからレスポンスチェック、リフレッシュすること。
-        for (Entry<String, List<EsBulkRequest>> ents : bulkMap.entrySet()) {
-            for (EsBulkRequest data : ents.getValue()) {
-                IndexRequestBuilder req = esTransportClient
-                        .prepareIndex(makeIndex(index, data.getType()), makeType(data.getType()), data.getId())
-                        .setSource(makeData(data.getSource(), data.getType()));
-                if (routingFlag) {
-                    req = req.setRouting(ents.getKey());
-                }
-                bulkRequest.add(req);
-            }
-        }
-        PersoniumBulkResponse response = PersoniumBulkResponseImpl.getInstance(bulkRequest.execute().actionGet());
-        return response;
-    }
-
-    /**
-     * 引数で指定されたインデックスに対してrefreshする.
-     * @param index インデックス名
-     * @return レスポンス
-     */
-    public PersoniumRefreshResponse refresh(String index) {
-        RefreshResponse response = esTransportClient.admin().indices()
-                .refresh(new RefreshRequest(makeIndex(index, null))).actionGet();
-        return PersoniumRefreshResponseImpl.getInstance(response);
-    }
+    // public PersoniumBulkResponse asyncBulkCreate(
+    // String index, Map<String, List<EsBulkRequest>> bulkMap) {
+    // BulkRequestBuilder bulkRequest = esTransportClient.prepareBulk();
+    // // ルーティングIDごとにバルク登録を行うと効率が悪いため、引数で渡されたEsBulkRequestは全て一括登録する。
+    // // また、バルク登録後にactionGet()すると同期実行となるため、ここでは実行しない。
+    // // このため、execute()のレスポンスを返却し、呼び出し側でactionGet()してからレスポンスチェック、リフレッシュすること。
+    // for (Entry<String, List<EsBulkRequest>> ents : bulkMap.entrySet()) {
+    // for (EsBulkRequest data : ents.getValue()) {
+    // IndexRequestBuilder req = esTransportClient
+    // .prepareIndex(makeIndex(index, data.getType()), makeType(data.getType()), data.getId())
+    // .setSource(makeData(data.getSource(), data.getType()));
+    // if (routingFlag) {
+    // req = req.setRouting(ents.getKey());
+    // }
+    // bulkRequest.add(req);
+    // }
+    // }
+    // PersoniumBulkResponse response = PersoniumBulkResponseImpl.getInstance(bulkRequest.execute().actionGet());
+    // return response;
+    // }
 
     /**
      * 指定されたクエリを使用してデータの削除を行う.
      * @param index 削除対象のインデックス
      * @param deleteQuery 削除対象を指定するクエリ
-     * @return ES応答
+     * @param refresh refresh flag.
+     * @return DeleteByQueryResponse.
+     * @throws IOException IO exception while calling API.
      */
-    public BulkByScrollResponse deleteByQuery(String index, Map<String, Object> deleteQuery) {
-        DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE.newRequestBuilder(esTransportClient);
-        builder.source(makeIndex(index, null));
-        builder.filter(makeQueryBuilder(deleteQuery, null));
-        BulkByScrollResponse response = builder.execute().actionGet();
-        refresh(index);
-        return response;
+    public DeleteByQueryResponse deleteByQuery(String index,
+        Map<String, Object> deleteQuery,
+        boolean refresh) throws IOException {
+        String queryJson = queryMapToJSON(deleteQuery, null);
+        try (var sr = new StringReader(queryJson)) {
+            return esClient.deleteByQuery(dqb -> dqb
+                .index(makeIndex(index, null))
+                .withJson(sr)
+                .refresh(refresh)
+            );
+        }
     }
 
-    /**
-     * flushを行う.
-     * @param index flush対象のindex名
-     * @return 非同期応答
-     */
-    public ActionFuture<FlushResponse> flushTransLog(String index) {
-        ActionFuture<FlushResponse> ret = esTransportClient.admin().indices()
-                .flush(new FlushRequest(makeIndex(index, null)));
-        this.fireEvent(Event.afterRequest, index, null, null, null, "Flush");
-        return ret;
-    }
+    // /**
+    //  * 引数で指定されたインデックスに対してrefreshする.
+    //  * @param index インデックス名
+    //  * @return レスポンス
+    //  */
+    // public PersoniumRefreshResponse refresh(String index) {
+    // RefreshResponse response = esTransportClient.admin().indices()
+    // .refresh(new RefreshRequest(makeIndex(index, null))).actionGet();
+    // return PersoniumRefreshResponseImpl.getInstance(response);
+    // }
+
+    // /**
+    // * flushを行う.
+    // * @param index flush対象のindex名
+    // * @return 非同期応答
+    // */
+    // public ActionFuture<FlushResponse> flushTransLog(String index) {
+    // ActionFuture<FlushResponse> ret = esTransportClient.admin().indices()
+    // .flush(new FlushRequest(makeIndex(index, null)));
+    // this.fireEvent(Event.afterRequest, index, null, null, null, "Flush");
+    // return ret;
+    // }
 
     /**
      * ES2 -> ES6 非互換吸収のためにメソッド追加.
@@ -869,33 +780,6 @@ public class InternalEsClient {
         return newData;
     }
 
-    private static SearchSourceBuilder makeSearchSourceBuilder(Map<String, Object> map, String type) {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        SearchModule searchModule = new SearchModule(Settings.EMPTY, false, Collections.emptyList());
-        try (XContentParser parser = XContentFactory.xContent(XContentType.JSON).createParser(
-                new NamedXContentRegistry(searchModule.getNamedXContents()), null, queryMapToJSON(map, type))) {
-            searchSourceBuilder.parseXContent(parser);
-        } catch (IOException ex) {
-            throw new EsClientException("SearchBuilder Make Error.", ex);
-        }
-
-        return searchSourceBuilder;
-    }
-
-    private static QueryBuilder makeQueryBuilder(Map<String, Object> map, String type) {
-        log.debug("#DeleteByQuerye");
-        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        Map<String, Object> queryMap = null;
-        try {
-            queryMap = mapper.readValue(queryMapToJSON(map, type), Map.class);
-        } catch (IOException ex) {
-            throw new EsClientException("QueryBuilder Make Error.", ex);
-        }
-        Map<String, Object> queryQuery = (Map<String, Object>) getNestedMapObject(queryMap, new String[] {"query"}, 0);
-        QueryBuilder queryBuilder = QueryBuilders.wrapperQuery(JSONObject.toJSONString(queryQuery));
-        return queryBuilder;
-    }
-
     private static String queryMapToJSON(Map<String, Object> map, String type) { // CHECKSTYLE IGNORE
         if (log.isDebugEnabled()) {
             log.debug("\n--- Before ---\n" + toJSON(map, false));
@@ -903,31 +787,35 @@ public class InternalEsClient {
         // Convert start
         Map<String, Object> cloneMap = deepClone(1, map, type);
         Map<String, Object> newMap = new HashMap<String, Object>();
-        //version
-        Object version = getNestedMapObject(cloneMap, new String[] {"version"}, 0);
+        // version
+        Object version = getNestedMapObject(cloneMap, new String[] { "version" }, 0);
         if (version != null) {
             newMap.put("version", version);
         }
         // size
-        Object size = getNestedMapObject(cloneMap, new String[] {"size"}, 0);
+        Object size = getNestedMapObject(cloneMap, new String[] { "size" }, 0);
         if (size != null) {
             newMap.put("size", size);
         }
         // from
-        Object from = getNestedMapObject(cloneMap, new String[] {"from"}, 0);
+        Object from = getNestedMapObject(cloneMap, new String[] { "from" }, 0);
         if (from != null) {
             newMap.put("from", from);
         }
         // sort
-        Object sort = getNestedMapObject(cloneMap, new String[] {"sort"}, 0);
+        Object sort = getNestedMapObject(cloneMap, new String[] { "sort" }, 0);
         if (sort != null) {
             newMap.put("sort", sort);
         }
         // _source
-        Object source = getNestedMapObject(cloneMap, new String[] {"_source"}, 0);
+        Object source = getNestedMapObject(cloneMap, new String[] { "_source" }, 0);
         if (source != null) {
             if (source instanceof List) {
                 ((List) source).add(0, "type");
+                var newSource = new HashMap<String, Object>();
+                newSource.put("includes", source);
+                newSource.put("excludes", List.of());
+                source = newSource;
             }
             newMap.put("_source", source);
         }
@@ -955,11 +843,11 @@ public class InternalEsClient {
         /////
         // -query/filterd/filter
         List<Map<String, Object>> queryXmust = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "must"}, 0);
+                new String[] { "query", "filtered", "filter", "bool", "must" }, 0);
         List<Map<String, Object>> queryXmustnot = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "must_not"}, 0);
+                new String[] { "query", "filtered", "filter", "bool", "must_not" }, 0);
         List<Map<String, Object>> queryXshould = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                new String[] {"query", "filtered", "filter", "bool", "should"}, 0);
+                new String[] { "query", "filtered", "filter", "bool", "should" }, 0);
         if (queryXmust != null) {
             for (Map<String, Object> tmap : queryXmust) {
                 queryBoolFilterBoolMust.add(tmap);
@@ -980,21 +868,21 @@ public class InternalEsClient {
                 && queryBoolFilterBoolShould.isEmpty()) {
             // other eregular pattern
             List<Map<String, Object>> queryXfilters = (List<Map<String, Object>>) getNestedMapObject(cloneMap,
-                    new String[] {"query", "filtered", "filter", "and", "filters"}, 0);
+                    new String[] { "query", "filtered", "filter", "and", "filters" }, 0);
             if (queryXfilters != null) {
                 for (Map<String, Object> tmap : queryXfilters) {
                     queryBoolFilterBoolMust.add(tmap);
                 }
             } else {
                 Map<String, Object> queryXfilter = (Map<String, Object>) getNestedMapObject(cloneMap,
-                        new String[] {"query", "filtered", "filter"}, 0);
+                        new String[] { "query", "filtered", "filter" }, 0);
                 if (queryXfilter != null) {
                     queryBoolFilterBoolMust.add(queryXfilter);
                 }
             }
         }
         // -query/filterd/query
-        Object queryFilteredQuery = getNestedMapObject(cloneMap, new String[] {"query", "filtered", "query"}, 0);
+        Object queryFilteredQuery = getNestedMapObject(cloneMap, new String[] { "query", "filtered", "query" }, 0);
         if (queryFilteredQuery != null) {
             if (queryFilteredQuery instanceof List) {
                 queryBoolMust.addAll((List<Map<String, Object>>) queryFilteredQuery);
@@ -1005,14 +893,14 @@ public class InternalEsClient {
         /////
         // -filter/ids
         Map<String, Object> filterIds = (Map<String, Object>) getNestedMapObject(cloneMap,
-                new String[] {"filter", "ids"}, 0);
+                new String[] { "filter", "ids" }, 0);
         if (filterIds != null) {
             Map<String, Object> ids = new HashMap<String, Object>();
             ids.put("ids", filterIds);
             queryBoolFilterBoolMust.add(ids);
         }
         // -filter
-        Map<String, Object> filter = (Map<String, Object>) getNestedMapObject(cloneMap, new String[] {"filter"}, 0);
+        Map<String, Object> filter = (Map<String, Object>) getNestedMapObject(cloneMap, new String[] { "filter" }, 0);
         if (filter != null) {
             // -query
             List<Map<String, Object>> filterXquerys = new ArrayList<Map<String, Object>>();
@@ -1036,14 +924,19 @@ public class InternalEsClient {
             // -filter
             Map<String, Object> filerXfilter = parseMap(filter);
             List<Map<String, Object>> filterBoolMust = (List<Map<String, Object>>) getNestedMapObject(filerXfilter,
-                    new String[] {"bool", "must"}, 0);
+                    new String[] { "bool", "must" }, 0);
             if (filterBoolMust != null) {
                 queryBoolFilterBoolMust.add(filerXfilter);
             }
-            List<Map<String, Object>> filterBoolShould = (List<Map<String, Object>>) getNestedMapObject(
-                    filerXfilter, new String[] {"bool", "should"}, 0);
+            List<Map<String, Object>> filterBoolShould = (List<Map<String, Object>>) getNestedMapObject(filerXfilter,
+                    new String[] { "bool", "should" }, 0);
             if (filterBoolShould != null) {
                 queryBoolFilterBoolShould.add(filerXfilter);
+            }
+
+            // for version 7
+            if (!queryBoolFilterBoolShould.isEmpty() && !queryBoolFilterBoolMust.isEmpty()) {
+                queryBoolFilterBool.put("minimum_should_match", 1);
             }
         }
         /////
@@ -1066,6 +959,11 @@ public class InternalEsClient {
         }
         if (queryBoolFilterBoolShould.isEmpty()) {
             queryBoolFilterBool.remove("should");
+        }
+
+        // for version 7
+        if (!queryBoolShould.isEmpty() && (!queryBoolMust.isEmpty() || !queryBoolFilter.isEmpty())) {
+            queryBool.put("minimum_should_match", 1);
         }
         String jsonstr = toJSON(newMap, true);
         // Convert end
@@ -1184,7 +1082,7 @@ public class InternalEsClient {
                 String type = (String) getNestedMapObject(queryMap, "type");
                 if (type != null) {
                     Map<String, Object> match = (Map<String, Object>) getNestedMapObject(queryMap,
-                            new String[] {"match"}, 0);
+                            new String[] { "match" }, 0);
                     removeNestedMapObject(match, "type");
                     removeNestedMapObject(match, "operator");
                     removeNestedMapObject(queryMap, "match");
@@ -1280,7 +1178,6 @@ public class InternalEsClient {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             if (shaping) {
                 mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
-                //mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY);
             }
             mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
             json = mapper.writeValueAsString(map);

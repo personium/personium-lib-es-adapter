@@ -1,5 +1,9 @@
 {
-  "index.mapping.total_fields.limit": 10000,
+  "mapping":{
+    "total_fields": {
+      "limit": "10000"
+    }
+  },
   "refresh_interval": -1,
   "number_of_shards": 10,
   "number_of_replicas": 0,

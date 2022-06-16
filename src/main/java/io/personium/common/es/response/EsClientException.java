@@ -118,12 +118,24 @@ public class EsClientException extends RuntimeException {
          */
         private static final long serialVersionUID = 1L;
 
+        /** status code from ElasticsearchException. */
+        private int status;
+
         /**
          * コンストラクタ.
          * @param cause 親例外
          */
         public PersoniumSearchPhaseExecutionException(ElasticsearchException cause) {
-            super("Index not found.", cause);
+            super("search_phase_execution_exception is thrown", cause);
+            this.status = cause.status();
+        }
+
+        /**
+         * Getter of status code of ElasticsearchException.
+         * @return  status.
+         */
+        public int status() {
+            return this.status;
         }
 
     }
