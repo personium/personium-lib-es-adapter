@@ -30,9 +30,20 @@ import io.personium.common.es.test.util.EsTestNode;
  * EsModelの単体テストケース.
  */
 public class EsTestBase {
-    static final String TESTING_HOSTS = "localhost:9300";
-    static final String TESTING_CLUSTER = "es-personium";
-    static final String INDEX_FOR_TEST = "index_for_test";
+
+    static final String DEFAULT_TESTING_HOSTS = "localhost:9300";
+    static final String DEFAULT_TESTING_CLUSTER = "es-personium";
+    static final String DEFAULT_INDEX_FOR_TEST = "index_for_test";
+
+    static final String TESTING_HOSTS;
+    static final String TESTING_CLUSTER;
+    static final String INDEX_FOR_TEST;
+
+    static {
+        TESTING_HOSTS = System.getProperty("io.personium.esTestingHost", DEFAULT_TESTING_HOSTS);
+        TESTING_CLUSTER = System.getProperty("io.personium.esTestingCluster", DEFAULT_TESTING_CLUSTER);
+        INDEX_FOR_TEST = System.getProperty("io.personium.esIndexForTest", DEFAULT_INDEX_FOR_TEST);
+    }
 
     static EsTestNode node;
     EsClient esClient;

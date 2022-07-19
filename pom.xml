@@ -3,7 +3,7 @@
     <groupId>io.personium</groupId>
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
-    <version>1_es6.8.22_2-SNAPSHOT</version>
+    <version>2_es8.3_1-SNAPSHOT</version>
     <name>personium-lib-es-adapter</name>
     <description>An abstract layer to absorb version incompatibilities of ElasticSearch for Personium.</description>
     <url>https://github.com/personium/personium-lib-es-adapter</url>
@@ -59,9 +59,10 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <es.version>6.8.22</es.version>
         <slf4j.version>1.7.25</slf4j.version>
+        <powermock.version>2.0.9</powermock.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
     </properties>
     <build>
@@ -183,7 +184,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
+                <version>0.8.4</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -294,11 +295,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch</artifactId>
-            <version>${es.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
             <version>${es.version}</version>
@@ -318,27 +314,13 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
-            <version>1.7.4</version>
+            <version>${powermock.version}</version>
             <scope>test</scope>
-            <!--
-            <exclusions>
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-            </exclusions>
-             -->
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>1.7.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- If elasticsearch version is upgraded, following dependency may not be needed. -->
@@ -346,6 +328,12 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
             <version>2.11.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <profiles>
