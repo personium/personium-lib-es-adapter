@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
+import co.elastic.clients.json.JsonpUtils;
 import io.personium.common.es.response.PersoniumMappingMetaData;
 
 /**
@@ -58,8 +59,10 @@ public class PersoniumMappingMetaDataImpl extends ElasticsearchResponseWrapper<T
     @Override
     public Map<String, Object> getSourceAsMap() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        // convert from Map<String, Property> to Map<String, Object>
-        Map<String, Object> result = mapper.readValue(this.getResponse().toString(), new TypeReference<Map<String, Object>>(){});
+
+        String strResult = JsonpUtils.toString(this.getResponse(), new StringBuilder()).toString();
+        Map<String, Object> result = mapper.readValue(strResult, new TypeReference<Map<String, Object>>() {
+        });
         return result;
     }
 }

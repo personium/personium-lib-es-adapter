@@ -3,7 +3,7 @@
     <groupId>io.personium</groupId>
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
-    <version>2_es8.3_1-SNAPSHOT</version>
+    <version>2_es7.17_1-SNAPSHOT</version>
     <name>personium-lib-es-adapter</name>
     <description>An abstract layer to absorb version incompatibilities of ElasticSearch for Personium.</description>
     <url>https://github.com/personium/personium-lib-es-adapter</url>
@@ -60,7 +60,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
-        <es.version>7.17.5</es.version>
+        <es.version>7.17.6</es.version>
+        <jackson.version>2.13.3</jackson.version>
         <slf4j.version>1.7.25</slf4j.version>
         <surefire.version>2.22.2</surefire.version>
         <powermock.version>2.0.9</powermock.version>
@@ -316,18 +317,18 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.10.8</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
-            <version>7.17-SNAPSHOT</version>
+            <version>${es.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
-            <version>7.17.4</version>
+            <version>${es.version}</version>
         </dependency>
 
         <dependency>
