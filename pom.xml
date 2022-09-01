@@ -3,7 +3,7 @@
     <groupId>io.personium</groupId>
     <artifactId>personium-lib-es-adapter</artifactId>
     <packaging>jar</packaging>
-    <version>2_es7.17_1-SNAPSHOT</version>
+    <version>2_es7.17.6_1-SNAPSHOT</version>
     <name>personium-lib-es-adapter</name>
     <description>An abstract layer to absorb version incompatibilities of ElasticSearch for Personium.</description>
     <url>https://github.com/personium/personium-lib-es-adapter</url>
@@ -159,7 +159,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
