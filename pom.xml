@@ -66,6 +66,8 @@
         <powermock.version>2.0.9</powermock.version>
         <jacoco.version>0.8.7</jacoco.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
+        <checkstyle.version>10.3.3</checkstyle.version>
+        <plugin.checkstyle.version>3.2.0</plugin.checkstyle.version>
     </properties>
     <build>
         <resources>
@@ -116,14 +118,32 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${plugin.checkstyle.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <configLocation>personium-checkstyle.xml</configLocation>
                     <propertiesLocation>checkstyle_maven.properties</propertiesLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <?m2e execute onConfiguration,onIncremental?>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -236,7 +256,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${plugin.checkstyle.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <configLocation>personium-checkstyle.xml</configLocation>
