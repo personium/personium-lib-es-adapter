@@ -23,7 +23,6 @@ import io.personium.common.es.response.PersoniumSearchHit;
 import io.personium.common.es.response.PersoniumSearchHits;
 import io.personium.common.es.response.PersoniumSearchResponse;
 
-//TODO check this is necessary.
 /**
  * インデックスが存在しない時に０件の検索結果をダミーで返すSearchResponse.
  * indexにカスタムのMapping定義が必ず存在することを保証するため、

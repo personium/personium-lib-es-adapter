@@ -54,6 +54,8 @@ public class EsClientException extends RuntimeException {
             return new EsClientException.PersoniumSearchPhaseExecutionException(e);
         case "index_not_found_exception":
             return new EsClientException.EsIndexMissingException(e);
+        case "illegal_argument_exception":
+            return new EsClientException(e.getMessage(), e);
         default:
             return e;
         }

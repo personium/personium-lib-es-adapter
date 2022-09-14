@@ -34,7 +34,7 @@ public class EsClientTest extends EsTestBase {
         var response = esClient.indicesStatus();
 
         // created indices in EsTestBase.
-        assertTrue(response.getIndices().contains("index_for_test_ad.cell"));
-        assertTrue(response.getIndices().contains("index_for_test_ad.domain"));
+        assertTrue(response.getIndices().contains(index.getName() + "." + TYPE_FOR_TEST_1));
+        assertTrue(response.getIndices().contains(index.getName() + "." + TYPE_FOR_TEST_2));
     }
 }

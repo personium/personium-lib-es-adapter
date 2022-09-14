@@ -21,6 +21,7 @@ import io.personium.common.es.response.PersoniumActionResponse;
 
 /**
  * Abstract Wrapper class for Elasticsearch responses.
+ * @param <T> original response type from elasticsarch.
  */
 public abstract class ElasticsearchResponseWrapper<T> implements PersoniumActionResponse {
 

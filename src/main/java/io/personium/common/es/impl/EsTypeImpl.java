@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.OpType;
@@ -97,12 +98,19 @@ public class EsTypeImpl implements EsType {
     @Override
     public PersoniumGetResponse get(String id, boolean realtime) {
         try {
-            var response = esClient.syncGet(this.indexName, this.typeName, id, this.routingId, realtime);
+            var response = esClient.asyncGet(this.indexName, this.typeName, id, this.routingId, realtime).get();
             if (!response.found()) {
                 return null;
             }
             return PersoniumGetResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
             throw new RuntimeException(e);
         }
     }
@@ -128,13 +136,18 @@ public class EsTypeImpl implements EsType {
             if (!typeAddedData.containsKey("type")) {
                 typeAddedData.put("type", this.typeName);
             }
-            var response = esClient.syncIndex(this.indexName, this.typeName, id, this.routingId, typeAddedData,
-                    OpType.Create, null);
+            var response = esClient.asyncIndex(this.indexName, this.typeName, id, this.routingId, typeAddedData,
+                    OpType.Create, null).get();
             return PersoniumIndexResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (ElasticsearchException e) {
-            throw EsClientException.convertException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
         }
     }
 
@@ -155,16 +168,20 @@ public class EsTypeImpl implements EsType {
 
             if (version != -1) {
                 // optimistic lock
-                var prev = esClient.syncGet(this.indexName, this.typeName, id, this.routingId, true, version);
+                var prev = esClient.asyncGet(this.indexName, this.typeName, id, this.routingId, true, version).get();
                 seqNoPrimaryTerm = new SeqNoPrimaryTerm(prev.seqNo(), prev.primaryTerm());
             }
-            var response = esClient.syncIndex(this.indexName, this.typeName, id, this.routingId, typeAddedData,
-                    OpType.Index, seqNoPrimaryTerm);
+            var response = esClient.asyncIndex(this.indexName, this.typeName, id, this.routingId, typeAddedData,
+                    OpType.Index, seqNoPrimaryTerm).get();
             return PersoniumIndexResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (ElasticsearchException e) {
-            throw EsClientException.convertException(e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
         }
     }
 
@@ -182,17 +199,23 @@ public class EsTypeImpl implements EsType {
     @Override
     public PersoniumSearchResponse search(final Map<String, Object> query) {
         try {
-            var response = esClient.syncSearch(this.indexName, this.typeName, this.routingId, query);
+            var response = esClient.asyncSearch(this.indexName, this.typeName, this.routingId, query).get();
             return PersoniumSearchResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (ElasticsearchException e) {
-            var ex = EsClientException.convertException(e);
-            if (ex instanceof EsClientException.EsIndexMissingException) {
-                return new PersoniumNullSearchResponse();
-            } else {
-                throw EsClientException.wrapException("unknown property was appointed.", e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                var ex = EsClientException.convertException((ElasticsearchException) cause);
+                if (ex instanceof EsClientException.EsIndexMissingException) {
+                    return new PersoniumNullSearchResponse();
+                } else {
+                    throw EsClientException.wrapException("unknown property was appointed.",
+                         (ElasticsearchException) cause);
+                }
             }
+            throw new RuntimeException(e);
         }
     }
 
@@ -202,9 +225,15 @@ public class EsTypeImpl implements EsType {
     @Override
     public PersoniumMultiSearchResponse multiSearch(List<Map<String, Object>> queryList) {
         try {
-            var response = esClient.syncMultiSearch(this.indexName, this.typeName, this.routingId, queryList);
+            var response = esClient.asyncMultiSearch(this.indexName, this.typeName, this.routingId, queryList).get();
             return PersoniumMultiSearchResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
             throw new RuntimeException(e);
         }
     }
@@ -223,12 +252,16 @@ public class EsTypeImpl implements EsType {
     @Override
     public PersoniumDeleteResponse delete(String docId, long version) {
         try {
-            var response = esClient.syncDelete(this.indexName, this.typeName, docId, this.routingId, version);
+            var response = esClient.asyncDelete(this.indexName, this.typeName, docId, this.routingId, version).get();
             return PersoniumDeleteResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
-        } catch (ElasticsearchException e) {
-            throw EsClientException.convertException(e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
         }
     }
 
@@ -236,7 +269,6 @@ public class EsTypeImpl implements EsType {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
     public PersoniumMappingMetaData getMapping() {
         try {
             var response = esClient.getMapping(this.indexName, this.typeName);
@@ -252,7 +284,6 @@ public class EsTypeImpl implements EsType {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
     public PersoniumPutMappingResponse putMapping(Map<String, Object> mappings) {
         try {
             var response = esClient.putMapping(this.indexName, this.typeName, mappings);

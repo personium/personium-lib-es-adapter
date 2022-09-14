@@ -23,6 +23,8 @@ import java.util.Map;
 
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import io.personium.common.es.impl.EsIndexImpl;
+import io.personium.common.es.impl.EsMappingAdmin;
+import io.personium.common.es.impl.EsMappingUser;
 import io.personium.common.es.impl.EsTypeImpl;
 import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.EsClientException;
@@ -39,6 +41,8 @@ import io.personium.common.es.util.IndexNameEncoder;
  */
 public class EsClient {
     private InternalEsClient internalClient;
+    private EsMappingConfig esMappingAdmin;
+    private EsMappingConfig esMappingUser;
 
     /**
      * Default constructor.
@@ -46,7 +50,20 @@ public class EsClient {
      * @param port port number
      */
     public EsClient(String hostname, int port) {
+        this(hostname, port, new EsMappingAdmin(), new EsMappingUser());
+    }
+
+    /**
+     * Constructor with specified mappingConfig.
+     * @param hostname target elasticsearch hostname
+     * @param port port number
+     * @param mappingAdmin .
+     * @param mappingUser .
+     */
+    public EsClient(String hostname, int port, EsMappingConfig mappingAdmin, EsMappingConfig mappingUser) {
         internalClient = InternalEsClient.getInstance(hostname, port);
+        esMappingAdmin = mappingAdmin;
+        esMappingUser = mappingUser;
     }
 
     /**
@@ -103,7 +120,8 @@ public class EsClient {
      * @return Indexオブジェクト
      */
     public EsIndex idxAdmin(String prefix, int times, int interval) {
-        return new EsIndexImpl(prefix + "_ad", EsIndex.CATEGORY_AD, times, interval, internalClient);
+        return new EsIndexImpl(prefix + "_ad",
+            EsIndex.CATEGORY_AD, times, interval, internalClient, this.esMappingAdmin);
     }
 
     /**
@@ -153,7 +171,8 @@ public class EsClient {
      */
     public EsIndex idxUser(String fullIndexName, int times, int interval) {
         // Engine専用。使用禁止
-        return new EsIndexImpl(fullIndexName, EsIndex.CATEGORY_USR, times, interval, internalClient);
+        return new EsIndexImpl(fullIndexName,
+            EsIndex.CATEGORY_USR, times, interval, internalClient, this.esMappingUser);
     }
 
     /**

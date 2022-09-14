@@ -21,6 +21,8 @@ import java.util.Map;
 
 import org.json.simple.JSONObject;
 
+import io.personium.common.es.impl.SeqNoPrimaryTerm;
+
 /**
  * Elasticsearchへのリクエストに応じたログ種別を扱うモデル.
  */
@@ -39,7 +41,7 @@ public class EsRequestLogInfo {
     /** 操作タイプ名. */
     private String opType;
     /** ドキュメントのバージョン. */
-    private long version;
+    private SeqNoPrimaryTerm seqNoPrimaryTerm;
 
     /**
      * コンストラクタ.
@@ -49,7 +51,7 @@ public class EsRequestLogInfo {
      * @param routingId routingId
      * @param data データ
      * @param opType 操作タイプ
-     * @param version version番号
+     * @param seqNoPrimaryTerm SeqNoPrimaryTerm for optimistic lock.
      */
     public EsRequestLogInfo(String index,
             String type,
@@ -57,14 +59,14 @@ public class EsRequestLogInfo {
             String routingId,
             Map<String, Object> data,
             String opType,
-            long version) {
+            SeqNoPrimaryTerm seqNoPrimaryTerm) {
         this.index = index;
         this.type = type;
         this.id = id;
         this.routingId = routingId;
         this.data = data;
         this.opType = opType;
-        this.version = version;
+        this.seqNoPrimaryTerm = seqNoPrimaryTerm;
     }
 
     /**
@@ -110,10 +112,10 @@ public class EsRequestLogInfo {
     }
 
     /**
-     * @return the version
+     * @return the seqNoPrimaryTerm
      */
-    public long getVersion() {
-        return this.version;
+    public SeqNoPrimaryTerm getSeqNoPrimaryTerm() {
+        return this.seqNoPrimaryTerm;
     }
 
     /**

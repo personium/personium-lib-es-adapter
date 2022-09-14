@@ -54,7 +54,6 @@ public class PersoniumScrollResponse extends ElasticsearchResponseWrapper<Scroll
      */
     @Override
     public PersoniumSearchHits getHits() {
-        // TODO use factory class
         return PersoniumSearchHitsImpl.getInstance(this.getResponse().hits());
     }
 
@@ -72,7 +71,6 @@ public class PersoniumScrollResponse extends ElasticsearchResponseWrapper<Scroll
     @Override
     public boolean isNullResponse() {
         // TODO Check implementation
-        // return searchResponse instanceof PersoniumNullSearchResponse;
         return false;
     }
 

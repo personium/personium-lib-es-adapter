@@ -17,6 +17,9 @@
  */
 package io.personium.common.es.impl;
 
+import java.util.Map;
+
+import org.apache.http.HttpHost;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,12 +37,31 @@ public class EsTestBase {
     private static final String DEFAULT_ES_TESTING_PORT = "9200";
     private static final String DEFAULT_INDEX_FOR_TEST = "index_for_test";
 
+    /** typename for test. */
+    public static final String TYPE_FOR_TEST_1 = "type_for_test1";
+    /** typename for test. */
+    public static final String TYPE_FOR_TEST_2 = "type_for_test2";
+
     static String testTargetHostname;
     static int testTargetPort;
     static String testTargetIndex;
+    static HttpHost testTargetHost;
 
     EsClient esClient;
     EsIndex index;
+
+    protected HttpHost getTestTargetHost() {
+        return testTargetHost;
+    }
+
+    protected EsIndex getIndex() {
+        return index;
+    }
+
+    protected InternalEsClient createInternalEsClient() {
+        return InternalEsClient.getInstance(testTargetHostname, testTargetPort);
+    }
+
 
     /**
      * Setup target elasticsearch.
@@ -49,6 +71,7 @@ public class EsTestBase {
         testTargetHostname = System.getProperty("io.personium.esTestingHost", DEFAULT_ES_TESTING_HOSTNAME);
         testTargetPort = Integer.parseInt(System.getProperty("io.personium.esTestingPort", DEFAULT_ES_TESTING_PORT));
         testTargetIndex = System.getProperty("io.personium.esIndexForTest", DEFAULT_INDEX_FOR_TEST);
+        testTargetHost = new HttpHost(testTargetHostname, testTargetPort);
     }
 
     /**
@@ -65,7 +88,16 @@ public class EsTestBase {
      */
     @Before
     public void setUp() throws Exception {
-        esClient = new EsClient(testTargetHostname, testTargetPort);
+        var esMappingAdmin = new EsMappingFromResources() {
+            @Override
+            Map<String, String> getMapTypeResPath() {
+                return Map.of(TYPE_FOR_TEST_1, "es/mapping/type1.json",
+                    TYPE_FOR_TEST_2, "es/mapping/type2.json");
+            }
+        };
+        var esMappingUser = new EsMappingUser();
+
+        esClient = new EsClient(testTargetHostname, testTargetPort, esMappingAdmin, esMappingUser);
         index = esClient.idxAdmin(testTargetIndex);
         index.create();
     }

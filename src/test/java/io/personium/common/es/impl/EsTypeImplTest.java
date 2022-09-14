@@ -17,12 +17,17 @@
  */
 package io.personium.common.es.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -36,26 +41,48 @@ import io.personium.common.es.response.impl.PersoniumNullSearchResponse;
  */
 public class EsTypeImplTest extends EsTestBase {
 
-    private static final String TYPENAME_FOR_TEST = "type_for_test";
+    private InternalEsClient internalClient;
 
     @Before
-    public void prepareType() {
+    public void setUpEsTypeImplTest() {
+        internalClient = createInternalEsClient();
         // prepare empty index for type
     }
 
-    @Test
-    public void getMapping_returns_collect_mappings() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        var type = esClient.type(index.getName(), "cell", "TestRoutingId");
-
-        var response = type.getMapping();
-        var mapping = response.getSourceAsMap();
-        System.out.println(mapper.writeValueAsString(mapping));
+    @After
+    public void tearDownEsTypeImplTest() {
+        try {
+            internalClient.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * Test that getMapping function returns mappings.
+     * @throws Exception .
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void getMapping_returns_collect_mappings() throws Exception {
+        var type = new EsTypeImpl(index.getName(), TYPE_FOR_TEST_1, "", 0, 0, internalClient);
+        var response = type.getMapping();
+        var mapping = response.getSourceAsMap();
+
+        var properties = new HashSet<String>(Arrays.asList("alldata", "type", "c", "s", "l", "u", "p"));
+        var actual = ((Map<String, Object>) mapping.get("properties")).keySet();
+        assertEquals(properties, actual);
+    }
+
+    /**
+     * Test that create function throws EsIndexMissingException if index does not exist.
+     * @throws Exception .
+     */
     @Test(expected = EsIndexMissingException.class)
     public void create_throws_EsIndexMissingException_if_index_does_not_exist() throws Exception {
-        var type = esClient.type(index.getName(), "type_not_exists", "TestRoutingId");
+        String typeName = "type_not_exists";
+        var type = new EsTypeImpl(index.getName(), typeName, "", 0, 0, internalClient);
+
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> doc = mapper.readValue("{\"Name\": \"DummyData\"}",
                 new TypeReference<Map<String, Object>>() {
@@ -63,38 +90,26 @@ public class EsTypeImplTest extends EsTestBase {
         type.create(doc);
     }
 
+    /**
+     * Test that search function returns null if document does not exist.
+     * @throws Exception .
+     */
     @Test
-    @Ignore
-    public void search_returns_PersoniumNullSearchResponse_if_query_does_not_match() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        var type = esClient.type(index.getName(), TYPENAME_FOR_TEST, "TestRoutingId");
+    public void get_returns_null_if_document_does_not_exist() throws Exception {
+        var type = new EsTypeImpl(index.getName(), TYPE_FOR_TEST_1, "", 0, 0, internalClient);
 
-        type.create(mapper.readValue("{\"Name\": \"DummyData\"}", new TypeReference<Map<String, Object>>() {
-        }));
-
-        String queryJson = """
-                {"query": {
-                    "filtered": {
-                        "query": { "match_all": {} },
-                        "filter": {
-                            "bool": {
-                                "must": [{ "exists ": { "field": "_id" }}]
-                            }
-                        }
-                    }
-                }}
-                """;
-
-        Map<String, Object> neverMatchQuery = mapper.readValue(queryJson, new TypeReference<Map<String, Object>>() {
-        });
-        var response = type.search(neverMatchQuery);
-        assertTrue(response instanceof PersoniumNullSearchResponse);
+        var response = type.get("not_existing_id");
+        assertNull(response);
     }
 
+    /**
+     * Test that search function returns PersoniumNullSearchResponse if index not found.
+     * @throws Exception .
+     */
     @Test
     public void search_returns_PersoniumNullSearchResponse_if_index_not_found() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        var type = esClient.type(index.getName(), "hogehoge", "TestRoutingId");
+        var type = new EsTypeImpl(index.getName(), "index_not_existing", "", 0, 0, internalClient);
 
         String queryJson = """
                 {"query": { "filtered": {

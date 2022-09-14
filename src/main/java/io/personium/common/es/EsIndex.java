@@ -43,23 +43,24 @@ public interface EsIndex {
     String CATEGORY_USR = "usr";
 
     /**
-     * タイプ名を指定してタイプ操作用オブジェクトを取得する.
+     * Getter of name.
      * @return name
      */
     String getName();
 
     /**
-     * @return カテゴリ文字列
+     * Getter of category.
+     * @return category
      */
     String getCategory();
 
     /**
-     * Indexを生成する.
+     * Create Index and child indices.
      */
     void create();
 
     /**
-     * Indexを削除します.
+     * Delete Index and child indices.
      */
     void delete();
 

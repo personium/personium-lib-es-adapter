@@ -18,17 +18,18 @@
 package io.personium.common.es.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsIndex;
+import io.personium.common.es.EsMappingConfig;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.PersoniumBulkResponse;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
@@ -43,21 +44,30 @@ import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 public class EsIndexImpl implements EsIndex {
 
     private InternalEsClient esClient;
-
-    // category - type - mappings.
-    static Map<String, Map<String, ObjectNode>> mappingConfigs = null;
+    private EsMappingConfig mappingConfig;
 
     String indexName;
     String category;
 
+    /**
+     * .
+     * @param indexName .
+     * @param category .
+     * @param times .
+     * @param interval .
+     * @param client .
+     * @param mappingConfig .
+     */
     public EsIndexImpl(final String indexName,
             final String category,
             int times,
             int interval,
-            InternalEsClient client) {
+            InternalEsClient client,
+            EsMappingConfig mappingConfig) {
         this.indexName = indexName;
         this.category = category;
         this.esClient = client;
+        this.mappingConfig = mappingConfig;
     }
 
     /**
@@ -81,11 +91,9 @@ public class EsIndexImpl implements EsIndex {
      */
     @Override
     public void create() {
-        if (mappingConfigs == null) {
-            loadMappingConfigs();
-        }
-        Map<String, ObjectNode> mappings = mappingConfigs.get(this.category);
-        if (mappings == null) {
+
+        Map<String, ObjectNode> mapping = mappingConfig.getMapping();
+        if (mapping == null) {
             throw new EsClientException("NO MAPPINGS DEFINED for " + this.category + this.indexName);
         }
 
@@ -112,8 +120,15 @@ public class EsIndexImpl implements EsIndex {
         }
 
         try {
-            esClient.syncCreateIndex(this.indexName, mappings, settingJson);
-        } catch (IOException e) {
+            esClient.asyncCreateIndex(this.indexName, mapping, settingJson).get();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
             throw new RuntimeException(e);
         }
     }
@@ -130,9 +145,16 @@ public class EsIndexImpl implements EsIndex {
     @Override
     public PersoniumSearchResponse search(String routingId, Map<String, Object> query) {
         try {
-            var response = esClient.syncSearch(this.indexName, routingId, query);
-            return PersoniumSearchResponseImpl.getInstance(response);
-        } catch (IOException e) {
+            var response = esClient.asyncSearch(this.indexName, routingId, query);
+            return PersoniumSearchResponseImpl.getInstance(response.get());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
             throw new RuntimeException(e);
         }
     }
@@ -140,9 +162,16 @@ public class EsIndexImpl implements EsIndex {
     @Override
     public PersoniumMultiSearchResponse multiSearch(String routingId, List<Map<String, Object>> queryList) {
         try {
-            var response = esClient.syncMultiSearch(this.indexName, routingId, queryList);
+            var response = esClient.asyncMultiSearch(this.indexName, routingId, queryList).get();
             return PersoniumMultiSearchResponseImpl.getInstance(response);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
             throw new RuntimeException(e);
         }
     }
@@ -179,6 +208,8 @@ public class EsIndexImpl implements EsIndex {
             esClient.updateIndexSettings(index, settings);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } catch (ElasticsearchException e) {
+            throw EsClientException.convertException(e);
         }
         return null;
     }
@@ -189,51 +220,13 @@ public class EsIndexImpl implements EsIndex {
     }
 
     /**
-     * Read mapping data from resources.
-     */
-    static synchronized void loadMappingConfigs() {
-        if (mappingConfigs != null) {
-            return;
-        }
-        mappingConfigs = new HashMap<String, Map<String, ObjectNode>>();
-
-        // admin category
-        var adminMap = new HashMap<String, ObjectNode>();
-        adminMap.put("Domain", readJsonResource("es/mapping/domain.json"));
-        adminMap.put("Cell", readJsonResource("es/mapping/cell.json"));
-
-        // user category
-        var userMap = new HashMap<String, ObjectNode>();
-        userMap.put("link", readJsonResource("es/mapping/link.json"));
-        userMap.put("Account", readJsonResource("es/mapping/account.json"));
-        userMap.put("Box", readJsonResource("es/mapping/box.json"));
-        userMap.put("Role", readJsonResource("es/mapping/role.json"));
-        userMap.put("Relation", readJsonResource("es/mapping/relation.json"));
-        userMap.put("SentMessage", readJsonResource("es/mapping/sentMessage.json"));
-        userMap.put("ReceivedMessage", readJsonResource("es/mapping/receivedMessage.json"));
-        userMap.put("EntityType", readJsonResource("es/mapping/entityType.json"));
-        userMap.put("AssociationEnd", readJsonResource("es/mapping/associationEnd.json"));
-        userMap.put("Property", readJsonResource("es/mapping/property.json"));
-        userMap.put("ComplexType", readJsonResource("es/mapping/complexType.json"));
-        userMap.put("ComplexTypeProperty", readJsonResource("es/mapping/complexTypeProperty.json"));
-        userMap.put("ExtCell", readJsonResource("es/mapping/extCell.json"));
-        userMap.put("ExtRole", readJsonResource("es/mapping/extRole.json"));
-        userMap.put("dav", readJsonResource("es/mapping/dav.json"));
-        userMap.put("UserData", readJsonResource("es/mapping/userdata.json"));
-        userMap.put("Rule", readJsonResource("es/mapping/rule.json"));
-
-        mappingConfigs.put(EsIndex.CATEGORY_AD, adminMap);
-        mappingConfigs.put(EsIndex.CATEGORY_USR, userMap);
-    }
-
-    /**
      * Read JSON resource and return as ObjectNode.
      * @param resPath resource path
      * @return ObjectNode
      */
     private static ObjectNode readJsonResource(final String resPath) {
         ObjectMapper mapper = new ObjectMapper();
-        try (InputStream is = EsIndexImpl.class.getClassLoader().getResourceAsStream(resPath)) {
+        try (var is = EsMappingFromResources.class.getClassLoader().getResourceAsStream(resPath)) {
             return mapper.readTree(is).deepCopy();
         } catch (IOException e) {
             throw new RuntimeException("exception while reading " + resPath, e);

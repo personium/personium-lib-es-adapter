@@ -17,6 +17,7 @@
  */
 package io.personium.common.es.impl;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.OpType;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
 import co.elastic.clients.elasticsearch.cluster.HealthResponse;
@@ -73,12 +75,16 @@ import jakarta.json.Json;
 /**
  * ElasticSearchのアクセサクラス.
  */
-public class InternalEsClient {
+public class InternalEsClient implements Closeable {
     static Logger log = LoggerFactory.getLogger(InternalEsClient.class);
 
     private RestClient restClient;
 
+    private RestClientTransport restClientTransport;
+
     private ElasticsearchClient esClient;
+
+    private ElasticsearchAsyncClient esAsyncClient;
 
     private boolean routingFlag;
 
@@ -100,6 +106,14 @@ public class InternalEsClient {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void close() throws IOException {
+        closeConnection();
+    }
+
+    /**
      * クラスタ名、接続先情報を指定してEsClientのインスタンスを返す.
      * @param hostname elasticsearch hostname
      * @param port port number
@@ -113,6 +127,28 @@ public class InternalEsClient {
      * ESとのコネクションを一度明示的に閉じる.
      */
     public void closeConnection() {
+        try {
+            if (this.restClientTransport != null) {
+                this.restClientTransport.close();
+            }
+        } catch (IOException e) {
+            log.info("Exception in closing restClientTransport", e);
+        } finally {
+            this.restClientTransport = null;
+        }
+
+        try {
+            if (this.restClient != null) {
+                this.restClient.close();
+            }
+        } catch (IOException e) {
+            log.info("Exception in closing restClient", e);
+        } finally {
+            this.restClientTransport = null;
+        }
+
+        this.esClient = null;
+        this.esAsyncClient = null;
     }
 
     /**
@@ -124,9 +160,10 @@ public class InternalEsClient {
             return;
         }
 
-        restClient = RestClient.builder(host).build();
-        var transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
-        this.esClient = new ElasticsearchClient(transport);
+        this.restClient = RestClient.builder(host).build();
+        this.restClientTransport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        this.esClient = new ElasticsearchClient(restClientTransport);
+        this.esAsyncClient = new ElasticsearchAsyncClient(restClientTransport);
     }
 
     static Map<Event, EventHandler> eventHandlerMap = new HashMap<Event, EventHandler>();
@@ -180,12 +217,12 @@ public class InternalEsClient {
      * @return response.
      * @throws IOException exception while calling api.
      */
-    public List<CreateIndexResponse> syncCreateIndex(String index,
-        Map<String, ObjectNode> mappings,
-        ObjectNode settingJson) throws IOException {
-            this.fireEvent(Event.creatingIndex, index);
+    public CompletableFuture<List<CreateIndexResponse>> asyncCreateIndex(String index,
+            Map<String, ObjectNode> mappings,
+            ObjectNode settingJson) throws IOException {
+        this.fireEvent(Event.creatingIndex, index);
         ObjectMapper mapper = new ObjectMapper();
-        var result = new ArrayList<CreateIndexResponse>();
+        var requests = new ArrayList<CompletableFuture<CreateIndexResponse>>();
         for (String type : mappings.keySet()) {
             JsonNode mappingJson = null;
             if (mappings.get(type).has("_doc")) {
@@ -197,7 +234,7 @@ public class InternalEsClient {
             try (StringReader indexSr = new StringReader(mapper.writeValueAsString(settingJson));
                 StringReader sr = new StringReader(mapper.writeValueAsString(mappingJson))) {
                 // var indexSrParser = Json.createParser(indexSr);
-                result.add(esClient.indices()
+                requests.add(esAsyncClient.indices()
                         .create(cir -> cir
                             .index(makeIndex(index, type))
                             // https://github.com/elastic/elasticsearch-java/issues/297
@@ -207,7 +244,12 @@ public class InternalEsClient {
                         ));
             }
         }
-        return result;
+        return (CompletableFuture<List<CreateIndexResponse>>) CompletableFuture
+            .allOf(requests.toArray(new CompletableFuture[requests.size()]))
+            .thenApply(ignored -> {
+                return requests.stream().map(request -> request.join()).toList();
+            });
+
     }
 
     /**
@@ -274,7 +316,26 @@ public class InternalEsClient {
     }
 
     /**
-     * Get document with specified version.
+     * Get document asynchronously.
+     * @param index インデックス名
+     * @param type タイプ名
+     * @param id ドキュメントのID
+     * @param routingId routingId
+     * @param realtime リアルタイムモードなら真
+     * @return 非同期応答
+     * @throws IOException IO exception while calling API.
+     * @throws ElasticsearchException ES exception while calling API.
+     */
+    public CompletableFuture<GetResponse<ObjectNode>> asyncGet(String index,
+            String type,
+            String id,
+            String routingId,
+            boolean realtime) throws IOException, ElasticsearchException {
+        return asyncGet(index, type, id, routingId, realtime, -1);
+    }
+
+    /**
+     * Asynchronous gettings documents with specified version.
      * @param index インデックス名
      * @param type タイプ名
      * @param id ドキュメントのID
@@ -282,13 +343,14 @@ public class InternalEsClient {
      * @param realtime リアルタイムモードなら真
      * @param version version
      * @return 非同期応答
-     * @throws IOException IO exception while calling API.
-     * @throws ElasticsearchException ES exception while calling API.
      */
-    public GetResponse<ObjectNode> syncGet(String index, String type, String id, String routingId, boolean realtime, long version)
-            throws IOException, ElasticsearchException {
-        this.fireEvent(Event.afterRequest, index, type, id, null, "Get");
-        return esClient.get(gr -> {
+    public CompletableFuture<GetResponse<ObjectNode>> asyncGet(String index,
+            String type,
+            String id,
+            String routingId,
+            boolean realtime,
+            long version) {
+        var ret = esAsyncClient.get(gr -> {
             var getRequest = gr.index(makeIndex(index, type)).type(makeType(type)).id(id).realtime(realtime);
             if (routingFlag) {
                 getRequest = getRequest.routing(routingId);
@@ -298,23 +360,8 @@ public class InternalEsClient {
             }
             return getRequest;
         }, ObjectNode.class);
-
-    }
-
-    /**
-     * Get document.
-     * @param index インデックス名
-     * @param type タイプ名
-     * @param id ドキュメントのID
-     * @param routingId routingId
-     * @param realtime リアルタイムモードなら真
-     * @return 非同期応答
-     * @throws IOException IO exception while calling API.
-     * @throws ElasticsearchException ES exception while calling API.
-     */
-    public GetResponse<ObjectNode> syncGet(String index, String type, String id, String routingId, boolean realtime)
-            throws IOException, ElasticsearchException {
-                return syncGet(index, type, id, routingId, realtime, -1);
+        this.fireEvent(Event.afterRequest, index, type, id, null, "Get");
+        return ret;
     }
 
     /**
@@ -325,14 +372,11 @@ public class InternalEsClient {
      * @param query クエリ情報
      * @return 非同期応答
      */
-    ElasticsearchAsyncClient aClient;
-
-    public <T> CompletableFuture<SearchResponse<T>> asyncSearch(String index,
+    public CompletableFuture<SearchResponse<ObjectNode>> asyncSearch(String index,
             String type,
             String routingId,
-            Map<String, Object> query,
-            Class<T> tDocumentClass) {
-        var result = aClient.search(sreq -> {
+            Map<String, Object> query) {
+        var result = esAsyncClient.search(sreq -> {
             var builder = sreq.index(makeIndex(index, type)).type(makeType(type));
             if (query != null) {
                 try (var sr = new StringReader(queryMapToJSON(query, type))) {
@@ -343,37 +387,6 @@ public class InternalEsClient {
                 builder.routing(routingId);
             }
             return builder;
-        }, tDocumentClass);
-        this.fireEvent(Event.afterRequest, index, type, null, JSONObject.toJSONString(query), "Search");
-        result.whenComplete((var res, var ex) -> {
-
-        });
-        return result;
-    }
-
-    /**
-     * Search documents with specifying type.
-     * @param index インデックス名
-     * @param type タイプ名
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return 非同期応答
-     * @throws IOException IO exception while calling API.
-     */
-    public SearchResponse<ObjectNode> syncSearch(String index, String type, String routingId, Map<String, Object> query)
-            throws IOException {
-        var result = esClient.search(sreq -> {
-            var searchReq = sreq.index(makeIndex(index, type)).type(makeType(type));
-            if (query != null) {
-                String queryJson = queryMapToJSON(query, type);
-                try (var sr = new StringReader(queryJson)) {
-                    searchReq = searchReq.withJson(sr);
-                }
-            }
-            if (routingFlag) {
-                searchReq = searchReq.routing(routingId);
-            }
-            return searchReq.version(true);
         }, ObjectNode.class);
         this.fireEvent(Event.afterRequest, index, type, null, JSONObject.toJSONString(query), "Search");
         return result;
@@ -387,27 +400,29 @@ public class InternalEsClient {
      * @return async response
      * @throws IOException IO exception while calling API.
      */
-    public SearchResponse<ObjectNode> syncSearch(String index, String routingId, Map<String, Object> query)
-            throws IOException {
-        return this.syncSearch(index, null, routingId, query);
+    public CompletableFuture<SearchResponse<ObjectNode>> asyncSearch(String index,
+            String routingId,
+            Map<String, Object> query) {
+        return this.asyncSearch(index, null, routingId, query);
     }
 
+
     /**
-     * Search documents from multiple indices.
+     * Search documents from multiple indices asynchronously.
      * @param index インデックス名
      * @param routingId routingId
      * @param queryList マルチ検索用のクエリ情報リスト
-     * @return 非同期応答
+     * @return Asynchronous response.
      * @throws IOException IO exception while calling API.
      */
-    public MsearchResponse<ObjectNode> syncMultiSearch(String index,
+    public CompletableFuture<MsearchResponse<ObjectNode>> asyncMultiSearch(String index,
             String routingId,
             List<Map<String, Object>> queryList) throws IOException {
-        return this.syncMultiSearch(index, null, routingId, queryList);
+        return this.asyncMultiSearch(index, null, routingId, queryList);
     }
 
     /**
-     * Search documents from multiple indices.
+     * Search documents from multiple indices asynchronously.
      * @param index インデックス名
      * @param type タイプ名
      * @param routingId routingId
@@ -415,7 +430,7 @@ public class InternalEsClient {
      * @return 非同期応答
      * @throws IOException IO exception while calling API.
      */
-    public MsearchResponse<ObjectNode> syncMultiSearch(String index,
+    public CompletableFuture<MsearchResponse<ObjectNode>> asyncMultiSearch(String index,
             String type,
             String routingId,
             List<Map<String, Object>> queryList) throws IOException {
@@ -447,8 +462,10 @@ public class InternalEsClient {
             listRequestItems.add(riBuilder.build());
         }
 
+        var response = esAsyncClient.msearch(mr -> mr.searches(listRequestItems), ObjectNode.class);
+
         this.fireEvent(Event.afterRequest, index, type, null, JSONArray.toJSONString(queryList), "MultiSearch");
-        return esClient.msearch(mr -> mr.searches(listRequestItems), ObjectNode.class);
+        return response;
     }
 
     private static final String SCROLL_SEARCH_KEEP_ALIVE_TIME = "5m";
@@ -487,25 +504,28 @@ public class InternalEsClient {
     }
 
     /**
-     * Search documents in all types in an index.
+     * Search documents in all types in an index asynchronously.
      * @param index インデックス名
      * @param query クエリ情報
-     * @return SearchResponse.
+     * @return Asynchronous response.
      * @throws IOException IO exception while calling API.
      */
-    public SearchResponse<ObjectNode> indexSearch(String index, Map<String, Object> query) throws IOException {
+    public CompletableFuture<SearchResponse<ObjectNode>> indexSearch(String index,
+            Map<String, Object> query) throws IOException {
         SearchRequest.Builder builder = new SearchRequest.Builder().index(makeIndex(index, null));
         if (query != null) {
             try (StringReader sr = new StringReader(queryMapToJSON(query, null))) {
                 builder = builder.withJson(sr);
             }
         }
+
+        var response = esAsyncClient.search(builder.build(), ObjectNode.class);
         this.fireEvent(Event.afterRequest, index, null, null, JSONObject.toJSONString(query), "Search");
-        return esClient.search(builder.build(), ObjectNode.class);
+        return response;
     }
 
     /**
-     * Index a document.
+     * Index a document asynchronously.
      * @param index インデックス名
      * @param type タイプ名
      * @param id ドキュメントのid
@@ -516,15 +536,15 @@ public class InternalEsClient {
      * @return IndexResponse
      * @throws IOException IO exception while calling API.
      */
-    public IndexResponse syncIndex(String index,
+    public CompletableFuture<IndexResponse> asyncIndex(String index,
             String type,
             String id,
             String routingId,
             Map<String, Object> data,
-            co.elastic.clients.elasticsearch._types.OpType opType,
-            SeqNoPrimaryTerm seqNoPrimaryTerm) throws IOException {
+            OpType opType,
+            SeqNoPrimaryTerm seqNoPrimaryTerm) {
 
-        var response = esClient.index(ir -> {
+        var response = esAsyncClient.index(ir -> {
             var indexReq = ir
                     .index(makeIndex(index, type))
                     .type(makeType(type))
@@ -541,14 +561,15 @@ public class InternalEsClient {
             return indexReq;
         });
 
-        EsRequestLogInfo logInfo = new EsRequestLogInfo(index, type, id, routingId, data, opType.toString(), response.version());
+        EsRequestLogInfo logInfo = new EsRequestLogInfo(index,
+            type, id, routingId, data, opType.toString(), seqNoPrimaryTerm);
         this.fireEvent(Event.afterCreate, logInfo);
 
         return response;
     }
 
     /**
-     * Delete a document.
+     * Delete a document asynchronously.
      * @param index インデックス名
      * @param type タイプ名
      * @param id Document id to delete
@@ -557,9 +578,11 @@ public class InternalEsClient {
      * @return DeleteResponse.
      * @throws IOException IO exception while calling API.
      */
-    public DeleteResponse syncDelete(String index, String type, String id, String routingId, long version)
-            throws IOException {
-        var response = esClient.delete(dr -> {
+    public CompletableFuture<DeleteResponse> asyncDelete(String index,
+            String type, String id,
+            String routingId,
+            long version) throws IOException {
+        var response = esAsyncClient.delete(dr -> {
             var deleteReq = dr
                 .index(makeIndex(index, type))
                 .type(makeType(type))
@@ -780,6 +803,7 @@ public class InternalEsClient {
         return newData;
     }
 
+    @SuppressWarnings("unchecked") // CHECKSTYLE IGNORE
     private static String queryMapToJSON(Map<String, Object> map, String type) { // CHECKSTYLE IGNORE
         if (log.isDebugEnabled()) {
             log.debug("\n--- Before ---\n" + toJSON(map, false));
@@ -1019,6 +1043,7 @@ public class InternalEsClient {
         return map;
     }
 
+    @SuppressWarnings("unchecked")
     private static void parseAndOrNotMap(List<Map<String, Object>> listmap, Object value) {
         if (value instanceof List) {
             List<Map<String, Object>> lmap = parseListMap((List<Map<String, Object>>) value);
@@ -1075,6 +1100,7 @@ public class InternalEsClient {
         return rlistmap;
     }
 
+    @SuppressWarnings("unchecked")
     private static void parseQueryMap(List<Map<String, Object>> listQueryMap, Map<String, Object> map) {
         for (Entry<String, Object> entry : map.entrySet()) {
             if (entry.getKey().equals("query")) {
@@ -1103,6 +1129,7 @@ public class InternalEsClient {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static void removeNestedMapObject(Map<String, Object> map, String key) {
         Map<String, Object> queryClone = new HashMap<String, Object>(map);
         for (Entry<String, Object> entry : queryClone.entrySet()) {
@@ -1122,6 +1149,7 @@ public class InternalEsClient {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static Object getNestedMapObject(Map<String, Object> map, String key) {
         Map<String, Object> queryClone = new HashMap<String, Object>(map);
         for (Entry<String, Object> entry : queryClone.entrySet()) {
@@ -1147,6 +1175,7 @@ public class InternalEsClient {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     private static Object getNestedMapObject(Map<String, Object> map, String[] keys, int index) {
         Object obj = map.get(keys[index]);
         if (obj != null) {
@@ -1194,6 +1223,7 @@ public class InternalEsClient {
      * @param type type
      * @return deep clone map
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> deepClone(int direction, Map<String, Object> map, String type) {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
