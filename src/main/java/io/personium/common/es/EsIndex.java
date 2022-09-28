@@ -20,7 +20,6 @@ package io.personium.common.es;
 import java.util.List;
 import java.util.Map;
 
-import io.personium.common.es.query.PersoniumQueryBuilder;
 import io.personium.common.es.response.PersoniumBulkResponse;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
@@ -44,23 +43,24 @@ public interface EsIndex {
     String CATEGORY_USR = "usr";
 
     /**
-     * タイプ名を指定してタイプ操作用オブジェクトを取得する.
+     * Getter of name.
      * @return name
      */
     String getName();
 
     /**
-     * @return カテゴリ文字列
+     * Getter of category.
+     * @return category
      */
     String getCategory();
 
     /**
-     * Indexを生成する.
+     * Create Index and child indices.
      */
     void create();
 
     /**
-     * Indexを削除します.
+     * Delete Index and child indices.
      */
     void delete();
 
@@ -71,14 +71,6 @@ public interface EsIndex {
      * @return ES応答
      */
     PersoniumSearchResponse search(String routingId, Map<String, Object> query);
-
-    /**
-     * ドキュメントを検索.
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return ES応答
-     */
-    PersoniumSearchResponse search(String routingId, PersoniumQueryBuilder query);
 
     /**
      * ドキュメントをマルチ検索.
@@ -110,5 +102,12 @@ public interface EsIndex {
      * @param settings 更新するインデックス設定
      * @return Void
      */
+    @Deprecated
     Void updateSettings(String index, Map<String, String> settings);
+
+    /**
+     * update index settings.
+     * @param settings index settings to be put
+     */
+    void updateSettings(Map<String, String> settings);
 }

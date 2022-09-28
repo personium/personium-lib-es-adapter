@@ -17,8 +17,6 @@
  */
 package io.personium.common.es.util;
 
-import io.personium.common.es.impl.EsIndexImpl.TooLongIndexNameException;
-
 /**
  * ElasticsearchのIndex名エンコードクラス.
  */
@@ -26,6 +24,24 @@ public class IndexNameEncoder {
 
     // インデックス名の許容される最大長
     private static final int MAX_INDEX_NAME_LENGTH = 64;
+
+    /**
+     * インデックス名が最大長を超えた場合にスローする例外.
+     */
+    public static class TooLongIndexNameException extends RuntimeException {
+        /**
+         * デフォルトシリアルバージョンID.
+         */
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * コンストラクタ.
+         * @param msg メッセージ
+         */
+        public TooLongIndexNameException(final String msg) {
+            super(msg);
+        }
+    }
 
     private IndexNameEncoder() {
     }

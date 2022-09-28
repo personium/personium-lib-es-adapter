@@ -15,20 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.personium.common.es.query;
+package io.personium.common.es;
 
-import org.elasticsearch.index.query.QueryBuilder;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * クエリビルダーのinterface.
- * elasticsearchのバージョン差異を吸収する為のインターフェース
+ * Interface for managing type - mapping.
  */
-public interface PersoniumQueryBuilder {
+public interface EsMappingConfig {
 
     /**
-     * QueryBuilderを取得する.
-     * @return QueryBuilder
+     * @return mapping.
      */
-    QueryBuilder getQueryBuilder();
-
+    Map<String, ObjectNode> getMapping();
 }

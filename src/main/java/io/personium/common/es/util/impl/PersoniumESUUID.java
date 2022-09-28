@@ -17,20 +17,29 @@
  */
 package io.personium.common.es.util.impl;
 
-import org.elasticsearch.common.UUIDs;
+import java.nio.ByteBuffer;
+import java.util.Base64;
+import java.util.UUID;
 
 /**
- * UUIDを採番するためのユーティリティクラス.
+ * Utility class for generating UUID.
  */
 public class PersoniumESUUID {
+
+    static final int UUID_SIZE = 16;
+
     private PersoniumESUUID() {
     }
 
     /**
-     * ランダムなUUIDを返す.
+     * Returns random UUID.
      * @return UUID
      */
     public static String randomUUID() {
-        return UUIDs.randomBase64UUID();
+        UUID uuid = UUID.randomUUID();
+        ByteBuffer bb = ByteBuffer.wrap(new byte[UUID_SIZE]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bb.array());
     }
 }

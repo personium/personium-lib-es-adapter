@@ -18,7 +18,7 @@
 package io.personium.common.es.response;
 
 /**
- * DcIndexResponse.
+ * PersoniumIndexResponse.
  */
 public interface PersoniumIndexResponse extends PersoniumActionResponse {
 

@@ -1,6 +1,6 @@
 /**
  * Personium
- * Copyright 2014-2021 Personium Project Authors
+ * Copyright 2022 Personium Project Authors
  * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,23 @@
  */
 package io.personium.common.es.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Unit test for EsTypeImpl.
+ * Class for get mapping for admin.
  */
-public class EsTest extends EsTestBase {
+public class EsMappingAdmin extends EsMappingFromResources {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    Map<String, String> getMapTypeResPath() {
+        // admin category
+        var adminMap = new HashMap<String, String>();
+        adminMap.put("Domain", "es/mapping/domain.json");
+        adminMap.put("Cell", "es/mapping/cell.json");
+        return adminMap;
+    }
 }

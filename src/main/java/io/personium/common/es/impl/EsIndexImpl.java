@@ -18,35 +18,18 @@
 package io.personium.common.es.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.lang.CharEncoding;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.ResourceAlreadyExistsException;
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.MultiSearchResponse;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.index.IndexNotFoundException;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.Refresh;
 import io.personium.common.es.EsBulkRequest;
 import io.personium.common.es.EsIndex;
-import io.personium.common.es.query.PersoniumQueryBuilder;
+import io.personium.common.es.EsMappingConfig;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.PersoniumBulkResponse;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
@@ -56,564 +39,197 @@ import io.personium.common.es.response.impl.PersoniumMultiSearchResponseImpl;
 import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 
 /**
- * Class for index operations .
+ * Class for index operations.
  */
-public class EsIndexImpl extends EsTranslogHandler implements EsIndex {
+public class EsIndexImpl implements EsIndex {
+
     private InternalEsClient esClient;
+    private EsMappingConfig mappingConfig;
 
-    /**
-     * logger.
-     */
-    static Logger log = LoggerFactory.getLogger(EsIndexImpl.class);
-
-    // エラー発生時のリトライ回数
-    private int retryCount;
-    // エラー発生時のリトライ間隔
-    private int retryInterval;
-
-    String name;
+    String indexName;
     String category;
 
-    private EsTranslogHandler requestOwner;
-
     /**
-     * インデックス名とカテゴリを指定してインスタンスを生成する.
-     * @param name index name
-     * @param category カテゴリ
-     * @param times retry times when ES error occurs
-     * @param interval retry interval (milli sec) when ES error occurs
-     * @param client EsClientオブジェクト
+     * .
+     * @param indexName .
+     * @param category .
+     * @param times .
+     * @param interval .
+     * @param client .
+     * @param mappingConfig .
      */
-    public EsIndexImpl(final String name, final String category, int times, int interval, InternalEsClient client) {
-        super(times, interval, client, name);
-        // バッチコマンド群から参照されているためpublicとしているが参照しないこと
-        // （EsClientのファクトリメソッドを使用してインスタンス化すること）
-        this.name = name;
+    public EsIndexImpl(final String indexName,
+            final String category,
+            int times,
+            int interval,
+            InternalEsClient client,
+            EsMappingConfig mappingConfig) {
+        this.indexName = indexName;
         this.category = category;
-        this.retryCount = times;
-        this.retryInterval = interval;
         this.esClient = client;
-
-        this.requestOwner = this;
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public String getCategory() {
-        return this.category;
-    }
-
-    @Override
-    public void create() {
-        if (mappingConfigs == null) {
-            loadMappingConfigs();
-        }
-        Map<String, JSONObject> mappings = mappingConfigs.get(this.category);
-        if (mappings == null) {
-            throw new EsClientException("NO MAPPINGS DEFINED for " + this.category + this.name);
-        }
-
-        CreateRetryableRequest request = new CreateRetryableRequest(retryCount, retryInterval, name, mappings);
-        // 必要な場合、メソッド内でリトライが行われる.
-        request.doRequest();
-    }
-
-    @Override
-    public void delete() {
-        DeleteRetryableRequest request = new DeleteRetryableRequest(retryCount, retryInterval, this.name);
-        // 必要な場合、メソッド内でリトライが行われる.
-        request.doRequest();
-    }
-
-    @Override
-    public PersoniumSearchResponse search(String routingId, final Map<String, Object> query) {
-        SearchWithMapRetryableRequest request = new SearchWithMapRetryableRequest(retryCount, retryInterval, routingId,
-                query);
-        // 必要な場合、メソッド内でリトライが行われる.
-        return PersoniumSearchResponseImpl.getInstance(request.doRequest());
-    }
-
-    @Override
-    public PersoniumSearchResponse search(String routingId, final PersoniumQueryBuilder query) {
-        SearchRetryableRequest request = new SearchRetryableRequest(retryCount, retryInterval, routingId,
-                getQueryBuilder(query));
-        // 必要な場合、メソッド内でリトライが行われる.
-        return PersoniumSearchResponseImpl.getInstance(request.doRequest());
-    }
-
-    @Override
-    public PersoniumMultiSearchResponse multiSearch(String routingId, final List<Map<String, Object>> queryList) {
-        MultiSearchRetryableRequest request =
-                new MultiSearchRetryableRequest(retryCount, retryInterval, routingId, queryList);
-        // 必要な場合、メソッド内でリトライが行われる.
-        return PersoniumMultiSearchResponseImpl.getInstance(request.doRequest());
+        this.mappingConfig = mappingConfig;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    public String getName() {
+        return this.indexName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getCategory() {
+        return this.category;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void create() {
+
+        Map<String, ObjectNode> mapping = mappingConfig.getMapping();
+        if (mapping == null) {
+            throw new EsClientException("NO MAPPINGS DEFINED for " + this.category + this.indexName);
+        }
+
+        // load index config
+        ObjectNode settingJson = readJsonResource("es/indexSettings.json");
+        // static settings are moved to resource file except analyzer lang.
+        // indexSettings.put("analysis.analyzer.default.type", "cjk");
+        // dynamic
+        String numberOfShards = System.getProperty("io.personium.es.index.numberOfShards");
+        if (numberOfShards != null) {
+            settingJson.put("number_of_shards", numberOfShards);
+        }
+        String numberOfReplicas = System.getProperty("io.personium.es.index.numberOfReplicas");
+        if (numberOfReplicas != null) {
+            settingJson.put("number_of_replicas", numberOfReplicas);
+        }
+        String maxResultWindow = System.getProperty("io.personium.es.index.maxResultWindow");
+        if (maxResultWindow != null) {
+            settingJson.put("max_result_window", maxResultWindow);
+        }
+        String maxThreadCount = System.getProperty("io.personium.es.index.merge.scheduler.maxThreadCount");
+        if (maxThreadCount != null) {
+            settingJson.put("index.merge.scheduler.max_thread_count", maxThreadCount);
+        }
+
+        try {
+            esClient.asyncCreateIndex(this.indexName, mapping, settingJson).get();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void delete() {
+        try {
+            esClient.syncDeleteIndex(this.indexName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public PersoniumSearchResponse search(String routingId, Map<String, Object> query) {
+        try {
+            var response = esClient.asyncSearch(this.indexName, routingId, query);
+            return PersoniumSearchResponseImpl.getInstance(response.get());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public PersoniumMultiSearchResponse multiSearch(String routingId, List<Map<String, Object>> queryList) {
+        try {
+            var response = esClient.asyncMultiSearch(this.indexName, routingId, queryList).get();
+            return PersoniumMultiSearchResponseImpl.getInstance(response);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            // Elasticsearch throws ElasticsearchException and TransportException in ExecutionException
+            Throwable cause = e.getCause();
+            if (cause instanceof ElasticsearchException) {
+                throw EsClientException.convertException((ElasticsearchException) cause);
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void deleteByQuery(String routingId, Map<String, Object> query) {
-        DeleteByQueryRetryableRequest request = new DeleteByQueryRetryableRequest(retryCount, retryInterval,
-                this.name, query);
-        request.doRequest();
+        try {
+            esClient.deleteByQuery(this.indexName, query, true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // Confirm that all items have been deleted
-        PersoniumSearchResponse response = this.search(routingId, query);
-        long failedCount = response.getHits().getAllPages();
+        PersoniumSearchResponse searchRes = this.search(routingId, query);
+        long failedCount = searchRes.getHits().getAllPages();
         if (failedCount != 0) {
             throw new EsClientException.EsDeleteByQueryException(failedCount);
         }
     }
 
-    private QueryBuilder getQueryBuilder(PersoniumQueryBuilder dcQueryBuilder) {
-        QueryBuilder queryBuilder = null;
-        if (dcQueryBuilder != null) {
-            queryBuilder = dcQueryBuilder.getQueryBuilder();
+    @Override
+    public PersoniumBulkResponse bulkRequest(String routingId, List<EsBulkRequest> datas, boolean isWriteLog) {
+        try {
+            var response = esClient.bulkRequest(this.indexName, routingId, datas, isWriteLog, Refresh.True);
+            return PersoniumBulkResponseImpl.getInstance(response);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        if (queryBuilder == null) {
-            log.info("Query is not specified.");
-        }
-        return queryBuilder;
     }
 
     @Override
-    public PersoniumBulkResponse bulkRequest(
-            final String routingId, final List<EsBulkRequest> datas, boolean isWriteLog) {
-        BulkRetryableRequest request = new BulkRetryableRequest(retryCount, retryInterval,
-                this.name, routingId, datas, isWriteLog);
-        // 必要な場合、メソッド内でリトライが行われる.
-        return PersoniumBulkResponseImpl.getInstance(request.doRequest());
-    }
-
-    /**
-     * インデックスの設定を更新する.
-     * @param index インデックス名
-     * @param settings 更新するインデックス設定
-     * @return Void
-     */
     public Void updateSettings(String index, Map<String, String> settings) {
         try {
-            UpdateSettingsRetryableRequest request = new UpdateSettingsRetryableRequest(retryCount, retryInterval,
-                    index, settings);
-            // 必要な場合、メソッド内でリトライが行われる.
-            return request.doRequest();
-        } catch (IllegalArgumentException iar) {
-            throw new EsClientException(iar.getMessage(), iar);
-        }
-    }
-
-    /**
-     * Elasticsearchへの index create処理実装.
-     */
-    class CreateRetryableRequest extends AbstractRetryableEsRequest<CreateIndexResponse> {
-        String name;
-        String[] types;
-        Map<String, JSONObject> mappings;
-
-        CreateRetryableRequest(int retryCount, long retryInterval,
-                String argName, Map<String, JSONObject> argMappings) {
-            super(retryCount, retryInterval, "EsIndex create");
-            name = argName;
-            mappings = argMappings;
-        }
-
-        @Override
-        CreateIndexResponse doProcess() {
-            return esClient.createIndex(name, mappings).actionGet();
-        }
-
-        /**
-         * リトライ時、引数に指定された例外を特別扱いする場合、trueを返すようにオーバーライドすること.
-         * これにより、#onParticularErrorメソッドが呼び出される.
-         * 標準実装では, 常に falseを返す.
-         * @param e 検査対象の例外
-         * @return true: 正常終了として扱う場合, false: 左記以外の場合
-         */
-        @Override
-        boolean isParticularError(ElasticsearchException e) {
-            return e instanceof ResourceAlreadyExistsException
-                    || e.getCause() instanceof ResourceAlreadyExistsException;
-        }
-
-        @Override
-        CreateIndexResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof ResourceAlreadyExistsException
-                    || e.getCause() instanceof ResourceAlreadyExistsException) {
-                throw new EsClientException.EsIndexAlreadyExistsException(e);
-            }
-            throw e;
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * Elasticsearchへの index delete処理実装.
-     */
-    class DeleteRetryableRequest extends AbstractRetryableEsRequest<AcknowledgedResponse> {
-        String name;
-
-        DeleteRetryableRequest(int retryCount, long retryInterval, String argName) {
-            super(retryCount, retryInterval, "EsIndex delete");
-            name = argName;
-        }
-
-        @Override
-        AcknowledgedResponse doProcess() {
-            return esClient.deleteIndex(this.name).actionGet();
-        }
-
-        @Override
-        boolean isParticularError(ElasticsearchException e) {
-            return e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException;
-        }
-
-        @Override
-        AcknowledgedResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
-                throw new EsClientException.EsIndexMissingException(e);
-            }
-            throw e;
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    static Map<String, Map<String, JSONObject>> mappingConfigs = null;
-
-    static synchronized void loadMappingConfigs() {
-        if (mappingConfigs != null) {
-            return;
-        }
-        mappingConfigs = new HashMap<String, Map<String, JSONObject>>();
-        loadMappingConfig(EsIndex.CATEGORY_AD, "Domain", "es/mapping/domain.json");
-        loadMappingConfig(EsIndex.CATEGORY_AD, "Cell", "es/mapping/cell.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "link", "es/mapping/link.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Account", "es/mapping/account.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Box", "es/mapping/box.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Role", "es/mapping/role.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Relation", "es/mapping/relation.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "SentMessage", "es/mapping/sentMessage.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ReceivedMessage", "es/mapping/receivedMessage.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "EntityType", "es/mapping/entityType.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "AssociationEnd", "es/mapping/associationEnd.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Property", "es/mapping/property.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexType", "es/mapping/complexType.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ComplexTypeProperty", "es/mapping/complexTypeProperty.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtCell", "es/mapping/extCell.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "ExtRole", "es/mapping/extRole.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "dav", "es/mapping/dav.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "UserData", "es/mapping/userdata.json");
-        loadMappingConfig(EsIndex.CATEGORY_USR, "Rule", "es/mapping/rule.json");
-    }
-
-    static void loadMappingConfig(String indexCat, String typeCat, String resPath) {
-        JSONObject json = readJsonResource(resPath);
-        Map<String, JSONObject> idxMappings = mappingConfigs.get(indexCat);
-        if (idxMappings == null) {
-            idxMappings = new HashMap<String, JSONObject>();
-            mappingConfigs.put(indexCat, idxMappings);
-        }
-        idxMappings.put(typeCat, json);
-    }
-
-    /**
-     * プログラムリソース中のJSONで書かれた設定情報を読み出します.
-     * @param resPath リソースパス
-     * @return 読み出したJSONオブジェクト
-     */
-    private static JSONObject readJsonResource(final String resPath) {
-        JSONParser jp = new JSONParser();
-        JSONObject json = null;
-        InputStream is = null;
-        try {
-            is = EsIndexImpl.class.getClassLoader().getResourceAsStream(resPath);
-            json = (JSONObject) jp.parse(new InputStreamReader(is, CharEncoding.UTF_8));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            esClient.updateIndexSettings(index, settings);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+        } catch (ElasticsearchException e) {
+            throw EsClientException.convertException(e);
         }
-        return json;
+        return null;
+    }
+
+    @Override
+    public void updateSettings(Map<String, String> settings) {
+        this.updateSettings(this.indexName, settings);
     }
 
     /**
-     * インデックス名が最大長を超えた場合にスローする例外.
+     * Read JSON resource and return as ObjectNode.
+     * @param resPath resource path
+     * @return ObjectNode
      */
-    public static class TooLongIndexNameException extends RuntimeException {
-        /**
-         * デフォルトシリアルバージョンID.
-         */
-        private static final long serialVersionUID = 1L;
-
-        /**
-         * コンストラクタ.
-         * @param msg メッセージ
-         */
-        public TooLongIndexNameException(final String msg) {
-            super(msg);
-        }
-    }
-
-    /**
-     * Elasticsearchへの search処理実装.
-     * Queryの指定方法をMapで記述する
-     */
-    class SearchWithMapRetryableRequest extends AbstractRetryableEsRequest<SearchResponse> {
-        String routingId;
-        Map<String, Object> query;
-
-        SearchWithMapRetryableRequest(int retryCount, long retryInterval,
-                String argRoutingId, Map<String, Object> argQuery) {
-            super(retryCount, retryInterval, "EsIndex search");
-            query = argQuery;
-            routingId = argRoutingId;
-        }
-
-        @Override
-        SearchResponse doProcess() {
-            return asyncIndexSearch(routingId, query).actionGet();
-        }
-
-        @Override
-        boolean isParticularError(ElasticsearchException e) {
-            return e instanceof IndexNotFoundException
-                    || e.getCause() instanceof IndexNotFoundException
-                    || e instanceof SearchPhaseExecutionException;
-        }
-
-        @Override
-        SearchResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
-                return null;
-            }
-            if (e instanceof SearchPhaseExecutionException) {
-                throw new EsClientException("unknown property was appointed.", e);
-            }
-            throw e;
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * Elasticsearchへの search処理実装.
-     * Queryの指定方法をQueryBuilderで記述する
-     * <p>
-     * TODO PersoniumQueryBuilder is not maintained yet.
-     * If want to use this, maintain PersoniumQueryBuilder.
-     */
-    @Deprecated
-    class SearchRetryableRequest extends AbstractRetryableEsRequest<SearchResponse> {
-        String routingId;
-        QueryBuilder query;
-
-        SearchRetryableRequest(int retryCount, long retryInterval,
-                String argRoutingId, QueryBuilder argQuery) {
-            super(retryCount, retryInterval, "EsIndex search");
-            routingId = argRoutingId;
-            query = argQuery;
-        }
-
-        @Override
-        boolean isParticularError(ElasticsearchException e) {
-            return e instanceof IndexNotFoundException
-                    || e.getCause() instanceof IndexNotFoundException
-                    || e instanceof SearchPhaseExecutionException;
-        }
-
-        @Override
-        SearchResponse doProcess() {
-            return asyncIndexSearch(routingId, query).actionGet();
-        }
-
-        @Override
-        SearchResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof IndexNotFoundException || e.getCause() instanceof IndexNotFoundException) {
-                return null;
-            }
-            if (e instanceof SearchPhaseExecutionException) {
-                throw new EsClientException("unknown property was appointed.", e);
-            }
-            throw e;
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * Elasticsearchへの multisearch処理実装.
-     */
-    class MultiSearchRetryableRequest extends AbstractRetryableEsRequest<MultiSearchResponse> {
-        String routingId;
-        List<Map<String, Object>> queryList;
-
-        MultiSearchRetryableRequest(int retryCount, long retryInterval,
-                String argRoutingId, List<Map<String, Object>> argQueryList) {
-            super(retryCount, retryInterval, "EsIndex search");
-            routingId = argRoutingId;
-            queryList = argQueryList;
-        }
-
-        @Override
-        MultiSearchResponse doProcess() {
-            return asyncMultiIndexSearch(routingId, queryList).actionGet();
-        }
-
-        @Override
-        boolean isParticularError(ElasticsearchException e) {
-            return e instanceof SearchPhaseExecutionException;
-        }
-
-        @Override
-        MultiSearchResponse onParticularError(ElasticsearchException e) {
-            if (e instanceof SearchPhaseExecutionException) {
-                throw new EsClientException("unknown property was appointed.", e);
-            }
-            throw e;
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * Elasticsearchへの delete by query処理実装.
-     */
-    class DeleteByQueryRetryableRequest extends AbstractRetryableEsRequest<BulkByScrollResponse> {
-        String name;
-        Map<String, Object> deleteQuery;
-
-        DeleteByQueryRetryableRequest(int retryCount, long retryInterval,
-                String argName, Map<String, Object> argDeleteQuery) {
-            super(retryCount, retryInterval, "EsIndex deleteByQuery");
-            name = argName;
-            deleteQuery = argDeleteQuery;
-        }
-
-        @Override
-        BulkByScrollResponse doProcess() {
-            return esClient.deleteByQuery(name, deleteQuery);
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * Elasticsearchへの update index settings処理実装.
-     */
-    class UpdateSettingsRetryableRequest extends AbstractRetryableEsRequest<Void> {
-        String index;
-        Map<String, String> settings;
-
-        UpdateSettingsRetryableRequest(int retryCount, long retryInterval,
-                String index, Map<String, String> settings) {
-            super(retryCount, retryInterval, "EsIndex updateSettings");
-            this.index = index;
-            this.settings = settings;
-        }
-
-        @Override
-        Void doProcess() {
-            return esClient.updateIndexSettings(index, settings);
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
-        }
-    }
-
-    /**
-     * 非同期でドキュメントを検索.
-     * Queryの指定方法をMapで直接記述せずにQueryBuilderにするため、非推奨とする.
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return ES応答
-     */
-    public ActionFuture<SearchResponse> asyncIndexSearch(String routingId, final Map<String, Object> query) {
-        return esClient.asyncSearch(this.name, routingId, query);
-    }
-
-    /**
-     * 非同期でドキュメントを検索.
-     * @param routingId routingId
-     * @param query クエリ情報
-     * @return ES応答
-     */
-    public ActionFuture<SearchResponse> asyncIndexSearch(String routingId, final QueryBuilder query) {
-        return esClient.asyncSearch(this.name, routingId, query);
-    }
-
-    /**
-     * 非同期でドキュメントをマルチ検索.
-     * @param routingId routingId
-     * @param queryList クエリ情報一覧
-     * @return ES応答
-     */
-    public ActionFuture<MultiSearchResponse> asyncMultiIndexSearch(String routingId,
-            final List<Map<String, Object>> queryList) {
-        return esClient.asyncMultiSearch(this.name, routingId, queryList);
-    }
-
-    /**
-     * Elasticsearchへの bulk create処理実装.
-     */
-    class BulkRetryableRequest extends AbstractRetryableEsRequest<BulkResponse> {
-        String name;
-        String routingId;
-        List<EsBulkRequest> datas;
-        boolean isWriteLog;
-
-        BulkRetryableRequest(int retryCount, long retryInterval,
-                String argName, String argRoutingId, List<EsBulkRequest> argDatas, boolean isWriteLog) {
-            super(retryCount, retryInterval, "EsIndex bulkCreate");
-            this.name = argName;
-            this.routingId = argRoutingId;
-            this.datas = argDatas;
-            this.isWriteLog = isWriteLog;
-        }
-
-        @Override
-        BulkResponse doProcess() {
-            return esClient.bulkRequest(name, routingId, datas, isWriteLog);
-        }
-
-        @Override
-        EsTranslogHandler getEsTranslogHandler() {
-            return requestOwner;
+    private static ObjectNode readJsonResource(final String resPath) {
+        ObjectMapper mapper = new ObjectMapper();
+        try (var is = EsMappingFromResources.class.getClassLoader().getResourceAsStream(resPath)) {
+            return mapper.readTree(is).deepCopy();
+        } catch (IOException e) {
+            throw new RuntimeException("exception while reading " + resPath, e);
         }
     }
 }

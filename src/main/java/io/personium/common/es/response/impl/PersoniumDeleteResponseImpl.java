@@ -17,24 +17,15 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.delete.DeleteResponse;
-import org.elasticsearch.rest.RestStatus;
-
+import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch.core.DeleteResponse;
 import io.personium.common.es.response.PersoniumDeleteResponse;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper of DeleteResponse.
  */
-public class PersoniumDeleteResponseImpl extends PersoniumActionResponseImpl implements PersoniumDeleteResponse {
-    private DeleteResponse deleteResponse;
-
-    /**
-     * .
-     */
-    private PersoniumDeleteResponseImpl() {
-        super(null);
-        throw new IllegalStateException();
-    }
+public class PersoniumDeleteResponseImpl extends ElasticsearchResponseWrapper<DeleteResponse>
+        implements PersoniumDeleteResponse {
 
     /**
      * GetResponseを指定してインスタンスを生成する.
@@ -42,7 +33,6 @@ public class PersoniumDeleteResponseImpl extends PersoniumActionResponseImpl imp
      */
     private PersoniumDeleteResponseImpl(DeleteResponse response) {
         super(response);
-        this.deleteResponse = response;
     }
 
     /**
@@ -57,35 +47,35 @@ public class PersoniumDeleteResponseImpl extends PersoniumActionResponseImpl imp
         return new PersoniumDeleteResponseImpl(response);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcDeleteResponse#getId()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getId() {
-        return this.deleteResponse.getId();
+        return this.getResponse().id();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcDeleteResponse#version()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long version() {
-        return this.deleteResponse.getVersion();
+        return this.getResponse().version();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcDeleteResponse#getVersion()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long getVersion() {
-        return this.deleteResponse.getVersion();
+        return this.getResponse().version();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcDeleteResponse#isNotFound()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isNotFound() {
-        return this.deleteResponse.status().equals(RestStatus.NOT_FOUND);
+        return this.getResponse().result().equals(Result.NotFound);
     }
 }

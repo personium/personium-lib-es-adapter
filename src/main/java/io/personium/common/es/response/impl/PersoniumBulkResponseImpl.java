@@ -20,17 +20,16 @@ package io.personium.common.es.response.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkResponse;
-
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import io.personium.common.es.response.PersoniumBulkItemResponse;
 import io.personium.common.es.response.PersoniumBulkResponse;
 
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class for BulkResponse.
  */
-public class PersoniumBulkResponseImpl extends PersoniumActionResponseImpl implements PersoniumBulkResponse {
-    private BulkResponse bulkResponse;
+public class PersoniumBulkResponseImpl extends ElasticsearchResponseWrapper<BulkResponse>
+        implements PersoniumBulkResponse {
 
     /**
      * .
@@ -41,18 +40,17 @@ public class PersoniumBulkResponseImpl extends PersoniumActionResponseImpl imple
     }
 
     /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
+     * Constructor with BulkReponse object.
+     * @param response BulkResponse object.
      */
     private PersoniumBulkResponseImpl(BulkResponse response) {
         super(response);
-        this.bulkResponse = response;
     }
 
     /**
-     * .
-     * @param response .
-     * @return .
+     * Instanciate PersoniumBulkResponse from BulkResponse object.
+     * @param response BulkResponse object.
+     * @return Created instance.
      */
     public static PersoniumBulkResponse getInstance(BulkResponse response) {
         if (response == null) {
@@ -61,25 +59,32 @@ public class PersoniumBulkResponseImpl extends PersoniumActionResponseImpl imple
         return new PersoniumBulkResponseImpl(response);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcBulkResponse#items()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public PersoniumBulkItemResponse[] items() {
         List<PersoniumBulkItemResponse> list = new ArrayList<PersoniumBulkItemResponse>();
-        for (BulkItemResponse response : this.bulkResponse.getItems()) {
+        for (BulkResponseItem response : this.getResponse().items()) {
             list.add(PersoniumBulkItemResponseImpl.getInstance(response));
         }
         return list.toArray(new PersoniumBulkItemResponse[0]);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean hasFailures() {
-        return this.bulkResponse.hasFailures();
+        return this.getResponse().errors();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String buildFailureMessage() {
-        return this.bulkResponse.buildFailureMessage();
+        return String.join(",",
+                (String[]) this.getResponse().items().stream().map(item -> item.error().toString()).toArray());
     }
 }

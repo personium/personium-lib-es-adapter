@@ -19,32 +19,26 @@ package io.personium.common.es.response.impl;
 
 import java.util.Map;
 
-import org.elasticsearch.action.get.GetResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch.core.GetResponse;
 import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.PersoniumGetResponse;
 
 /**
- * GetResponseのラッパークラス.
+ * Wrapper of GetResponse.
  */
-public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implements PersoniumGetResponse {
-    private GetResponse getResponse;
-
-    /**
-     * .
-     */
-    private PersoniumGetResponseImpl() {
-        super(null);
-        throw new IllegalStateException();
-    }
+public class PersoniumGetResponseImpl extends ElasticsearchResponseWrapper<GetResponse<ObjectNode>>
+        implements PersoniumGetResponse {
 
     /**
      * GetResponseを指定してインスタンスを生成する.
      * @param response ESからのレスポンスオブジェクト
      */
-    private PersoniumGetResponseImpl(GetResponse response) {
+    private PersoniumGetResponseImpl(GetResponse<ObjectNode> response) {
         super(response);
-        this.getResponse = response;
     }
 
     /**
@@ -52,27 +46,28 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      * @param response .
      * @return .
      */
-    public static PersoniumGetResponse getInstance(GetResponse response) {
+    public static PersoniumGetResponse getInstance(GetResponse<ObjectNode> response) {
         if (response == null) {
             return null;
         }
         return new PersoniumGetResponseImpl(response);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#getId()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getId() {
-        return this.getResponse.getId();
+        return this.getResponse().id();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#id()
+    /**
+     * {@inheritDoc}
      */
+
     @Override
     public String id() {
-        return this.getResponse.getId();
+        return this.getResponse().id();
     }
 
     /**
@@ -80,70 +75,76 @@ public class PersoniumGetResponseImpl extends PersoniumActionResponseImpl implem
      */
     @Override
     public String getIndex() {
-        return getResponse.getIndex();
+        return getResponse().index();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#getType()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String getType() {
-        return (String) this.getResponse.getSourceAsMap().get("type");
+        // for back compability, getting type in property;
+        return (String) this.getResponse().source().get("type").asText();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#exists()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean exists() {
-        return this.getResponse.isExists();
+        return this.getResponse().found();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#isExists()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean isExists() {
-        return this.getResponse.isExists();
+        return this.getResponse().found();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#version()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long version() {
-        return this.getResponse.getVersion();
+        return this.getResponse().version();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#getVersion()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public long getVersion() {
-        return this.getResponse.getVersion();
+        return this.getResponse().version();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#getSource()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<String, Object> getSource() {
-        return InternalEsClient.deepClone(2, this.getResponse.getSource(), getType());
+        return this.sourceAsMap();
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#sourceAsString()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public String sourceAsString() {
-        return InternalEsClient.replaceSource(2, this.getResponse.getSourceAsString(), getType());
+        return InternalEsClient.replaceSource(2, this.getResponse().source().asText(), getType());
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcGetResponse#sourceAsMap()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Map<String, Object> sourceAsMap() {
-        return InternalEsClient.deepClone(2, this.getResponse.getSourceAsMap(), getType());
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> objMap = mapper.convertValue(this.getResponse().source(),
+                new TypeReference<Map<String, Object>>() {
+                });
+        return InternalEsClient.deepClone(2, objMap, getType());
     }
+
 }

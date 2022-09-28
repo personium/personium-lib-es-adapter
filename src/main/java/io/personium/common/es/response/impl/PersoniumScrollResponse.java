@@ -19,34 +19,34 @@ package io.personium.common.es.response.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.ScrollResponse;
 import io.personium.common.es.response.PersoniumSearchHits;
 import io.personium.common.es.response.PersoniumSearchResponse;
 
 /**
- * Wrapper class of SearchResponse.
+ * Wrapper class of ScrollResponse.
  */
-public class PersoniumSearchResponseImpl extends ElasticsearchResponseWrapper<SearchResponse<ObjectNode>>
+public class PersoniumScrollResponse extends ElasticsearchResponseWrapper<ScrollResponse<ObjectNode>>
         implements PersoniumSearchResponse {
 
     /**
-     * Constructor with SearchResponse object.
-     * @param response SearchResponse object.
+     * Constructor with ScrollResponse.
+     * @param response ScrollResponse object.
      */
-    private PersoniumSearchResponseImpl(SearchResponse<ObjectNode> response) {
+    private PersoniumScrollResponse(ScrollResponse<ObjectNode> response) {
         super(response);
     }
 
     /**
-     * Instanciate PersoniumSearchResponse from elasticsearch response.
-     * @param response SeachResponse object.
-     * @return Created instance.
+     * Create instance from elasticsearch response.
+     * @param response SeachResponse
+     * @return PersoniumSearchResponse
      */
-    public static PersoniumSearchResponse getInstance(SearchResponse<ObjectNode> response) {
+    public static PersoniumSearchResponse getInstance(ScrollResponse<ObjectNode> response) {
         if (response == null) {
             return null;
         }
-        return new PersoniumSearchResponseImpl(response);
+        return new PersoniumScrollResponse(response);
     }
 
     /**

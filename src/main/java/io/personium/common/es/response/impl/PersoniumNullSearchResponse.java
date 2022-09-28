@@ -17,17 +17,11 @@
  */
 package io.personium.common.es.response.impl;
 
-import java.io.IOException;
+import java.util.Iterator;
 
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.ShardSearchFailure;
-import org.elasticsearch.common.io.stream.StreamInput;
-import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
+import io.personium.common.es.response.PersoniumSearchHit;
+import io.personium.common.es.response.PersoniumSearchHits;
+import io.personium.common.es.response.PersoniumSearchResponse;
 
 /**
  * インデックスが存在しない時に０件の検索結果をダミーで返すSearchResponse.
@@ -39,7 +33,56 @@ import org.elasticsearch.search.SearchHits;
  * そのため、０件である旨をしめすResponseをシミュレートして返す。
  * Deprecatedとなっているメソッドは使わないこと。
  */
-public class PersoniumNullSearchResponse extends SearchResponse {
+public class PersoniumNullSearchResponse implements PersoniumSearchResponse {
+
+    class PersoniumNullSearchHits implements PersoniumSearchHits {
+
+        @Override
+        public Iterator<PersoniumSearchHit> iterator() {
+            return null;
+        }
+
+        @Override
+        public long allPages() {
+            return this.getAllPages();
+        }
+
+        @Override
+        public long getAllPages() {
+            return 0;
+        }
+
+        @Override
+        public long getCount() {
+            return 0;
+        }
+
+        @Override
+        public float maxScore() {
+            return 0;
+        }
+
+        @Override
+        public float getMaxScore() {
+            return 0;
+        }
+
+        @Override
+        public PersoniumSearchHit[] hits() {
+            return this.getHits();
+        }
+
+        @Override
+        public PersoniumSearchHit getAt(int position) {
+            return null;
+        }
+
+        @Override
+        public PersoniumSearchHit[] getHits() {
+            return new PersoniumSearchHit[0];
+        }
+
+    }
 
     /**
      * コンストラクタ.
@@ -49,151 +92,27 @@ public class PersoniumNullSearchResponse extends SearchResponse {
     }
 
     @Override
-    public SearchHits getHits() {
-        return new SearchHits(new SearchHit[0], 0, 0);
+    public boolean isNull() {
+        return true;
     }
 
+    @Override
+    public PersoniumSearchHits getHits() {
+        return new PersoniumNullSearchHits();
+    }
 
-    /**
-     * hits.
-     * @return SearchHits
-     */
-    public SearchHits hits() {
+    @Override
+    public PersoniumSearchHits hits() {
         return getHits();
     }
 
     @Override
-    @Deprecated
-    public RestStatus status() {
-        return super.status();
-    }
-
-    /**
-     * timeOut.
-     * @return true or false
-     */
-    @Deprecated
-    public boolean timedOut() {
-        return isTimedOut();
+    public boolean isNullResponse() {
+        return true;
     }
 
     @Override
-    @Deprecated
-    public boolean isTimedOut() {
-        return super.isTimedOut();
-    }
-
-    /**
-     * took.
-     * @return TimeValue
-     */
-    @Deprecated
-    public TimeValue took() {
-        return getTook();
-    }
-
-    @Override
-    @Deprecated
-    public TimeValue getTook() {
-        return super.getTook();
-    }
-
-    /**
-     * totalShards.
-     * @return int
-     */
-    @Deprecated
-    public int totalShards() {
-        return getTotalShards();
-    }
-
-    @Override
-    @Deprecated
-    public int getTotalShards() {
-        return super.getTotalShards();
-    }
-
-    /**
-     * successfulShards.
-     * @return int
-     */
-    @Deprecated
-    public int successfulShards() {
-        return getSuccessfulShards();
-    }
-
-    @Override
-    @Deprecated
-    public int getSuccessfulShards() {
-        return super.getSuccessfulShards();
-    }
-
-    /**
-     * failedShards.
-     * @return int
-     */
-    @Deprecated
-    public int failedShards() {
-        return getFailedShards();
-    }
-
-    @Override
-    @Deprecated
-    public int getFailedShards() {
-        return super.getFailedShards();
-    }
-
-    /**
-     * shardFailures.
-     * @return ShardSearchFailure[]
-     */
-    @Deprecated
-    public ShardSearchFailure[] shardFailures() {
-        return getShardFailures();
-    }
-
-    @Override
-    @Deprecated
-    public ShardSearchFailure[] getShardFailures() {
-        return super.getShardFailures();
-    }
-
-    /**
-     * scrollId.
-     * @return String
-     */
-    @Deprecated
-    public String scrollId() {
-        return getScrollId();
-    }
-
-    @Override
-    @Deprecated
     public String getScrollId() {
-        return super.getScrollId();
-    }
-
-    @Override
-    @Deprecated
-    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
-        return super.toXContent(builder, params);
-    }
-
-    @Override
-    @Deprecated
-    public void readFrom(StreamInput in) throws IOException {
-        super.readFrom(in);
-    }
-
-    @Override
-    @Deprecated
-    public void writeTo(StreamOutput out) throws IOException {
-        super.writeTo(out);
-    }
-
-    @Override
-    @Deprecated
-    public String toString() {
-        return super.toString();
+        return null;
     }
 }

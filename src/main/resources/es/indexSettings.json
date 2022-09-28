@@ -1,0 +1,11 @@
+{
+  "mapping":{
+    "total_fields": {
+      "limit": "10000"
+    }
+  },
+  "refresh_interval": -1,
+  "number_of_shards": 10,
+  "number_of_replicas": 0,
+  "max_result_window": 110000
+}

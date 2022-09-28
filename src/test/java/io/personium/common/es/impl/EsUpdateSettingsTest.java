@@ -19,21 +19,19 @@ package io.personium.common.es.impl;
 
 import static org.junit.Assert.assertEquals;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
-import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.metadata.MetaData;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.client.RestClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.GetIndicesSettingsResponse;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import io.personium.common.es.response.EsClientException;
 
 /**
@@ -65,16 +63,17 @@ public class EsUpdateSettingsTest extends EsTestBase {
     public void Indexの設定が更新できること() {
         Map<String, String> settings = new HashMap<String, String>();
         settings.put("index.number_of_replicas", "3");
-        TransportClient client = null;
+
+        String indexName = this.getIndex().getName() + "." + TYPE_FOR_TEST_1;
         try {
-            client = createTransportClient();
+            var gires = getIndexSettings(indexName);
+            assertEquals("0", gires.get(indexName).settings().index().numberOfReplicas());
 
-            assertEquals("0", getNumberOfReplicas(client, "index.number_of_replicas"));
-
-            index.updateSettings(index.getName(), settings);
-            assertEquals("3", getNumberOfReplicas(client, "index.number_of_replicas"));
-        } finally {
-            client.close();
+            this.getIndex().updateSettings(settings);
+            gires = getIndexSettings(indexName);
+            assertEquals("3", gires.get(indexName).settings().index().numberOfReplicas());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -85,15 +84,7 @@ public class EsUpdateSettingsTest extends EsTestBase {
     public void 存在しないkeyを指定した場合EsClientExceptionがスローされること() {
         Map<String, String> settings = new HashMap<String, String>();
         settings.put("invalid_key", "0");
-        TransportClient client = null;
-        try {
-            client = createTransportClient();
-
-            index.updateSettings(index.getName(), settings);
-
-        } finally {
-            client.close();
-        }
+        this.getIndex().updateSettings(settings);
     }
 
     /**
@@ -103,35 +94,16 @@ public class EsUpdateSettingsTest extends EsTestBase {
     public void 無効な値を指定した場合にEsClientExceptionがスローされること() {
         Map<String, String> settings = new HashMap<String, String>();
         settings.put("index.number_of_replicas", "invalid_value");
-        TransportClient client = null;
-        try {
-            client = createTransportClient();
+        this.getIndex().updateSettings(settings);
+    }
 
-            index.updateSettings(index.getName(), settings);
-
-        } finally {
-            client.close();
+    public GetIndicesSettingsResponse getIndexSettings(String indexName) throws IOException {
+        try (var restClient = RestClient.builder(getTestTargetHost()).build();
+                var transport = new RestClientTransport(restClient, new JacksonJsonpMapper())) {
+            var esClient = new ElasticsearchClient(transport);
+            var result = esClient.indices().getSettings(gis -> gis.index(indexName));
+            return result;
         }
     }
 
-    private TransportClient createTransportClient() {
-        Settings sts = Settings.builder()
-                .put("path.home", ".")
-                .put("cluster.name", TESTING_CLUSTER).build();
-        TransportClient client = new PreBuiltTransportClient(sts);
-        String[] h = TESTING_HOSTS.split(":");
-        client.addTransportAddress(new TransportAddress(new InetSocketAddress(h[0], Integer.valueOf(h[1]))));
-        return client;
-    }
-
-    private String getNumberOfReplicas(TransportClient client, String key) {
-        ClusterStateRequestBuilder request = client.admin().cluster().prepareState();
-        ClusterStateResponse response = request.setIndices(index.getName() + ".*").execute().actionGet();
-        MetaData metadata = response.getState().getMetaData();
-        String firstIndexKey = metadata.getIndices().iterator().next().key;
-
-        Settings retrievedSettings = metadata.index(firstIndexKey).getSettings();
-        String numberOfReplicas = retrievedSettings.get(key);
-        return numberOfReplicas;
-    }
 }

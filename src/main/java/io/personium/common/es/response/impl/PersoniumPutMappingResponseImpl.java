@@ -17,39 +17,29 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.ActionResponse;
-
+import co.elastic.clients.elasticsearch.indices.PutMappingResponse;
 import io.personium.common.es.response.PersoniumPutMappingResponse;
 
-
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class of PutMappingResponse.
  */
-public class PersoniumPutMappingResponseImpl extends PersoniumActionResponseImpl
+public class PersoniumPutMappingResponseImpl extends ElasticsearchResponseWrapper<PutMappingResponse>
         implements PersoniumPutMappingResponse {
 
     /**
-     * .
+     * Constructor.
+     * @param response PutMappingResponse
      */
-    private PersoniumPutMappingResponseImpl() {
-        super(null);
-        throw new IllegalStateException();
-    }
-
-    /**
-     * GetResponseを指定してインスタンスを生成する.
-     * @param response ESからのレスポンスオブジェクト
-     */
-    private PersoniumPutMappingResponseImpl(ActionResponse response) {
+    private PersoniumPutMappingResponseImpl(PutMappingResponse response) {
         super(response);
     }
 
     /**
-     * .
-     * @param response .
-     * @return .
+     * Factory method of PersoniumPutMappingResponse.
+     * @param response PutMappingResponse
+     * @return PersoniumPutMappingResponse instance.
      */
-    public static PersoniumPutMappingResponse getInstance(ActionResponse response) {
+    public static PersoniumPutMappingResponse getInstance(PutMappingResponse response) {
         if (response == null) {
             return null;
         }

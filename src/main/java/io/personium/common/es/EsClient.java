@@ -17,18 +17,21 @@
  */
 package io.personium.common.es;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.elasticsearch.index.IndexNotFoundException;
-
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import io.personium.common.es.impl.EsIndexImpl;
+import io.personium.common.es.impl.EsMappingAdmin;
+import io.personium.common.es.impl.EsMappingUser;
 import io.personium.common.es.impl.EsTypeImpl;
 import io.personium.common.es.impl.InternalEsClient;
 import io.personium.common.es.response.EsClientException;
 import io.personium.common.es.response.PersoniumIndicesStatusResponse;
 import io.personium.common.es.response.PersoniumSearchResponse;
 import io.personium.common.es.response.impl.PersoniumIndicesStatusResponseImpl;
+import io.personium.common.es.response.impl.PersoniumScrollResponse;
 import io.personium.common.es.response.impl.PersoniumSearchResponseImpl;
 import io.personium.common.es.util.IndexNameEncoder;
 
@@ -38,14 +41,29 @@ import io.personium.common.es.util.IndexNameEncoder;
  */
 public class EsClient {
     private InternalEsClient internalClient;
+    private EsMappingConfig esMappingAdmin;
+    private EsMappingConfig esMappingUser;
 
     /**
      * Default constructor.
-     * @param cluster クラスタ名
-     * @param hosts ホスト
+     * @param hostname target elasticsearch hostname
+     * @param port port number
      */
-    public EsClient(String cluster, String hosts) {
-        internalClient = InternalEsClient.getInstance(cluster, hosts);
+    public EsClient(String hostname, int port) {
+        this(hostname, port, new EsMappingAdmin(), new EsMappingUser());
+    }
+
+    /**
+     * Constructor with specified mappingConfig.
+     * @param hostname target elasticsearch hostname
+     * @param port port number
+     * @param mappingAdmin .
+     * @param mappingUser .
+     */
+    public EsClient(String hostname, int port, EsMappingConfig mappingAdmin, EsMappingConfig mappingUser) {
+        internalClient = InternalEsClient.getInstance(hostname, port);
+        esMappingAdmin = mappingAdmin;
+        esMappingUser = mappingUser;
     }
 
     /**
@@ -102,7 +120,8 @@ public class EsClient {
      * @return Indexオブジェクト
      */
     public EsIndex idxAdmin(String prefix, int times, int interval) {
-        return new EsIndexImpl(prefix + "_ad", EsIndex.CATEGORY_AD, times, interval, internalClient);
+        return new EsIndexImpl(prefix + "_ad",
+            EsIndex.CATEGORY_AD, times, interval, internalClient, this.esMappingAdmin);
     }
 
     /**
@@ -130,7 +149,7 @@ public class EsClient {
         } else {
             userUriToSet = IndexNameEncoder.encodeEsIndexName(userUriToSet);
         }
-        return new EsIndexImpl(prefix + "_" + userUriToSet, EsIndex.CATEGORY_USR, times, interval, internalClient);
+        return idxUser(prefix + "_" + userUriToSet, times, interval);
     }
 
     /**
@@ -152,7 +171,8 @@ public class EsClient {
      */
     public EsIndex idxUser(String fullIndexName, int times, int interval) {
         // Engine専用。使用禁止
-        return new EsIndexImpl(fullIndexName, EsIndex.CATEGORY_USR, times, interval, internalClient);
+        return new EsIndexImpl(fullIndexName,
+            EsIndex.CATEGORY_USR, times, interval, internalClient, this.esMappingUser);
     }
 
     /**
@@ -184,7 +204,11 @@ public class EsClient {
      * @return 状態Map
      */
     public Map<String, Object> checkHealth() {
-        return internalClient.checkHealth();
+        try {
+            return internalClient.checkHealth();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -192,7 +216,11 @@ public class EsClient {
      * @return インデックスステータス
      */
     public PersoniumIndicesStatusResponse indicesStatus() {
-        return PersoniumIndicesStatusResponseImpl.getInstance(internalClient.indicesStatus().actionGet());
+        try {
+            return PersoniumIndicesStatusResponseImpl.getInstance(internalClient.syncGetIndicesStatus());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -204,10 +232,11 @@ public class EsClient {
      */
     public PersoniumSearchResponse scrollSearch(String index, String type, Map<String, Object> query) {
         try {
-            return PersoniumSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(index, type, query)
-                    .actionGet());
-        } catch (IndexNotFoundException e) {
-            throw new EsClientException.EsIndexMissingException(e);
+            return PersoniumSearchResponseImpl.getInstance(internalClient.scrollSearch(index, type, query));
+        } catch (ElasticsearchException e) {
+            throw EsClientException.convertException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -217,6 +246,10 @@ public class EsClient {
      * @return 検索結果
      */
     public PersoniumSearchResponse scrollSearch(String scrollId) {
-        return PersoniumSearchResponseImpl.getInstance(internalClient.asyncScrollSearch(scrollId).actionGet());
+        try {
+            return PersoniumScrollResponse.getInstance(internalClient.scrollSearch(scrollId));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

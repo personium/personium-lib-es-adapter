@@ -21,18 +21,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.elasticsearch.action.search.MultiSearchResponse;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import co.elastic.clients.elasticsearch.core.MsearchResponse;
 import io.personium.common.es.response.PersoniumItem;
 import io.personium.common.es.response.PersoniumMultiSearchResponse;
 
-
 /**
- * IndexResponseのラッパークラス.
+ * Wrapper class of MsearchResponse.
  */
-public class PersoniumMultiSearchResponseImpl extends PersoniumActionResponseImpl implements Iterable<PersoniumItem>,
-        PersoniumMultiSearchResponse {
-    private MultiSearchResponse multiSearchResponse;
+public class PersoniumMultiSearchResponseImpl extends ElasticsearchResponseWrapper<MsearchResponse<ObjectNode>>
+        implements PersoniumMultiSearchResponse {
 
     /**
      * .
@@ -46,9 +45,8 @@ public class PersoniumMultiSearchResponseImpl extends PersoniumActionResponseImp
      * GetResponseを指定してインスタンスを生成する.
      * @param response ESからのレスポンスオブジェクト
      */
-    private PersoniumMultiSearchResponseImpl(MultiSearchResponse response) {
+    private PersoniumMultiSearchResponseImpl(MsearchResponse<ObjectNode> response) {
         super(response);
-        this.multiSearchResponse = response;
     }
 
     /**
@@ -56,34 +54,32 @@ public class PersoniumMultiSearchResponseImpl extends PersoniumActionResponseImp
      * @param response .
      * @return .
      */
-    public static PersoniumMultiSearchResponse getInstance(MultiSearchResponse response) {
+    public static PersoniumMultiSearchResponse getInstance(MsearchResponse<ObjectNode> response) {
         if (response == null) {
             return null;
         }
         return new PersoniumMultiSearchResponseImpl(response);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcMultiSearchResponse#getResponses()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public PersoniumItem[] getResponses() {
-        List<PersoniumItemImpl> list = new ArrayList<PersoniumItemImpl>();
-        for (MultiSearchResponse.Item item : this.multiSearchResponse.getResponses()) {
-            list.add((PersoniumItemImpl) PersoniumItemImpl.getInstance(item));
-        }
-        return list.toArray(new PersoniumItemImpl[0]);
+        return this.getResponse().responses().stream()
+            .map(item -> PersoniumItemImpl.getInstance(item))
+            .toArray(size -> new PersoniumItemImpl[size]);
     }
 
-    /* (non-Javadoc)
-     * @see io.personium.common.es.response.impl.DcMultiSearchResponse#iterator()
+    /**
+     * {@inheritDoc}
      */
     @Override
     public Iterator<PersoniumItem> iterator() {
         List<PersoniumItem> list = new ArrayList<PersoniumItem>();
-        for (MultiSearchResponse.Item item : this.multiSearchResponse.getResponses()) {
+        this.getResponse().responses().forEach(item -> {
             list.add(PersoniumItemImpl.getInstance(item));
-        }
+        });
         return list.iterator();
     }
 }

@@ -17,33 +17,27 @@
  */
 package io.personium.common.es.response.impl;
 
-import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-
+import co.elastic.clients.elasticsearch.indices.RefreshResponse;
 import io.personium.common.es.response.PersoniumRefreshResponse;
 
 /**
- * BulkItemResponseのラッパークラス.
+ * Wrapper class of RefreshResponse.
  */
-public class PersoniumRefreshResponseImpl extends PersoniumActionResponseImpl implements
-        PersoniumRefreshResponse {
-
-    private RefreshResponse refreshResponse;
+public class PersoniumRefreshResponseImpl extends ElasticsearchResponseWrapper<RefreshResponse>
+        implements PersoniumRefreshResponse {
 
     /**
-     * RefreshResponseを指定してインスタンスを生成する.
-     * @param response
-     *            ESからのレスポンスオブジェクト
+     * Constructor with RefreshResponse.
+     * @param response RefreshResponse object.
      */
     private PersoniumRefreshResponseImpl(RefreshResponse response) {
         super(response);
-        this.refreshResponse = response;
     }
 
     /**
-     * .
-     * @param response
-     *            .
-     * @return .
+     * Instanciate PersoniumRefreshResponse from RefreshResponse.
+     * @param response RefreshResponse object.
+     * @return Created instance.
      */
     public static PersoniumRefreshResponse getInstance(RefreshResponse response) {
         if (response == null) {
@@ -52,14 +46,20 @@ public class PersoniumRefreshResponseImpl extends PersoniumActionResponseImpl im
         return new PersoniumRefreshResponseImpl(response);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getSuccessfulShards() {
-        return this.refreshResponse.getSuccessfulShards();
+        return this.getResponse().shards().successful().intValue();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getFailedShards() {
-        return this.refreshResponse.getFailedShards();
+        return this.getResponse().shards().failed().intValue();
     }
 
 }
