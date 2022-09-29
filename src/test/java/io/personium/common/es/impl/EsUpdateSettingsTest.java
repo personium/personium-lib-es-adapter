@@ -98,7 +98,7 @@ public class EsUpdateSettingsTest extends EsTestBase {
     }
 
     public GetIndicesSettingsResponse getIndexSettings(String indexName) throws IOException {
-        try (var restClient = RestClient.builder(getTestTargetHost()).build();
+        try (var restClient = RestClient.builder(getTestTargetHttpHosts()).build();
                 var transport = new RestClientTransport(restClient, new JacksonJsonpMapper())) {
             var esClient = new ElasticsearchClient(transport);
             var result = esClient.indices().getSettings(gis -> gis.index(indexName));

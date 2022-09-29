@@ -46,22 +46,20 @@ public class EsClient {
 
     /**
      * Default constructor.
-     * @param hostname target elasticsearch hostname
-     * @param port port number
+     * @param hosts target elasticsearch hosts
      */
-    public EsClient(String hostname, int port) {
-        this(hostname, port, new EsMappingAdmin(), new EsMappingUser());
+    public EsClient(String hosts) {
+        this(hosts, new EsMappingAdmin(), new EsMappingUser());
     }
 
     /**
      * Constructor with specified mappingConfig.
-     * @param hostname target elasticsearch hostname
-     * @param port port number
+     * @param hosts target elasticsearch hosts
      * @param mappingAdmin .
      * @param mappingUser .
      */
-    public EsClient(String hostname, int port, EsMappingConfig mappingAdmin, EsMappingConfig mappingUser) {
-        internalClient = InternalEsClient.getInstance(hostname, port);
+    public EsClient(String hosts, EsMappingConfig mappingAdmin, EsMappingConfig mappingUser) {
+        internalClient = InternalEsClient.getInstance(hosts);
         esMappingAdmin = mappingAdmin;
         esMappingUser = mappingUser;
     }

@@ -21,11 +21,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
@@ -96,13 +98,12 @@ public class InternalEsClient implements Closeable {
 
     /**
      * constructor.
-     * @param hostname elasticsearch hostname
-     * @param port port number
+     * @param hosts elasticsearch hosts
      */
-    protected InternalEsClient(String hostname, int port) {
+    protected InternalEsClient(String hosts) {
         routingFlag = true;
-        HttpHost host = new HttpHost(hostname, port);
-        prepareClient(host);
+        List<HttpHost> httpHosts = parseConfigAndInitializeHostsList(hosts);
+        prepareClient(httpHosts.toArray(new HttpHost[httpHosts.size()]));
     }
 
     /**
@@ -115,12 +116,23 @@ public class InternalEsClient implements Closeable {
 
     /**
      * クラスタ名、接続先情報を指定してEsClientのインスタンスを返す.
-     * @param hostname elasticsearch hostname
-     * @param port port number
+     * @param hosts elasticsearch hosts
      * @return EsClientのインスタンス
      */
-    public static InternalEsClient getInstance(String hostname, int port) {
-        return new InternalEsClient(hostname, port);
+    public static InternalEsClient getInstance(String hosts) {
+        return new InternalEsClient(hosts);
+    }
+
+    /**
+     * Parse hosts string.
+     * @param hostNames hosts string ( `hostname1:port1, hostname2:port2` )
+     * @return List of HttpHost.
+     */
+    private List<HttpHost> parseConfigAndInitializeHostsList(String hostNames) {
+        return Arrays.asList(hostNames.split(",")).stream().map(host -> {
+            String hostWithoutSpaces = host.replaceAll("\\s+", "");
+            return HttpHost.create(hostWithoutSpaces);
+        }).collect(Collectors.toList());
     }
 
     /**
@@ -153,14 +165,14 @@ public class InternalEsClient implements Closeable {
 
     /**
      * Preparing esClient for communicating with elasticsearch.
-     * @param host elasticsearch host
+     * @param hosts elasticsearch host
      */
-    private void prepareClient(HttpHost host) {
+    private void prepareClient(HttpHost... hosts) {
         if (esClient != null) {
             return;
         }
 
-        this.restClient = RestClient.builder(host).build();
+        this.restClient = RestClient.builder(hosts).build();
         this.restClientTransport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         this.esClient = new ElasticsearchClient(restClientTransport);
         this.esAsyncClient = new ElasticsearchAsyncClient(restClientTransport);
