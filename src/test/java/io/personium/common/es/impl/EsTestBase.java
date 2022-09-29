@@ -17,6 +17,7 @@
  */
 package io.personium.common.es.impl;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.http.HttpHost;
@@ -33,8 +34,7 @@ import io.personium.common.es.EsIndex;
  */
 public class EsTestBase {
 
-    private static final String DEFAULT_ES_TESTING_HOSTNAME = "localhost";
-    private static final String DEFAULT_ES_TESTING_PORT = "9200";
+    private static final String DEFAULT_ES_TESTING_HOSTS = "localhost:9200";
     private static final String DEFAULT_INDEX_FOR_TEST = "index_for_test";
 
     /** typename for test. */
@@ -42,36 +42,33 @@ public class EsTestBase {
     /** typename for test. */
     public static final String TYPE_FOR_TEST_2 = "type_for_test2";
 
-    static String testTargetHostname;
+    static String testTargetHosts;
     static int testTargetPort;
     static String testTargetIndex;
-    static HttpHost testTargetHost;
 
     EsClient esClient;
     EsIndex index;
-
-    protected HttpHost getTestTargetHost() {
-        return testTargetHost;
-    }
 
     protected EsIndex getIndex() {
         return index;
     }
 
-    protected InternalEsClient createInternalEsClient() {
-        return InternalEsClient.getInstance(testTargetHostname, testTargetPort);
+    protected HttpHost[] getTestTargetHttpHosts() {
+        return Arrays.asList(testTargetHosts.split(",")).stream()
+                .map(host -> HttpHost.create(host.replaceAll("\\s+", ""))).toArray(HttpHost[]::new);
     }
 
+    protected InternalEsClient createInternalEsClient() {
+        return InternalEsClient.getInstance(testTargetHosts);
+    }
 
     /**
      * Setup target elasticsearch.
      */
     @BeforeClass
     public static void setUpBeforeClass() {
-        testTargetHostname = System.getProperty("io.personium.esTestingHost", DEFAULT_ES_TESTING_HOSTNAME);
-        testTargetPort = Integer.parseInt(System.getProperty("io.personium.esTestingPort", DEFAULT_ES_TESTING_PORT));
+        testTargetHosts = System.getProperty("io.personium.esTestingHosts", DEFAULT_ES_TESTING_HOSTS);
         testTargetIndex = System.getProperty("io.personium.esIndexForTest", DEFAULT_INDEX_FOR_TEST);
-        testTargetHost = new HttpHost(testTargetHostname, testTargetPort);
     }
 
     /**
@@ -91,13 +88,12 @@ public class EsTestBase {
         var esMappingAdmin = new EsMappingFromResources() {
             @Override
             Map<String, String> getMapTypeResPath() {
-                return Map.of(TYPE_FOR_TEST_1, "es/mapping/type1.json",
-                    TYPE_FOR_TEST_2, "es/mapping/type2.json");
+                return Map.of(TYPE_FOR_TEST_1, "es/mapping/type1.json", TYPE_FOR_TEST_2, "es/mapping/type2.json");
             }
         };
         var esMappingUser = new EsMappingUser();
 
-        esClient = new EsClient(testTargetHostname, testTargetPort, esMappingAdmin, esMappingUser);
+        esClient = new EsClient(testTargetHosts, esMappingAdmin, esMappingUser);
         index = esClient.idxAdmin(testTargetIndex);
         index.create();
     }
