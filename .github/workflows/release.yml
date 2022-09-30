@@ -83,10 +83,14 @@ jobs:
         git checkout develop
         git rebase master
 
-    - name: Set next -SNAPSHOT version, and get next version string.
+    - name: Get next -SNAPSHOT version
       run: |
-        mvn -B versions:set -DnextSnapshot && mvn -B versions:commit
-        echo "NEXT_SNAPSHOT_VERSION=$(mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+        NEXT_SNAPSHOT_VERSION=$(echo $RELEASE_VERSION | awk -F _ '{print $1"_"$2"_"$3+1"-SNAPSHOT"}')
+        echo "NEXT_SNAPSHOT_VERSION=$NEXT_SNAPSHOT_VERSION" >> $GITHUB_ENV
+    
+    - name: Set next version string.
+      run: |
+        mvn -B versions:set -DnewVersion=$NEXT_SNAPSHOT_VERSION && mvn -B versions:commit
 
     - name: Update versions on develop branch
       run: |
