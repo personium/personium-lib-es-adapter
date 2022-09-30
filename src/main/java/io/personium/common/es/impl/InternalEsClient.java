@@ -389,14 +389,14 @@ public class InternalEsClient implements Closeable {
             String routingId,
             Map<String, Object> query) {
         var result = esAsyncClient.search(sreq -> {
-            var builder = sreq.index(makeIndex(index, type)).type(makeType(type));
+            var builder = sreq.index(makeIndex(index, type)).type(makeType(type)).version(true);
             if (query != null) {
                 try (var sr = new StringReader(queryMapToJSON(query, type))) {
-                    builder.withJson(sr);
+                    builder = builder.withJson(sr);
                 }
             }
             if (routingFlag) {
-                builder.routing(routingId);
+                builder = builder.routing(routingId);
             }
             return builder;
         }, ObjectNode.class);
