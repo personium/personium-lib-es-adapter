@@ -21,6 +21,8 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - uses: actions/checkout@v2
+
     - name: git settings
       run: |
         if [ -z "$GITHUB_USER" -o -z "$GITHUB_TOKEN" ]; then
