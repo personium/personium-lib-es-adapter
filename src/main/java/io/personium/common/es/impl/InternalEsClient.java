@@ -410,7 +410,6 @@ public class InternalEsClient implements Closeable {
      * @param routingId routingId
      * @param query クエリ情報
      * @return async response
-     * @throws IOException IO exception while calling API.
      */
     public CompletableFuture<SearchResponse<ObjectNode>> asyncSearch(String index,
             String routingId,
@@ -546,7 +545,6 @@ public class InternalEsClient implements Closeable {
      * @param opType 操作タイプ
      * @param seqNoPrimaryTerm SeqNoPrimaryTerm for optimistic lock.
      * @return IndexResponse
-     * @throws IOException IO exception while calling API.
      */
     public CompletableFuture<IndexResponse> asyncIndex(String index,
             String type,
