@@ -16,6 +16,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.PERSONIUM_GITHUB_TOKEN }}
 
     steps:
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
     - name: git settings
       run: |
@@ -53,7 +57,8 @@ jobs:
         git push origin master
 
     - name: Create Release Note
-      run: awk '/##/{i++}i==1' CHANGELOG.md | tail +2 > ${{ github.workflow }}_CHANGELOG.md
+      run: |
+        awk '/##/{i++}i==1' CHANGELOG.md | tail +2 > ${{ github.workflow }}_CHANGELOG.md
 
     - name: Build with maven
       run: |
@@ -68,7 +73,7 @@ jobs:
         draft: true
         files: |
           target/${{ env.COMPONENT }}-${{ env.RELEASE_VERSION }}.${{ env.EXT_PACKAGING }}
-        target_commitish: master
+        prerelease: false
 
     - name: Delete Temporary Release Note
       run: rm ${{ github.workflow }}_CHANGELOG.md
