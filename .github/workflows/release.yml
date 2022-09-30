@@ -48,7 +48,7 @@ jobs:
 
     - name: Get extension of artifact
       run: |
-        echo "EXT_PACKAGING=$mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+        echo "EXT_PACKAGING=$(mvn -B help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
     - name: Commit and push
       run: |
